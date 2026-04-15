@@ -236,6 +236,7 @@ const TIER_COLOR = {Critical:'var(--crit)',High:'var(--high)',Medium:'var(--med)
 const TIER_BG = {Critical:'rgba(217,79,79,.08)',High:'rgba(217,124,42,.08)',Medium:'rgba(201,180,40,.08)',Low:'rgba(76,175,122,.08)'};
 const TIER_BD = {Critical:'rgba(217,79,79,.25)',High:'rgba(217,124,42,.25)',Medium:'rgba(201,180,40,.25)',Low:'rgba(76,175,122,.25)'};
 let selectedClass = 'auto';
+let lastSearchData = null;  // stores last multi-result search for back button
 
 function setClass(cls) {
   selectedClass = cls;
@@ -309,6 +310,9 @@ function showSingleResult(r) {
   const color = TIER_COLOR[tier] || 'var(--tx)';
   const pct = (r.score / 10 * 100).toFixed(0);
 
+  // Hide search results, show score card
+  document.getElementById('resultsList').classList.remove('visible');
+
   const card = document.getElementById('scoreCard');
   card.classList.add('visible');
   card.style.background = `linear-gradient(135deg, ${TIER_BG[tier]}, var(--s2))`;
@@ -339,7 +343,11 @@ function showSingleResult(r) {
     `<div class="juris-cell"><div class="juris-label">${k}</div><div class="juris-val" style="color:${color}">${v}</div></div>`
   ).join('') : '';
 
+  // Back button (only if we came from a multi-result search)
+  const backBtn = lastSearchData ? `<button onclick="backToResults()" style="font-family:var(--mono);font-size:10px;font-weight:600;padding:6px 14px;border-radius:4px;cursor:pointer;border:1px solid var(--bd);background:var(--s1);color:var(--acc);margin-bottom:10px">← Back to ${lastSearchData.count} results for "${lastSearchData.query}"</button>` : '';
+
   document.getElementById('detail').innerHTML = `
+    ${backBtn}
     <div style="font-size:12px;color:var(--hd);font-weight:600">${r.cve_id}</div>
     <div class="desc">${r.description || '—'}</div>
     <div class="detail-grid">
@@ -359,6 +367,7 @@ function showSingleResult(r) {
 }
 
 function showSearchResults(data) {
+  lastSearchData = data;  // store for back button
   const list = document.getElementById('resultsList');
   let html = `<div class="results-header">${data.count} CVEs found for "${data.query}" — sorted by DTVSS score</div>`;
 
@@ -388,6 +397,14 @@ function showSearchResults(data) {
 function lookupCVE(cveId) {
   document.getElementById('searchInput').value = cveId;
   doSearch();
+}
+
+function backToResults() {
+  if (!lastSearchData) return;
+  document.getElementById('scoreCard').classList.remove('visible');
+  document.getElementById('detail').classList.remove('visible');
+  document.getElementById('searchInput').value = lastSearchData.query;
+  showSearchResults(lastSearchData);
 }
 
 function toggleFormula() {

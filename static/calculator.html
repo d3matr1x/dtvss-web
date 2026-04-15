@@ -73,6 +73,27 @@ function App(){
   const [deviceCount,setDeviceCount]=useState(100),[scalingFn,setScalingFn]=useState("log");
   const [decayEnabled,setDecayEnabled]=useState(false),[ztaEnabled,setZtaEnabled]=useState(false);
   const [showRationale,setShowRationale]=useState(false),[copied,setCopied]=useState(false);
+  const [lookupLoading,setLookupLoading]=useState(false),[lookupMsg,setLookupMsg]=useState("");
+
+  // Auto-lookup CVE from API
+  const lookupCVE=async(id)=>{
+    const cve=id||cveId;
+    if(!cve.match(/^CVE-\d{4}-\d+$/i))return;
+    setLookupLoading(true);setLookupMsg("");
+    try{
+      const resp=await fetch(`/api/lookup?cve=${encodeURIComponent(cve)}`);
+      const data=await resp.json();
+      if(data.error){setLookupMsg(data.error);}
+      else{
+        if(data.B!==undefined)setB(data.B);
+        if(data.L!==undefined)setL(data.L);
+        if(data.kev_override)setKev(true); else setKev(!!data.kev_added);
+        if(data.tga_class&&TGA_CLASSES[data.tga_class])setTgaClass(data.tga_class);
+        setLookupMsg(`Loaded: B=${data.B} L=${data.L} ${data.tga_class||""} ${data.kev_override?"KEV":""}`);
+      }
+    }catch(e){setLookupMsg("API error: "+e.message);}
+    setLookupLoading(false);
+  };
 
   const H=TGA_CLASSES[tgaClass].H;
   const cveYear=cveId.match(/CVE-(\d{4})/i)?.[1];
@@ -109,7 +130,7 @@ function App(){
     if(navigator.clipboard)navigator.clipboard.writeText(text);setCopied(true);setTimeout(()=>setCopied(false),2000);
   };
 
-  const loadExample=(b,l,cls,cve)=>{setB(b);setL(l);setTgaClass(cls);setCveId(cve);setKev(false);setZtaEnabled(false);setDecayEnabled(false);};
+  const loadExample=(b,l,cls,cve)=>{setB(b);setL(l);setTgaClass(cls);setCveId(cve);setKev(false);setZtaEnabled(false);setDecayEnabled(false);lookupCVE(cve);};
 
   const mono="'JetBrains Mono',monospace",body="'DM Sans',system-ui,sans-serif",disp="'Anybody',system-ui,sans-serif";
   const scorePct=(animScore/10)*100;
@@ -172,13 +193,23 @@ function App(){
 
         {/* Input Controls */}
         <div style={{background:"#131820",border:"1px solid #1a2030",borderRadius:"12px",padding:"20px 16px"}}>
-          {/* CVE ID */}
+          {/* CVE ID with auto-lookup */}
           <div style={{marginBottom:"16px"}}>
-            <div style={{fontSize:"10px",fontWeight:600,letterSpacing:"0.1em",color:"#4a5568",fontFamily:mono,marginBottom:"6px"}}>CVE ID (auto-extracts year for decay)</div>
-            <input type="text" value={cveId} onChange={e=>setCveId(e.target.value.toUpperCase())} placeholder="CVE-2017-12725"
-              style={{width:"100%",maxWidth:"280px",background:"#06080c",border:"1px solid #1a2030",borderRadius:"6px",padding:"8px 12px",
-                color:"#e8ecf5",fontFamily:mono,fontSize:"12px",outline:"none"}} />
-            {cveYear&&<span style={{fontFamily:mono,fontSize:"9px",color:"#4a5568",marginLeft:"10px"}}>Year: {cveYear} · Age: {cveAge}yr</span>}
+            <div style={{fontSize:"10px",fontWeight:600,letterSpacing:"0.1em",color:"#4a5568",fontFamily:mono,marginBottom:"6px"}}>CVE ID — enter and click Lookup to auto-populate B, L(t), H, and KEV</div>
+            <div style={{display:"flex",gap:"8px",alignItems:"center",flexWrap:"wrap"}}>
+              <input type="text" value={cveId} onChange={e=>setCveId(e.target.value.toUpperCase())}
+                onKeyDown={e=>{if(e.key==="Enter")lookupCVE();}}
+                placeholder="CVE-2017-12725"
+                style={{width:"100%",maxWidth:"220px",background:"#06080c",border:"1px solid #1a2030",borderRadius:"6px",padding:"8px 12px",
+                  color:"#e8ecf5",fontFamily:mono,fontSize:"12px",outline:"none"}} />
+              <button onClick={()=>lookupCVE()} disabled={lookupLoading||!cveId.match(/^CVE-\d{4}-\d+$/i)} style={{
+                background:"#4f8ef7",border:"none",borderRadius:"6px",padding:"8px 16px",color:"#fff",
+                fontFamily:mono,fontSize:"10px",fontWeight:600,cursor:"pointer",
+                opacity:(lookupLoading||!cveId.match(/^CVE-\d{4}-\d+$/i))?.4:1,whiteSpace:"nowrap"
+              }}>{lookupLoading?"Loading...":"Lookup"}</button>
+              {cveYear&&<span style={{fontFamily:mono,fontSize:"9px",color:"#4a5568"}}>Year: {cveYear} · Age: {cveAge}yr</span>}
+            </div>
+            {lookupMsg&&<div style={{fontFamily:mono,fontSize:"9px",color:lookupMsg.startsWith("Loaded")?"#4caf7a":"#d94f4f",marginTop:"6px"}}>{lookupMsg}</div>}
           </div>
 
           {/* Knobs as sliders with input */}
