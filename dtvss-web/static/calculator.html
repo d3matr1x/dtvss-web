@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<!--
+  DTVSS Calculator — Full Interactive Calculator with Optional Embodiments
+  Copyright © 2026 Andrew Broglio. All rights reserved.
+  Patent Pending — IP Australia | Licensed under BSL 1.1
+  Route: dtvss.io/calculator
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DTVSS Calculator — Patent Claims Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #06080c; }
+  input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
+  input[type=range]::-webkit-slider-track { height: 3px; background: #1a2030; border-radius: 2px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #c8cdd8; margin-top: -4px; cursor: pointer; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+/* This loads the calculator JSX directly via Babel in-browser compilation.
+   In production, you'd pre-compile this. For Tier 1, this is fine. */
+
+const { useState, useEffect, useRef } = React;
+
+const K = 15;
+const TGA_CLASSES = {
+  IIb: { H: 7.5, label: "Class IIb", desc: "Moderate-high risk — Network-connected therapeutic devices", color: "#d97c2a",
+    examples: "Infusion pumps, insulin pumps, ventilators, patient monitors, CGMs",
+    jurisdictions: { "TGA / Medsafe (AU / NZ)": "Class IIb", "MDR (EU)": "Class IIb", "MHRA (UK)": "Class IIb", "FDA (US)": "Class II" }},
+  III: { H: 10.0, label: "Class III", desc: "Highest risk — Implantable life-sustaining devices", color: "#d94f4f",
+    examples: "Pacemakers, implantable defibrillators, CRT devices",
+    jurisdictions: { "TGA / Medsafe (AU / NZ)": "Class III", "MDR (EU)": "Class III", "MHRA (UK)": "Class III", "FDA (US)": "Class III" }},
+};
+
+const THRESHOLDS = [
+  { max:3.0, level:"Low", color:"#4caf7a", bg:"rgba(76,175,122,0.08)", border:"rgba(76,175,122,0.25)", sla:"Monitor",
+    guidance:"No immediate remediation required. Maintain routine patch cycle and continuous monitoring.",
+    rationale:"Represents minimal exploitability or impact. Managed under standard vulnerability management." },
+  { max:6.0, level:"Medium", color:"#c9b428", bg:"rgba(201,180,40,0.08)", border:"rgba(201,180,40,0.25)", sla:"≤ 30 days",
+    guidance:"Remediate within defined maintenance window. Prioritise based on asset criticality.",
+    rationale:"Requires timely remediation per NIST risk-based prioritisation and FDA postmarket expectations." },
+  { max:8.0, level:"High", color:"#d97c2a", bg:"rgba(217,124,42,0.08)", border:"rgba(217,124,42,0.25)", sla:"≤ 7 days",
+    guidance:"Expedite remediation. Escalate to clinical/biomedical engineering and risk management teams.",
+    rationale:"Indicates credible exploitation risk with potential clinical impact." },
+  { max:10.1, level:"Critical", color:"#d94f4f", bg:"rgba(217,79,79,0.08)", border:"rgba(217,79,79,0.25)", sla:"Immediate",
+    guidance:"Initiate incident response immediately. Isolate or remove affected systems.",
+    rationale:"Represents active exploitation or severe patient safety risk. k=15 calibration criterion satisfied." },
+];
+
+function getTier(s){for(const t of THRESHOLDS)if(s<t.max)return t;return THRESHOLDS[3];}
+function computeDTVSS(B,L,H,kev){
+  if(kev)return{score:10,raw:null,tier:THRESHOLDS[3],kevOverride:true};
+  const raw=(B/10)*(H/10)*(1+K*L)*10;const score=Math.round(Math.min(raw,10)*100)/100;
+  return{score,raw:Math.round(raw*10000)/10000,tier:getTier(score),kevOverride:false};
+}
+
+function App(){
+  const [B,setB]=useState(3.9),[L,setL]=useState(0.0089),[tgaClass,setTgaClass]=useState("IIb"),[kev,setKev]=useState(false);
+  const [showFormula,setShowFormula]=useState(false),[animScore,setAnimScore]=useState(0);
+  const [cveId,setCveId]=useState(""),[showORS,setShowORS]=useState(false),[showDecay,setShowDecay]=useState(false),[showEnvAdj,setShowEnvAdj]=useState(false);
+  const [deviceCount,setDeviceCount]=useState(100),[scalingFn,setScalingFn]=useState("log");
+  const [decayEnabled,setDecayEnabled]=useState(false),[ztaEnabled,setZtaEnabled]=useState(false);
+  const [showRationale,setShowRationale]=useState(false),[copied,setCopied]=useState(false);
+
+  const H=TGA_CLASSES[tgaClass].H;
+  const cveYear=cveId.match(/CVE-(\d{4})/i)?.[1];
+  const cveAge=cveYear?(2026-parseInt(cveYear)):0;
+  const halfLife=tgaClass==="III"?13.9:10;
+  const lambda=Math.log(2)/halfLife;
+  const L_eff=decayEnabled&&cveAge>0?L*Math.exp(-lambda*cveAge):L;
+  const B_adj=ztaEnabled?B*0.571:B;
+  const result=computeDTVSS(B_adj,L_eff,H,kev);
+  const tier=result.tier;
+  const staticBaseline=Math.round((B_adj*H/10)*100)/100;
+  const baseResult=(ztaEnabled||decayEnabled)?computeDTVSS(B,L,H,kev):null;
+
+  const computeF=(N)=>{
+    if(scalingFn==="log")return 1+Math.log10(Math.max(N,1));
+    if(scalingFn==="saturating")return 1+N/(N+100);
+    if(scalingFn==="exponential")return 1+(1-Math.exp(-N/100));
+    if(scalingFn==="tiered"){if(N<=10)return 1;if(N<=100)return 1.5;if(N<=1000)return 2;return 3;}
+    return 1;
+  };
+  const F_N=computeF(deviceCount);
+  const ORS=Math.round(result.score*F_N*100)/100;
+
+  useEffect(()=>{
+    const target=result.score,start=animScore,duration=400,startTime=Date.now();
+    const animate=()=>{const elapsed=Date.now()-startTime,progress=Math.min(elapsed/duration,1),eased=1-Math.pow(1-progress,3);
+      setAnimScore(start+(target-start)*eased);if(progress<1)requestAnimationFrame(animate);};
+    requestAnimationFrame(animate);
+  },[result.score]);
+
+  const shareSummary=()=>{
+    const adj=[];if(ztaEnabled)adj.push("ZTA");if(decayEnabled&&cveAge>0)adj.push("decay "+cveAge+"yr");
+    const text=`${cveId||"CVE"} | DTVSS ${result.score.toFixed(2)} ${tier.level} | B=${B_adj.toFixed(2)} L=${L_eff.toFixed(4)} H=${H.toFixed(1)} ${tgaClass}${adj.length?" | "+adj.join(", "):""}${result.kevOverride?" | KEV":""}  | SLA: ${tier.sla} | dtvss.io`;
+    if(navigator.clipboard)navigator.clipboard.writeText(text);setCopied(true);setTimeout(()=>setCopied(false),2000);
+  };
+
+  const loadExample=(b,l,cls,cve)=>{setB(b);setL(l);setTgaClass(cls);setCveId(cve);setKev(false);setZtaEnabled(false);setDecayEnabled(false);};
+
+  const mono="'JetBrains Mono',monospace",body="'DM Sans',system-ui,sans-serif",disp="'Anybody',system-ui,sans-serif";
+  const scorePct=(animScore/10)*100;
+
+  return(
+    <div style={{background:"#06080c",color:"#c8cdd8",minHeight:"100vh",fontFamily:body,fontSize:"13px"}}>
+      {/* Header */}
+      <div style={{padding:"20px 24px 16px",borderBottom:"1px solid #1a2030",display:"flex",alignItems:"baseline",gap:"12px",flexWrap:"wrap"}}>
+        <a href="/" style={{fontFamily:disp,fontSize:"16px",fontWeight:900,color:"#e8ecf5",letterSpacing:"-0.02em",textDecoration:"none"}}>DTVSS</a>
+        <span style={{fontFamily:mono,fontSize:"10px",color:"#4a5568"}}>v6.0 — Interactive Calculator</span>
+        <a href="/" style={{marginLeft:"auto",fontFamily:mono,fontSize:"10px",color:"#4f8ef7",textDecoration:"none"}}>← Back to Search</a>
+      </div>
+
+      <div style={{padding:"20px 24px",display:"flex",flexDirection:"column",gap:"20px",maxWidth:"720px",margin:"0 auto",width:"100%"}}>
+
+        {/* Examples */}
+        <div style={{display:"flex",gap:"6px",flexWrap:"wrap",justifyContent:"center"}}>
+          <span style={{fontFamily:mono,fontSize:"9px",color:"#4a5568",alignSelf:"center"}}>Examples:</span>
+          {[{l:"Medfusion",B:9.8,L:0.0089,c:"IIb",v:"CVE-2017-12725"},{l:"Ripple20",B:3.9,L:0.4263,c:"IIb",v:"CVE-2020-11896"},
+            {l:"Plum 360",B:2.2,L:0.2577,c:"IIb",v:"CVE-2017-12718"},{l:"Hospira",B:3.9,L:0.0012,c:"IIb",v:"CVE-2015-3459"}
+          ].map((ex,i)=>(
+            <button key={i} onClick={()=>loadExample(ex.B,ex.L,ex.c,ex.v)} style={{
+              fontFamily:mono,fontSize:"8px",padding:"4px 8px",borderRadius:"4px",border:"1px solid #1a2030",
+              background:"#0d1017",color:"#4a5568",cursor:"pointer"
+            }}>{ex.l}</button>
+          ))}
+        </div>
+
+        {/* Score Display */}
+        <div style={{background:`linear-gradient(135deg,${tier.bg},#131820)`,border:`1px solid ${tier.border}`,
+          borderRadius:"12px",padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",gap:"8px",position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:"-40px",left:"50%",transform:"translateX(-50%)",width:"200px",height:"120px",
+            background:`radial-gradient(ellipse,${tier.color}15,transparent 70%)`,pointerEvents:"none"}} />
+          <div style={{fontFamily:disp,fontSize:"56px",fontWeight:900,color:tier.color,lineHeight:1,letterSpacing:"-0.03em"}}>{animScore.toFixed(2)}</div>
+          <div style={{width:"100%",maxWidth:"320px",height:"6px",background:"#151b28",borderRadius:"3px",overflow:"hidden"}}>
+            <div style={{width:`${scorePct}%`,height:"100%",background:`linear-gradient(90deg,${tier.color}88,${tier.color})`,borderRadius:"3px",transition:"width 0.4s cubic-bezier(0.16,1,0.3,1)"}} />
+          </div>
+          <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
+            <span style={{fontFamily:mono,fontSize:"11px",fontWeight:600,color:tier.color,background:`${tier.color}18`,padding:"3px 10px",borderRadius:"4px",border:`1px solid ${tier.color}30`}}>
+              {result.kevOverride?"KEV OVERRIDE — ":""}{tier.level.toUpperCase()}
+            </span>
+            <span style={{fontFamily:mono,fontSize:"9px",color:"#4a5568",background:"#0d1017",padding:"3px 8px",borderRadius:"4px",border:"1px solid #1a2030"}}>SLA: {tier.sla}</span>
+          </div>
+          <div style={{fontFamily:body,fontSize:"11px",color:"#4a5568",textAlign:"center",maxWidth:"420px",lineHeight:1.5}}>{tier.guidance}</div>
+          <button onClick={()=>setShowRationale(!showRationale)} style={{fontFamily:mono,fontSize:"8px",color:"#4a5568",background:"none",border:"none",cursor:"pointer",textDecoration:"underline",opacity:.6}}>
+            {showRationale?"Hide rationale":"Show rationale"}
+          </button>
+          {showRationale&&<div style={{fontFamily:mono,fontSize:"9px",color:"#4a5568",textAlign:"center",maxWidth:"400px",opacity:.7}}>{tier.rationale}</div>}
+          <button onClick={shareSummary} style={{fontFamily:mono,fontSize:"9px",fontWeight:600,padding:"4px 12px",borderRadius:"4px",cursor:"pointer",
+            border:"1px solid #1a2030",background:copied?"rgba(76,175,122,0.15)":"#0d1017",color:copied?"#4caf7a":"#4a5568",marginTop:"4px"}}>
+            {copied?"Copied":"Copy score summary"}
+          </button>
+          {!result.kevOverride&&(
+            <div style={{fontFamily:mono,fontSize:"10px",color:"#4a5568",textAlign:"center"}}>
+              Static baseline (L=0): {staticBaseline.toFixed(2)} · Temporal lift: +{(result.score-staticBaseline).toFixed(2)}
+              {baseResult&&!baseResult.kevOverride&&<span> · Unmodified: {baseResult.score.toFixed(2)}</span>}
+            </div>
+          )}
+        </div>
+
+        {/* Input Controls */}
+        <div style={{background:"#131820",border:"1px solid #1a2030",borderRadius:"12px",padding:"20px 16px"}}>
+          {/* CVE ID */}
+          <div style={{marginBottom:"16px"}}>
+            <div style={{fontSize:"10px",fontWeight:600,letterSpacing:"0.1em",color:"#4a5568",fontFamily:mono,marginBottom:"6px"}}>CVE ID (auto-extracts year for decay)</div>
+            <input type="text" value={cveId} onChange={e=>setCveId(e.target.value.toUpperCase())} placeholder="CVE-2017-12725"
+              style={{width:"100%",maxWidth:"280px",background:"#06080c",border:"1px solid #1a2030",borderRadius:"6px",padding:"8px 12px",
+                color:"#e8ecf5",fontFamily:mono,fontSize:"12px",outline:"none"}} />
+            {cveYear&&<span style={{fontFamily:mono,fontSize:"9px",color:"#4a5568",marginLeft:"10px"}}>Year: {cveYear} · Age: {cveAge}yr</span>}
+          </div>
+
+          {/* Knobs as sliders with input */}
+          <div style={{display:"flex",justifyContent:"center",gap:"24px",flexWrap:"wrap"}}>
+            {[{val:B,set:setB,min:0,max:10,step:0.01,label:"B",sub:"CVSS Exploitability",color:"#4f8ef7",dec:2},
+              {val:L,set:setL,min:0,max:1,step:0.0001,label:"L(t)",sub:"EPSS Likelihood",color:"#a855f7",dec:4}
+            ].map((k,i)=>(
+              <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",minWidth:"130px"}}>
+                <div style={{fontSize:"10px",fontWeight:600,letterSpacing:"0.1em",color:"#4a5568",fontFamily:mono}}>{k.label}</div>
+                <div style={{fontFamily:mono,fontSize:"22px",fontWeight:700,color:k.color}}>{k.val.toFixed(k.dec)}</div>
+                <input type="range" min={k.min} max={k.max} step={k.step} value={k.val}
+                  onChange={e=>k.set(parseFloat(e.target.value))}
+                  style={{width:"120px",accentColor:k.color,height:"3px"}} />
+                <input type="number" value={k.val} min={k.min} max={k.max} step={k.step}
+                  onChange={e=>{const v=parseFloat(e.target.value);if(!isNaN(v))k.set(Math.max(k.min,Math.min(k.max,v)));}}
+                  style={{width:"80px",background:"#06080c",border:"1px solid #1a2030",borderRadius:"4px",padding:"4px 6px",
+                    color:k.color,fontFamily:mono,fontSize:"10px",textAlign:"center",outline:"none"}} />
+                <div style={{fontSize:"9px",color:"#4a5568",fontFamily:mono}}>{k.sub}</div>
+              </div>
+            ))}
+            {/* H selector */}
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",minWidth:"130px"}}>
+              <div style={{fontSize:"10px",fontWeight:600,letterSpacing:"0.1em",color:"#4a5568",fontFamily:mono}}>H</div>
+              <div style={{fontFamily:mono,fontSize:"22px",fontWeight:700,color:TGA_CLASSES[tgaClass].color}}>{H.toFixed(1)}</div>
+              <div style={{display:"flex",gap:"4px",marginTop:"4px"}}>
+                {Object.entries(TGA_CLASSES).map(([cls,info])=>(
+                  <button key={cls} onClick={()=>setTgaClass(cls)} style={{
+                    fontFamily:mono,fontSize:"9px",fontWeight:600,padding:"4px 8px",borderRadius:"3px",cursor:"pointer",
+                    border:`1px solid ${tgaClass===cls?info.color:"#1a2030"}`,
+                    background:tgaClass===cls?`${info.color}20`:"transparent",
+                    color:tgaClass===cls?info.color:"#4a5568"
+                  }}>{cls}</button>
+                ))}
+              </div>
+              <div style={{fontSize:"9px",color:"#4a5568",fontFamily:mono}}>Patient Harm</div>
+            </div>
+          </div>
+
+          {/* Jurisdiction table */}
+          <div style={{marginTop:"14px",padding:"12px",background:`${TGA_CLASSES[tgaClass].color}08`,border:`1px solid ${TGA_CLASSES[tgaClass].color}15`,borderRadius:"6px"}}>
+            <div style={{fontFamily:mono,fontSize:"10px",color:TGA_CLASSES[tgaClass].color,fontWeight:600}}>{TGA_CLASSES[tgaClass].label} · H = {H.toFixed(1)} — {TGA_CLASSES[tgaClass].desc}</div>
+            <div style={{fontFamily:body,fontSize:"10px",color:"#4a5568",marginTop:"2px"}}>{TGA_CLASSES[tgaClass].examples}</div>
+            <div style={{marginTop:"10px",display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"1px",background:"#1a2030",borderRadius:"4px",overflow:"hidden"}}>
+              {Object.entries(TGA_CLASSES[tgaClass].jurisdictions).map(([j,c],i)=>(
+                <div key={i} style={{background:"#0d1017",padding:"6px 4px",textAlign:"center",fontFamily:mono}}>
+                  <div style={{color:"#4a5568",fontSize:"8px"}}>{j}</div>
+                  <div style={{color:TGA_CLASSES[tgaClass].color,fontWeight:600,fontSize:"9px",marginTop:"2px"}}>{c}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* KEV */}
+          <div style={{display:"flex",justifyContent:"center",marginTop:"14px"}}>
+            <button onClick={()=>setKev(!kev)} style={{
+              fontFamily:mono,fontSize:"10px",fontWeight:600,padding:"6px 14px",borderRadius:"4px",cursor:"pointer",
+              border:`1px solid ${kev?"#d94f4f":"#1a2030"}`,background:kev?"rgba(217,79,79,0.15)":"transparent",
+              color:kev?"#d94f4f":"#4a5568",animation:kev?"pulse 1.5s infinite":"none"
+            }}>{kev?"⚠ KEV OVERRIDE ACTIVE — SCORE FORCED TO 10.0":"KEV Override (CISA Known Exploited)"}</button>
+          </div>
+        </div>
+
+        {/* Optional Embodiments */}
+        <div style={{fontFamily:mono,fontSize:"9px",color:"#4a5568",letterSpacing:"0.1em",textAlign:"center"}}>OPTIONAL EMBODIMENTS</div>
+
+        {/* Environment-Adjusted */}
+        <div style={{background:"#131820",border:"1px solid #1a2030",borderRadius:"12px",overflow:"hidden"}}>
+          <button onClick={()=>setShowEnvAdj(!showEnvAdj)} style={{width:"100%",padding:"12px 16px",background:"transparent",border:"none",cursor:"pointer",
+            display:"flex",alignItems:"center",justifyContent:"space-between",fontFamily:mono,fontSize:"10px"}}>
+            <span style={{color:ztaEnabled?"#4f8ef7":"#4a5568",fontWeight:600}}>ENVIRONMENT-ADJUSTED EXPLOITABILITY {ztaEnabled?"· ACTIVE":""}</span>
+            <span style={{color:"#4a5568",transform:showEnvAdj?"rotate(180deg)":"rotate(0)",transition:"transform 0.2s"}}>▾</span>
+          </button>
+          {showEnvAdj&&<div style={{padding:"0 16px 16px",fontFamily:mono,fontSize:"10px"}}>
+            <div style={{color:"#4a5568",fontSize:"9px",lineHeight:1.6,marginBottom:"10px"}}>ZTA / network segmentation reduces B by factor 0.571 (Broglio 2024).</div>
+            <button onClick={()=>setZtaEnabled(!ztaEnabled)} style={{fontFamily:mono,fontSize:"10px",fontWeight:600,padding:"6px 14px",borderRadius:"4px",cursor:"pointer",
+              border:`1px solid ${ztaEnabled?"#4f8ef7":"#1a2030"}`,background:ztaEnabled?"rgba(79,142,247,0.15)":"transparent",color:ztaEnabled?"#4f8ef7":"#4a5568"}}>
+              {ztaEnabled?"ZTA: ON — B_adj = "+B_adj.toFixed(2):"ZTA: OFF"}
+            </button>
+          </div>}
+        </div>
+
+        {/* Temporal Decay */}
+        <div style={{background:"#131820",border:"1px solid #1a2030",borderRadius:"12px",overflow:"hidden"}}>
+          <button onClick={()=>setShowDecay(!showDecay)} style={{width:"100%",padding:"12px 16px",background:"transparent",border:"none",cursor:"pointer",
+            display:"flex",alignItems:"center",justifyContent:"space-between",fontFamily:mono,fontSize:"10px"}}>
+            <span style={{color:decayEnabled?"#a855f7":"#4a5568",fontWeight:600}}>TEMPORAL DECAY {decayEnabled?"· ACTIVE":""}</span>
+            <span style={{color:"#4a5568",transform:showDecay?"rotate(180deg)":"rotate(0)",transition:"transform 0.2s"}}>▾</span>
+          </button>
+          {showDecay&&<div style={{padding:"0 16px 16px",fontFamily:mono,fontSize:"10px"}}>
+            <div style={{color:"#4a5568",fontSize:"9px",lineHeight:1.6,marginBottom:"10px"}}>
+              L_eff = L(t) × exp(-λ × age). IIb: half-life 10yr. III: 13.9yr.{!cveId&&" Enter CVE ID above."}
+            </div>
+            <button onClick={()=>setDecayEnabled(!decayEnabled)} style={{fontFamily:mono,fontSize:"10px",fontWeight:600,padding:"6px 14px",borderRadius:"4px",cursor:"pointer",
+              border:`1px solid ${decayEnabled?"#a855f7":"#1a2030"}`,background:decayEnabled?"rgba(168,85,247,0.15)":"transparent",color:decayEnabled?"#a855f7":"#4a5568"}}>
+              {decayEnabled?"Decay: ON":"Decay: OFF"}
+            </button>
+            {decayEnabled&&cveAge>0&&<span style={{color:"#a855f7",fontSize:"10px",marginLeft:"10px"}}>Age:{cveAge}yr · L_eff={L_eff.toFixed(6)}</span>}
+          </div>}
+        </div>
+
+        {/* ORS */}
+        <div style={{background:"#131820",border:"1px solid #1a2030",borderRadius:"12px",overflow:"hidden"}}>
+          <button onClick={()=>setShowORS(!showORS)} style={{width:"100%",padding:"12px 16px",background:"transparent",border:"none",cursor:"pointer",
+            display:"flex",alignItems:"center",justifyContent:"space-between",fontFamily:mono,fontSize:"10px"}}>
+            <span style={{color:showORS?"#c9b428":"#4a5568",fontWeight:600}}>ORGANISATIONAL RISK SCALING · ORS(t)</span>
+            <span style={{color:"#4a5568",transform:showORS?"rotate(180deg)":"rotate(0)",transition:"transform 0.2s"}}>▾</span>
+          </button>
+          {showORS&&<div style={{padding:"0 16px 16px",fontFamily:mono,fontSize:"10px"}}>
+            <div style={{color:"#4a5568",fontSize:"9px",lineHeight:1.6,marginBottom:"10px"}}>ORS(t) = DTVSS(t) × F(N). Does not modify base score.</div>
+            <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap",marginBottom:"10px"}}>
+              <span style={{color:"#4a5568",fontSize:"9px"}}>N =</span>
+              <input type="number" value={deviceCount} min={1} max={100000} onChange={e=>setDeviceCount(Math.max(1,parseInt(e.target.value)||1))}
+                style={{width:"80px",background:"#06080c",border:"1px solid #1a2030",borderRadius:"4px",padding:"4px 8px",color:"#e8ecf5",fontFamily:mono,fontSize:"11px",outline:"none"}} />
+              <div style={{display:"flex",gap:"4px"}}>
+                {[{id:"log",l:"Log"},{id:"saturating",l:"Sat"},{id:"exponential",l:"Exp"},{id:"tiered",l:"Tier"}].map(fn=>(
+                  <button key={fn.id} onClick={()=>setScalingFn(fn.id)} style={{fontFamily:mono,fontSize:"8px",fontWeight:600,padding:"3px 6px",borderRadius:"3px",cursor:"pointer",
+                    border:`1px solid ${scalingFn===fn.id?"#c9b428":"#1a2030"}`,background:scalingFn===fn.id?"rgba(201,180,40,0.15)":"transparent",
+                    color:scalingFn===fn.id?"#c9b428":"#4a5568"}}>{fn.l}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{padding:"10px",background:"#06080c",borderRadius:"6px",display:"flex",alignItems:"center",gap:"16px",flexWrap:"wrap"}}>
+              <div><div style={{color:"#4a5568",fontSize:"9px"}}>F({deviceCount})</div><div style={{color:"#c9b428",fontSize:"16px",fontWeight:700}}>{F_N.toFixed(2)}</div></div>
+              <div style={{color:"#4a5568",fontSize:"16px"}}>×</div>
+              <div><div style={{color:"#4a5568",fontSize:"9px"}}>DTVSS</div><div style={{color:tier.color,fontSize:"16px",fontWeight:700}}>{result.score.toFixed(2)}</div></div>
+              <div style={{color:"#4a5568",fontSize:"16px"}}>=</div>
+              <div><div style={{color:"#4a5568",fontSize:"9px"}}>ORS(t)</div><div style={{color:"#c9b428",fontSize:"20px",fontWeight:900}}>{ORS.toFixed(2)}</div></div>
+            </div>
+          </div>}
+        </div>
+
+        {/* Footer */}
+        <div style={{textAlign:"center",padding:"12px 0",fontFamily:mono,fontSize:"9px",color:"#4a5568",borderTop:"1px solid #1a2030",lineHeight:1.8}}>
+          <div>DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10 · k=15 calibrated against 96 medical device CVEs</div>
+          <div style={{marginTop:"4px"}}>© 2026 Andrew Broglio · DTVSS™ · Patent Pending — IP Australia · BSL 1.1</div>
+          <div style={{marginTop:"4px"}}><a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer"
+            style={{color:"#4f8ef7",textDecoration:"none",fontWeight:600}}>Reach out for information about Tier 2–4 offerings → LinkedIn</a></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(React.createElement(App), document.getElementById("root"));
+</script>
+</body>
+</html>

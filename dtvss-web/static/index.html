@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<!--
+  DTVSS — Dynamic Temporal Vulnerability Scoring System
+  Copyright © 2026 Andrew Broglio. All rights reserved.
+  Patent Pending — IP Australia
+  Licensed under BSL 1.1
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DTVSS — Dynamic Temporal Vulnerability Scoring</title>
+<meta name="description" content="DTVSS scores medical device cybersecurity vulnerabilities using real-time exploit likelihood, patient harm classification, and multiplicative risk architecture.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#06080c; --s1:#0d1017; --s2:#131820; --bd:#1a2030;
+  --tx:#c8cdd8; --dim:#4a5568; --hd:#e8ecf5; --trk:#151b28;
+  --acc:#4f8ef7; --purple:#a855f7;
+  --crit:#d94f4f; --high:#d97c2a; --med:#c9b428; --low:#4caf7a;
+  --mono:'JetBrains Mono',monospace; --body:'DM Sans',sans-serif; --display:'Anybody',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:13px;min-height:100vh}
+a{color:var(--acc);text-decoration:none}
+
+.header{border-bottom:1px solid var(--bd);padding:16px 24px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.header h1{font-family:var(--display);font-size:16px;font-weight:900;color:var(--hd);letter-spacing:-0.02em}
+.header .ver{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.header .right{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim)}
+
+.container{max-width:720px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:20px}
+
+/* Search */
+.search-box{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:16px}
+.search-row{display:flex;gap:8px}
+.search-input{flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:10px 14px;
+  color:var(--hd);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s}
+.search-input:focus{border-color:var(--acc)}
+.search-input::placeholder{color:var(--dim)}
+.search-btn{background:var(--acc);border:none;border-radius:6px;padding:10px 20px;color:#fff;
+  font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.04em;
+  transition:opacity .15s;white-space:nowrap}
+.search-btn:hover{opacity:.85}
+.search-btn:disabled{opacity:.4;cursor:not-allowed}
+.search-hint{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:8px;line-height:1.6}
+.search-hint span{color:var(--tx)}
+
+/* Class selector */
+.class-row{display:flex;gap:6px;margin-top:10px;align-items:center}
+.class-row label{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.06em}
+.cls-btn{font-family:var(--mono);font-size:9px;font-weight:600;padding:4px 10px;border-radius:4px;
+  cursor:pointer;border:1px solid var(--bd);background:transparent;color:var(--dim);transition:all .15s}
+.cls-btn.active-IIb{border-color:var(--high);background:rgba(217,124,42,.15);color:var(--high)}
+.cls-btn.active-III{border-color:var(--crit);background:rgba(217,79,79,.15);color:var(--crit)}
+.cls-btn.auto-active{border-color:var(--acc);background:rgba(79,142,247,.15);color:var(--acc)}
+
+/* Score card */
+.score-card{border-radius:12px;padding:28px 24px;display:flex;flex-direction:column;align-items:center;
+  gap:8px;position:relative;overflow:hidden;display:none}
+.score-card.visible{display:flex}
+.score-num{font-family:var(--display);font-size:56px;font-weight:900;line-height:1;letter-spacing:-0.03em}
+.score-bar{width:100%;max-width:320px;height:6px;background:var(--trk);border-radius:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px;transition:width .4s cubic-bezier(.16,1,.3,1)}
+.tier-badge{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;letter-spacing:.06em}
+.guidance{font-family:var(--body);font-size:12px;color:var(--dim);text-align:center;max-width:400px}
+.baseline{font-family:var(--mono);font-size:10px;color:var(--dim)}
+
+/* Result detail */
+.detail{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:16px;display:none;
+  font-family:var(--mono);font-size:10px;line-height:1.7}
+.detail.visible{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.df{padding:6px 8px;background:var(--s1);border-radius:4px}
+.df-label{color:var(--dim);font-size:9px;letter-spacing:.04em}
+.df-val{color:var(--hd);font-weight:600;margin-top:2px}
+.desc{color:var(--tx);font-family:var(--body);font-size:11px;line-height:1.6;margin-top:8px;
+  padding:10px;background:var(--s1);border-radius:6px}
+
+/* Jurisdiction table */
+.juris-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--bd);
+  border-radius:4px;overflow:hidden;margin-top:10px}
+.juris-cell{background:var(--s1);padding:6px 4px;text-align:center}
+.juris-label{color:var(--dim);font-size:8px;letter-spacing:.04em;line-height:1.2}
+.juris-val{font-weight:600;font-size:9px;margin-top:2px}
+.juris-note{font-size:8px;color:var(--dim);margin-top:6px;text-align:center}
+
+/* Flags */
+.flag{font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 8px;border-radius:3px;display:inline-block;margin:2px}
+.flag-kev{background:rgba(217,79,79,.15);color:var(--crit);border:1px solid rgba(217,79,79,.3)}
+.flag-ics{background:rgba(217,124,42,.15);color:var(--high);border:1px solid rgba(217,124,42,.3)}
+
+/* Search results list */
+.results-list{display:flex;flex-direction:column;gap:6px;display:none}
+.results-list.visible{display:flex}
+.results-header{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em;padding:4px 0}
+.result-row{display:grid;grid-template-columns:40px 150px 1fr 50px 60px 70px;align-items:center;gap:8px;
+  padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;cursor:pointer;
+  transition:border-color .15s;font-family:var(--mono);font-size:10px}
+.result-row:hover{border-color:var(--acc)}
+.result-rank{color:var(--dim);text-align:center}
+.result-cve{color:var(--hd);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.result-desc{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--body);font-size:10px}
+.result-b{color:var(--acc);text-align:right}
+.result-score{font-weight:600;text-align:right}
+.result-tier{text-align:center}
+.tier-sm{font-size:8px;font-weight:600;padding:2px 6px;border-radius:3px}
+
+/* Loading */
+.loading{display:none;text-align:center;padding:20px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.loading.visible{display:block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.loading .dot{animation:pulse 1s infinite;color:var(--acc)}
+
+/* Formula */
+.formula-toggle{width:100%;padding:12px 16px;background:var(--s2);border:1px solid var(--bd);
+  border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+  color:var(--dim);font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em}
+.formula-content{padding:0 16px 16px;background:var(--s2);border:1px solid var(--bd);border-top:none;
+  border-radius:0 0 10px 10px;display:none;font-family:var(--mono);font-size:10px}
+.formula-content.visible{display:block}
+.formula-block{padding:10px;background:var(--bg);border-radius:6px;line-height:1.8;margin-bottom:8px}
+
+/* Footer */
+.footer{text-align:center;padding:16px 0;font-family:var(--mono);font-size:9px;color:var(--dim);
+  border-top:1px solid var(--bd);line-height:1.8}
+.footer .bsl{font-size:8px;opacity:.7;margin-top:2px}
+
+@media(max-width:600px){
+  .result-row{grid-template-columns:30px 110px 1fr 50px 60px}
+  .result-desc{display:none}
+  .detail-grid{grid-template-columns:1fr}
+  .juris-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>DTVSS</h1>
+  <span class="ver">v6.0 — Dynamic Temporal Vulnerability Scoring</span>
+  <span class="right">Patent Pending — Broglio 2026</span>
+</div>
+
+<div class="container">
+
+  <!-- Search -->
+  <div class="search-box">
+    <div class="search-row">
+      <input class="search-input" id="searchInput" placeholder="CVE-2017-12725 or Medfusion 4000"
+             onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="search-btn" id="searchBtn" onclick="doSearch()">SCORE</button>
+    </div>
+    <div class="search-hint">
+      Enter a <span>CVE ID</span> for single lookup or a <span>device name</span> to search all matching vulnerabilities.
+      B, L(t), and KEV status are fetched automatically from NVD and EPSS.
+    </div>
+    <div class="class-row">
+      <label>DEVICE CLASS:</label>
+      <button class="cls-btn auto-active" id="clsAuto" onclick="setClass('auto')">AUTO</button>
+      <button class="cls-btn" id="clsIIb" onclick="setClass('IIb')">IIb</button>
+      <button class="cls-btn" id="clsIII" onclick="setClass('III')">III</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <span class="dot">●</span> Fetching from NVD and EPSS<span class="dot">...</span>
+  </div>
+
+  <!-- Single result score card -->
+  <div class="score-card" id="scoreCard">
+    <div class="score-num" id="scoreNum">0.00</div>
+    <div class="score-bar"><div class="score-fill" id="scoreFill"></div></div>
+    <div id="tierBadge" class="tier-badge"></div>
+    <div id="flags"></div>
+    <div class="guidance" id="guidance"></div>
+    <div class="baseline" id="baseline"></div>
+  </div>
+
+  <!-- Single result detail -->
+  <div class="detail" id="detail"></div>
+
+  <!-- Search results list -->
+  <div class="results-list" id="resultsList"></div>
+
+  <!-- Formula -->
+  <div>
+    <button class="formula-toggle" onclick="toggleFormula()">
+      <span>FORMULA BREAKDOWN</span>
+      <span id="formulaArrow">▾</span>
+    </button>
+    <div class="formula-content" id="formulaContent">
+      <div class="formula-block" style="margin-top:12px">
+        <div style="color:var(--dim);font-size:9px;margin-bottom:4px;letter-spacing:.1em">MULTIPLICATIVE ARCHITECTURE</div>
+        <div>Risk = <span style="color:var(--acc)">Exploitability</span> × <span style="color:var(--high)">Consequence</span> × <span style="color:var(--purple)">Threat Amplification</span></div>
+        <div style="margin-top:6px">DTVSS(t) = (<span style="color:var(--acc)">B/10</span> × <span style="color:var(--high)">H/10</span> × <span style="color:var(--purple)">(1 + 15 × L(t))</span>) × 10</div>
+      </div>
+      <div class="formula-block">
+        <div style="color:var(--dim);font-size:9px;margin-bottom:4px;letter-spacing:.1em">EQUATION 1 — PIECEWISE</div>
+        <div style="color:var(--crit)">DTVSS(t) = 10.0 <span style="color:var(--dim);font-weight:400">— if CVE in CISA KEV</span></div>
+        <div>DTVSS(t) = min((B/10 × H/10 × (1+15×L(t))) × 10, 10.0) <span style="color:var(--dim);font-weight:400">— otherwise</span></div>
+      </div>
+      <div class="formula-block">
+        <div style="color:var(--dim);font-size:9px;margin-bottom:4px;letter-spacing:.1em">JURISDICTION PORTABILITY</div>
+        <div>TGA / Medsafe (AU · NZ) = EU MDR = MHRA (UK) = FDA (US)</div>
+        <div>Infusion/insulin pumps, ventilators, monitors → IIb / FDA II (H=7.5)</div>
+        <div>Pacemakers/ICDs/CRT devices → III / FDA III (H=10.0)</div>
+        <div style="margin-top:4px">Calibrated against 96 real CVEs spanning Class IIb and III devices</div>
+        <div>Medsafe (NZ) recognises TGA under Trans-Tasman MRA</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10 · k=15 empirically calibrated against 96 medical device CVEs</div>
+    <div>NVD → MITRE fallback → CISA Vulnrichment · All public data sources</div>
+    <div style="margin-top:4px">© 2026 Andrew Broglio · DTVSS™ · Patent Pending — IP Australia</div>
+    <div class="bsl">Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use</div>
+    <div style="margin-top:6px">
+      <a href="/calculator" style="color:var(--acc);text-decoration:none;font-weight:600">Interactive Calculator with Optional Embodiments →</a>
+    </div>
+    <div style="margin-top:4px">
+      <a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer" style="color:var(--acc);text-decoration:none;font-weight:600">
+        Reach out for information about Tier 2–4 offerings → LinkedIn
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const TIER_COLOR = {Critical:'var(--crit)',High:'var(--high)',Medium:'var(--med)',Low:'var(--low)'};
+const TIER_BG = {Critical:'rgba(217,79,79,.08)',High:'rgba(217,124,42,.08)',Medium:'rgba(201,180,40,.08)',Low:'rgba(76,175,122,.08)'};
+const TIER_BD = {Critical:'rgba(217,79,79,.25)',High:'rgba(217,124,42,.25)',Medium:'rgba(201,180,40,.25)',Low:'rgba(76,175,122,.25)'};
+let selectedClass = 'auto';
+
+function setClass(cls) {
+  selectedClass = cls;
+  document.querySelectorAll('.cls-btn').forEach(b => {
+    b.className = 'cls-btn';
+    if (cls === 'auto' && b.id === 'clsAuto') b.className = 'cls-btn auto-active';
+    if (cls === 'IIb' && b.id === 'clsIIb') b.className = 'cls-btn active-IIb';
+    if (cls === 'III' && b.id === 'clsIII') b.className = 'cls-btn active-III';
+  });
+}
+
+async function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+
+  // Hide previous results
+  document.getElementById('scoreCard').classList.remove('visible');
+  document.getElementById('detail').classList.remove('visible');
+  document.getElementById('resultsList').classList.remove('visible');
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('searchBtn').disabled = true;
+
+  const isCVE = /^CVE-\d{4}-\d+$/i.test(q) || /^\d{4}-\d+$/.test(q);
+  const classParam = selectedClass !== 'auto' ? `&tga_class=${selectedClass}` : '';
+
+  try {
+    if (isCVE) {
+      const resp = await fetch(`/api/lookup?cve=${encodeURIComponent(q)}${classParam}`);
+      const data = await resp.json();
+      if (data.error) {
+        showError(data.error);
+      } else {
+        showSingleResult(data);
+      }
+    } else {
+      const resp = await fetch(`/api/search?q=${encodeURIComponent(q)}${classParam}&max=30`);
+      const data = await resp.json();
+      if (data.count === 0) {
+        showError(`No CVSS v3.x results found for "${q}"`);
+      } else if (data.count === 1) {
+        showSingleResult(data.results[0]);
+      } else {
+        showSearchResults(data);
+      }
+    }
+  } catch (e) {
+    showError('API connection error: ' + e.message);
+  }
+
+  document.getElementById('loading').classList.remove('visible');
+  document.getElementById('searchBtn').disabled = false;
+}
+
+function showError(msg) {
+  const card = document.getElementById('scoreCard');
+  card.classList.add('visible');
+  card.style.background = 'var(--s2)';
+  card.style.border = '1px solid var(--bd)';
+  document.getElementById('scoreNum').textContent = '—';
+  document.getElementById('scoreNum').style.color = 'var(--dim)';
+  document.getElementById('scoreFill').style.width = '0%';
+  document.getElementById('tierBadge').textContent = '';
+  document.getElementById('flags').innerHTML = '';
+  document.getElementById('guidance').textContent = msg;
+  document.getElementById('baseline').textContent = '';
+  document.getElementById('detail').classList.remove('visible');
+}
+
+function showSingleResult(r) {
+  const tier = r.risk_level;
+  const color = TIER_COLOR[tier] || 'var(--tx)';
+  const pct = (r.score / 10 * 100).toFixed(0);
+
+  const card = document.getElementById('scoreCard');
+  card.classList.add('visible');
+  card.style.background = `linear-gradient(135deg, ${TIER_BG[tier]}, var(--s2))`;
+  card.style.border = `1px solid ${TIER_BD[tier]}`;
+
+  document.getElementById('scoreNum').textContent = r.score.toFixed(2);
+  document.getElementById('scoreNum').style.color = color;
+  document.getElementById('scoreFill').style.width = pct + '%';
+  document.getElementById('scoreFill').style.background = `linear-gradient(90deg, ${color}88, ${color})`;
+
+  const badge = document.getElementById('tierBadge');
+  badge.textContent = (r.kev_override ? 'KEV OVERRIDE — ' : '') + tier.toUpperCase();
+  badge.style.color = color;
+  badge.style.background = TIER_BG[tier];
+  badge.style.border = `1px solid ${TIER_BD[tier]}`;
+
+  let flags = '';
+  if (r.kev_override) flags += '<span class="flag flag-kev">KEV</span>';
+  if (r.ics_advisory) flags += '<span class="flag flag-ics">ICS</span>';
+  document.getElementById('flags').innerHTML = flags;
+
+  document.getElementById('guidance').textContent = r.guidance;
+  document.getElementById('baseline').textContent = r.kev_override ? '' :
+    `Static baseline (L=0): ${r.static_baseline.toFixed(2)} · Temporal lift: +${(r.score - r.static_baseline).toFixed(2)}`;
+
+  // Detail panel
+  const jurisHTML = r.jurisdictions ? Object.entries(r.jurisdictions).map(([k,v]) =>
+    `<div class="juris-cell"><div class="juris-label">${k}</div><div class="juris-val" style="color:${color}">${v}</div></div>`
+  ).join('') : '';
+
+  document.getElementById('detail').innerHTML = `
+    <div style="font-size:12px;color:var(--hd);font-weight:600">${r.cve_id}</div>
+    <div class="desc">${r.description || '—'}</div>
+    <div class="detail-grid">
+      <div class="df"><div class="df-label">B (Exploitability)</div><div class="df-val">${r.B.toFixed(3)}</div></div>
+      <div class="df"><div class="df-label">L(t) (EPSS)</div><div class="df-val">${r.L.toFixed(4)}</div></div>
+      <div class="df"><div class="df-label">H (Patient Harm)</div><div class="df-val">${r.H.toFixed(1)}</div></div>
+      <div class="df"><div class="df-label">TGA Class</div><div class="df-val" style="color:${color}">${r.tga_class}</div></div>
+      <div class="df"><div class="df-label">CVSS Version</div><div class="df-val">${r.cvss_version}</div></div>
+      <div class="df"><div class="df-label">EPSS Percentile</div><div class="df-val">${r.epss_percentile ? (r.epss_percentile*100).toFixed(1)+'%' : '—'}</div></div>
+      <div class="df"><div class="df-label">Published</div><div class="df-val">${(r.published||'').slice(0,10)}</div></div>
+      <div class="df"><div class="df-label">Impact Score</div><div class="df-val">${r.impact_score}</div></div>
+    </div>
+    ${r.kev_override ? `<div class="df" style="margin-top:8px"><div class="df-label">KEV — Confirmed Exploitation</div><div class="df-val" style="color:var(--crit)">${r.kev_name || 'Listed in CISA KEV catalog'}${r.kev_due ? ' · Due: '+r.kev_due : ''}</div></div>` : ''}
+    ${jurisHTML ? `<div class="juris-grid">${jurisHTML}</div><div class="juris-note">H produces equivalent results across all jurisdictions · Medsafe (NZ) recognises TGA under Trans-Tasman MRA</div>` : ''}
+  `;
+  document.getElementById('detail').classList.add('visible');
+}
+
+function showSearchResults(data) {
+  const list = document.getElementById('resultsList');
+  let html = `<div class="results-header">${data.count} CVEs found for "${data.query}" — sorted by DTVSS score</div>`;
+
+  data.results.forEach((r, i) => {
+    const color = TIER_COLOR[r.risk_level] || 'var(--tx)';
+    const tierBg = TIER_BG[r.risk_level];
+    const flags = [
+      r.kev_override ? '<span class="flag flag-kev">KEV</span>' : '',
+      r.ics_advisory ? '<span class="flag flag-ics">ICS</span>' : '',
+    ].filter(Boolean).join('');
+
+    html += `
+      <div class="result-row" onclick="lookupCVE('${r.cve_id}')">
+        <div class="result-rank">${i+1}</div>
+        <div class="result-cve">${r.cve_id}</div>
+        <div class="result-desc">${r.description || '—'}</div>
+        <div class="result-b" style="color:var(--acc)">${r.B.toFixed(2)}</div>
+        <div class="result-score" style="color:${color}">${r.score.toFixed(2)}</div>
+        <div class="result-tier"><span class="tier-sm" style="background:${tierBg};color:${color}">${r.risk_level}${flags ? ' '+flags : ''}</span></div>
+      </div>`;
+  });
+
+  list.innerHTML = html;
+  list.classList.add('visible');
+}
+
+function lookupCVE(cveId) {
+  document.getElementById('searchInput').value = cveId;
+  doSearch();
+}
+
+function toggleFormula() {
+  const content = document.getElementById('formulaContent');
+  const arrow = document.getElementById('formulaArrow');
+  content.classList.toggle('visible');
+  arrow.style.transform = content.classList.contains('visible') ? 'rotate(180deg)' : 'rotate(0)';
+}
+</script>
+</body>
+</html>
