@@ -510,3 +510,92 @@ def cisa_kev_check(cve_id: str) -> Optional[dict]:
         "kev_name": entry.get("vulnerabilityName", ""),
         "kev_action": entry.get("requiredAction", ""),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Dynamic Device Keyword Refresh from openFDA (daily auto-update)
+# ═══════════════════════════════════════════════════════════════════════
+
+_device_cache = {"keywords": {}, "fetched_at": 0}
+DEVICE_CACHE_TTL = 86400  # refresh daily (24 hours)
+
+# openFDA medical specialty codes relevant to network-connected devices
+FDA_SPECIALTIES = [
+    "AN",  # Anesthesiology
+    "CV",  # Cardiovascular
+    "SU",  # General/Plastic Surgery (infusion)
+]
+
+# openFDA product codes for known network-connected device categories
+FDA_PRODUCT_CODES = [
+    "FRN",  # Infusion pump
+    "MEB",  # Infusion pump, programmable
+    "FPA",  # Insulin pump
+    "DXY",  # Pacemaker
+    "DTB",  # Implantable defibrillator
+    "LWS",  # Patient monitor
+    "MHX",  # Ventilator
+    "QBJ",  # Continuous glucose monitor
+    "OYC",  # External defibrillator
+    "DSQ",  # Cardiac resynchronization
+    "DQA",  # Telemetry system, physiological
+]
+
+
+def refresh_device_keywords() -> dict:
+    """
+    Fetch device names from openFDA classification API for known
+    network-connected medical device product codes.
+    Returns dict of {lowercase_device_name: tga_class}.
+    Cached daily.
+    """
+    import time as _time
+    now = _time.time()
+
+    if _device_cache["keywords"] and (now - _device_cache["fetched_at"]) < DEVICE_CACHE_TTL:
+        return _device_cache["keywords"]
+
+    keywords = {}
+
+    for product_code in FDA_PRODUCT_CODES:
+        try:
+            params = urllib.parse.urlencode({
+                "search": f'product_code:"{product_code}"',
+                "limit": 10,
+            })
+            url = f"{OPENFDA_DEVICE_URL}?{params}"
+            req = urllib.request.Request(url, headers={
+                "Accept": "application/json", "User-Agent": "DTVSS/6.0"
+            })
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+
+            for result in data.get("results", []):
+                device_name = result.get("device_name", "").strip().lower()
+                fda_class = str(result.get("device_class", ""))
+
+                if not device_name or fda_class not in ("2", "3"):
+                    continue
+
+                tga_class = "III" if fda_class == "3" else "IIb"
+                keywords[device_name] = tga_class
+
+                # Also add shorter forms (first two words) for matching
+                words = device_name.split()
+                if len(words) >= 2:
+                    short = " ".join(words[:2]).lower()
+                    if len(short) > 4:  # avoid overly generic matches
+                        keywords[short] = tga_class
+
+        except Exception:
+            continue  # non-fatal — keep existing cache
+
+        # Rate limit: openFDA allows ~240 requests/minute without key
+        import time as _time2
+        _time2.sleep(0.3)
+
+    if keywords:
+        _device_cache["keywords"] = keywords
+        _device_cache["fetched_at"] = now
+
+    return keywords

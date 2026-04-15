@@ -43,6 +43,17 @@ def calculator():
 def about():
     return send_from_directory("static", "about.html")
 
+
+@app.route("/robots.txt")
+def robots():
+    return send_from_directory("static", "robots.txt", mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    return send_from_directory("static", "sitemap.xml", mimetype="application/xml")
+
+
 @app.route("/api/lookup")
 def lookup():
     """
@@ -233,6 +244,15 @@ def device_classes():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
+
+    # Pre-load device keyword cache from openFDA on startup
+    try:
+        from api_clients import refresh_device_keywords
+        keywords = refresh_device_keywords()
+        print(f"  Device keywords loaded: {len(keywords)} from openFDA")
+    except Exception as e:
+        print(f"  Device keyword refresh skipped: {e}")
+
     print(f"\n{'=' * 60}")
     print(f"  DTVSS Web v1.0.0")
     print(f"  Formula: (B/10 × H/10 × (1 + 15 × L(t))) × 10")

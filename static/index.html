@@ -9,8 +9,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTVSS — Dynamic Temporal Vulnerability Scoring</title>
-<meta name="description" content="DTVSS scores medical device cybersecurity vulnerabilities using real-time exploit likelihood, patient harm classification, and multiplicative risk architecture.">
+<title>DTVSS — Dynamic Temporal Vulnerability Scoring for Medical Devices</title>
+<meta name="description" content="DTVSS replaces static CVSS scoring with a dynamic, clinically-weighted risk engine for medical device cybersecurity. Integrates real-time exploit likelihood (EPSS), patient harm classification (TGA/EU MDR/MHRA/FDA), and CISA KEV override. Patent pending.">
+<meta name="keywords" content="DTVSS, medical device cybersecurity, vulnerability scoring, CVSS, EPSS, CISA KEV, patient safety, infusion pump security, pacemaker security, IoMT, healthcare cybersecurity, TGA, EU MDR, MHRA, FDA, ISO 14971, dynamic risk scoring">
+<meta name="author" content="Andrew Broglio">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://dtvss.io/">
+
+<!-- Open Graph -->
+<meta property="og:title" content="DTVSS — Dynamic Temporal Vulnerability Scoring for Medical Devices">
+<meta property="og:description" content="A patent-pending multiplicative risk engine that integrates exploitability, real-time exploit likelihood, and patient harm potential for medical device cybersecurity.">
+<meta property="og:url" content="https://dtvss.io/">
+<meta property="og:site_name" content="DTVSS">
+<meta property="og:type" content="website">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DTVSS — Dynamic Temporal Vulnerability Scoring">
+<meta name="twitter:description" content="Replaces static CVSS scoring with a dynamic risk engine for medical device cybersecurity. Patent pending.">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "DTVSS — Dynamic Temporal Vulnerability Scoring System",
+  "description": "A patent-pending, healthcare-focused extension to vulnerability scoring that models cybersecurity risk dynamically by integrating exploitability, real-time exploitation likelihood, and patient harm potential into a single multiplicative framework.",
+  "applicationCategory": "SecurityApplication",
+  "operatingSystem": "Web",
+  "url": "https://dtvss.io",
+  "author": {
+    "@type": "Person",
+    "name": "Andrew Broglio",
+    "url": "https://www.linkedin.com/in/andr3wbr0"
+  },
+  "license": "https://mariadb.com/bsl11/",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "AUD",
+    "description": "Tier 1 calculator free for non-commercial use. Commercial licence required for production use."
+  }
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anybody:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -219,8 +260,10 @@ a{color:var(--acc);text-decoration:none}
     <div>NVD → MITRE fallback → CISA Vulnrichment · All public data sources</div>
     <div style="margin-top:4px">© 2026 Andrew Broglio · DTVSS™ · Patent Pending — IP Australia</div>
     <div class="bsl">Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use</div>
-    <div style="margin-top:6px">
-      <a href="/calculator" style="color:var(--acc);text-decoration:none;font-weight:600">Interactive Calculator with Optional Embodiments →</a>
+    <div style="margin-top:8px">
+      <a href="/" style="color:var(--acc);text-decoration:none">Search</a> ·
+      <a href="/calculator" style="color:var(--acc);text-decoration:none">Calculator</a> ·
+      <a href="/about" style="color:var(--acc);text-decoration:none">About</a>
     </div>
     <div style="margin-top:4px">
       <a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer" style="color:var(--acc);text-decoration:none;font-weight:600">

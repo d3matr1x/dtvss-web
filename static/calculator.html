@@ -9,7 +9,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTVSS Calculator — Patent Claims Explorer</title>
+<title>DTVSS Calculator — Interactive Vulnerability Scoring with Optional Embodiments</title>
+<meta name="description" content="Interactive DTVSS calculator with manual input, CVE auto-lookup, environment-adjusted exploitability, temporal decay, and fleet-level organisational risk scaling. Patent pending.">
+<meta name="keywords" content="DTVSS calculator, vulnerability scoring, medical device cybersecurity, CVSS exploitability, EPSS, patient harm, ORS fleet scaling, ZTA, temporal decay">
+<meta name="author" content="Andrew Broglio">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://dtvss.io/calculator">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -345,6 +350,11 @@ function App(){
         <div style={{textAlign:"center",padding:"12px 0",fontFamily:mono,fontSize:"9px",color:"#4a5568",borderTop:"1px solid #1a2030",lineHeight:1.8}}>
           <div>DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10 · k=15 calibrated against 96 medical device CVEs</div>
           <div style={{marginTop:"4px"}}>© 2026 Andrew Broglio · DTVSS™ · Patent Pending — IP Australia · BSL 1.1</div>
+          <div style={{marginTop:"8px"}}>
+            <a href="/" style={{color:"#4f8ef7",textDecoration:"none"}}>Search</a>{" · "}
+            <a href="/calculator" style={{color:"#4f8ef7",textDecoration:"none"}}>Calculator</a>{" · "}
+            <a href="/about" style={{color:"#4f8ef7",textDecoration:"none"}}>About</a>
+          </div>
           <div style={{marginTop:"4px"}}><a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer"
             style={{color:"#4f8ef7",textDecoration:"none",fontWeight:600}}>Reach out for information about Tier 2–4 offerings → LinkedIn</a></div>
         </div>

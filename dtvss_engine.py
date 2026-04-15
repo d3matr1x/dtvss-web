@@ -81,16 +81,32 @@ DEVICE_KEYWORDS = {
 def classify_device(description: str, use_openfda: bool = True) -> tuple[str | None, str]:
     """
     Auto-classify device from CVE description or device name.
-    Cascade: keyword match → openFDA API → None (user selects manually).
-    Returns (tga_class, source) where source is 'keyword', 'openfda', or 'manual'.
+    Cascade:
+      1. Static keyword match (fast, 80+ hardcoded device names)
+      2. Dynamic openFDA keyword cache (refreshed daily from FDA API)
+      3. openFDA single-device lookup (live API call)
+      4. None — caller prompts user to select manually
+    Returns (tga_class, source).
     """
     desc_lower = description.lower()
-    # Layer 1: keyword match (fast, no API call)
+
+    # Layer 1: static keyword match (instant)
     for keyword in sorted(DEVICE_KEYWORDS.keys(), key=len, reverse=True):
         if keyword in desc_lower:
             return DEVICE_KEYWORDS[keyword], "keyword"
 
-    # Layer 2: openFDA API (server-side, hidden from user)
+    # Layer 2: dynamic openFDA keyword cache (refreshed daily)
+    if use_openfda:
+        try:
+            from api_clients import refresh_device_keywords
+            dynamic = refresh_device_keywords()
+            for keyword in sorted(dynamic.keys(), key=len, reverse=True):
+                if keyword in desc_lower:
+                    return dynamic[keyword], "openfda_cache"
+        except Exception:
+            pass
+
+    # Layer 3: openFDA single-device API lookup
     if use_openfda:
         try:
             from api_clients import openfda_classify_device
@@ -98,9 +114,9 @@ def classify_device(description: str, use_openfda: bool = True) -> tuple[str | N
             if fda_result and fda_result.get("tga_class"):
                 return fda_result["tga_class"], "openfda"
         except Exception:
-            pass  # openFDA failure is non-fatal
+            pass
 
-    # Layer 3: unclassifiable — caller should prompt user
+    # Layer 4: unclassifiable
     return None, "manual"
 
 
