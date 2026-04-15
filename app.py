@@ -43,12 +43,6 @@ def calculator():
 def about():
     return send_from_directory("static", "about.html")
 
-
-@app.route("/about")
-def about():
-    return send_from_directory("static", "about.html")
-
-
 @app.route("/api/lookup")
 def lookup():
     """
