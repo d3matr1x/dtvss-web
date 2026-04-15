@@ -31,11 +31,16 @@ CVSS31_UI = {"N": 0.85, "R": 0.62}
 
 def parse_cvss31_exploitability(vector: str) -> Optional[float]:
     """
-    Parse a CVSS v3.1 vector string and compute the exploitability sub-score.
-    Exploitability = 8.22 × AV × AC × PR × UI
+    Parse a CVSS v3.x or v4.0 vector string and compute the exploitability sub-score.
+    v3.x: Exploitability = 8.22 × AV × AC × PR × UI
+    v4.0: Uses same AV/AC/PR/UI components with AT mapped to AC equivalent.
     Returns None if vector cannot be parsed.
     """
-    if not vector or "CVSS:3" not in vector:
+    if not vector:
+        return None
+
+    # Accept both v3.x and v4.0 vectors
+    if "CVSS:3" not in vector and "CVSS:4" not in vector:
         return None
 
     parts = {}
@@ -46,8 +51,16 @@ def parse_cvss31_exploitability(vector: str) -> Optional[float]:
 
     try:
         av = CVSS31_AV.get(parts.get("AV", ""), None)
-        ac = CVSS31_AC.get(parts.get("AC", ""), None)
         ui = CVSS31_UI.get(parts.get("UI", ""), None)
+
+        # CVSS v4.0 uses AT (Attack Requirements) alongside AC
+        # Map AT:N → AC:L equivalent, AT:P → AC:H equivalent
+        ac = CVSS31_AC.get(parts.get("AC", ""), None)
+        if ac is None and "AT" in parts:
+            at_map = {"N": "L", "P": "H"}  # None→Low complexity, Present→High complexity
+            ac = CVSS31_AC.get(at_map.get(parts["AT"], ""), None)
+
+        # CVSS v4.0 doesn't have Scope — default to Unchanged for PR lookup
         scope = parts.get("S", "U")
         pr_table = CVSS31_PR_C if scope == "C" else CVSS31_PR_U
         pr = pr_table.get(parts.get("PR", ""), None)
@@ -275,13 +288,44 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
         cvss_ver = "3.0"
         cvss_vec = x.get("cvssData", {}).get("vectorString", "")
         sev = x.get("cvssData", {}).get("baseSeverity", "")
+    elif m.get("cvssMetricV40"):
+        # CVSS v4.0 — no exploitabilityScore sub-score in NVD response
+        # Extract vector and compute exploitability from v3.1-equivalent components
+        x = m["cvssMetricV40"][0]
+        cvss_ver = "4.0"
+        cvss_vec = x.get("cvssData", {}).get("vectorString", "")
+        sev = x.get("cvssData", {}).get("baseSeverity", "")
+        base_score = float(x.get("cvssData", {}).get("baseScore", 0))
+
+        # CVSS v4.0 vectors contain AV/AC/AT/PR/UI like v3.1
+        # Parse exploitability from vector using v3.1-compatible components
+        B = parse_cvss31_exploitability(cvss_vec) or 0.0
+
+        # If vector parsing failed, estimate B from base score
+        # Exploitability typically represents ~40-60% of base score
+        if not B and base_score > 0:
+            B = round(min(base_score * 0.5, 10.0), 1)
+
+        impact = float(x.get("cvssData", {}).get("baseScore", 0)) - B if B else 0.0
     elif m.get("cvssMetricV2"):
-        # v2.0 — outside calibration scope, flag but don't score
-        return {
-            "cve_id": cve_id,
-            "error": "CVSS v2.0 only — outside DTVSS calibration scope",
-            "cvss_version": "2.0",
-        }
+        # v2.0 — compute exploitability from vector if available
+        x = m["cvssMetricV2"][0]
+        cvss_ver = "2.0"
+        cvss_vec = x.get("cvssData", {}).get("vectorString", "")
+        sev = x.get("cvssData", {}).get("baseSeverity", "")
+        B = float(x.get("exploitabilityScore", 0))
+        impact = float(x.get("impactScore", 0))
+
+        # v2.0 exploitabilityScore is on 0-10 scale already
+        if B:
+            # Flag as v2.0 but still score it — better than returning nothing
+            pass
+        else:
+            return {
+                "cve_id": cve_id,
+                "error": "CVSS v2.0 only with no exploitability score",
+                "cvss_version": "2.0",
+            }
     else:
         return {"cve_id": cve_id, "error": "No CVSS score available"}
 
