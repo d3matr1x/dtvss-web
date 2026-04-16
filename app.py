@@ -21,7 +21,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
-from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check, get_manufacturer_list, build_manufacturer_search_queries
+from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check, get_manufacturer_list, build_manufacturer_search_queries, get_cached_search, set_cached_search
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
@@ -165,6 +165,16 @@ def search():
     if not query:
         return jsonify({"error": "Missing 'q' parameter"}), 400
 
+    # Check search cache first (5-minute TTL, shared across all users)
+    cached = get_cached_search(query, tga_override)
+    if cached is not None:
+        return jsonify({
+            "results": cached,
+            "count": len(cached),
+            "query": query,
+            "cached": True,
+        })
+
     # Always run the baseline query first (most reliable)
     nvd_results_map = {}
     baseline = nvd_search_keyword(query, api_key=NVD_API_KEY, max_results=max_results)
@@ -251,6 +261,9 @@ def search():
 
     # Sort: KEV first, then score descending
     scored.sort(key=lambda x: (0 if x.get("kev_override") else 1, -x["score"], x["cve_id"]))
+
+    # Cache for 5 minutes — shared across all users
+    set_cached_search(query, scored, tga_override)
 
     return jsonify({
         "results": scored,

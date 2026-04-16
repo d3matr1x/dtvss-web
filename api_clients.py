@@ -57,6 +57,28 @@ _epss_cache: dict = {}  # {cache_key: (result_dict, iso_date)}
 def _epss_cache_key(cve_ids: list[str]) -> str:
     return ",".join(sorted(cve_ids))
 
+# ── Search results cache ────────────────────────────────────────────────
+# Caches /api/search keyword results for 5 minutes.
+# Shared across all users — same query string hits cache regardless of who asks.
+_search_cache: dict = {}   # {cache_key: (results_list, cached_at)}
+SEARCH_CACHE_TTL = 300     # 5 minutes
+
+def _search_cache_key(query: str, tga_class: str = "") -> str:
+    """Normalised cache key — lowercase, collapsed whitespace, plus optional class."""
+    normalised = " ".join(query.lower().split())
+    return f"{normalised}|{tga_class}"
+
+def get_cached_search(query: str, tga_class: str = "") -> list | None:
+    key = _search_cache_key(query, tga_class)
+    entry = _search_cache.get(key)
+    if entry and (time.time() - entry[1]) < SEARCH_CACHE_TTL:
+        return entry[0]
+    return None
+
+def set_cached_search(query: str, results: list, tga_class: str = "") -> None:
+    key = _search_cache_key(query, tga_class)
+    _search_cache[key] = (results, time.time())
+
 # CVSS v3.1 exploitability sub-score computation from vector string
 # Used as fallback when NVD hasn't enriched the CVE (backlog)
 CVSS31_AV = {"N": 0.85, "A": 0.62, "L": 0.55, "P": 0.20}
