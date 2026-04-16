@@ -17,9 +17,9 @@
 <link rel="canonical" href="https://dtvss.io/calculator">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #06080c; }
@@ -35,10 +35,18 @@
 <div id="root">
   <div style="padding:40px;font-family:system-ui;color:#c8cdd8;text-align:center;background:#06080c">
     <div style="font-size:14px;color:#4a5568">Loading calculator...</div>
-    <div style="font-size:11px;color:#4a5568;margin-top:8px">If this message persists, your browser may not support the calculator. Try the <a href="/" style="color:#4f8ef7">search interface</a> instead.</div>
+    <div id="errMsg" style="font-size:11px;color:#d94f4f;margin-top:8px;font-family:monospace;white-space:pre-wrap"></div>
+    <div style="font-size:11px;color:#4a5568;margin-top:8px">If this message persists, try the <a href="/" style="color:#4f8ef7">search interface</a> instead.</div>
   </div>
 </div>
-<script type="text/babel">
+<script>
+  // Capture any errors that happen during script loading so user sees them
+  window.addEventListener('error', function(e) {
+    var em = document.getElementById('errMsg');
+    if (em) em.textContent = 'Error: ' + (e.message || 'Unknown') + (e.filename ? ' in ' + e.filename : '');
+  });
+</script>
+<script type="text/babel" data-presets="react">
 /* This loads the calculator JSX directly via Babel in-browser compilation.
    In production, you'd pre-compile this. For Tier 1, this is fine. */
 

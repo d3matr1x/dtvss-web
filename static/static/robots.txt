@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-Allow: /calculator
-Allow: /about
-
-Disallow: /api/
-
-Sitemap: https://dtvss.io/sitemap.xml
