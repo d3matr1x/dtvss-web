@@ -38,21 +38,47 @@ def _nvd_rate_limit(api_key: bool) -> None:
 # ── CVE response cache ──────────────────────────────────────────────────
 # NVD data (B score, KEV flag) changes at most daily.
 # Cache assembled lookup results for 1 hour to avoid repeat round-trips.
-_cve_cache: dict = {}   # {cve_id: (result_dict, fetched_at)}
-CVE_CACHE_TTL = 3600    # 1 hour
-MAX_CVE_CACHE = 2000    # max entries before LRU eviction
+CVE_CACHE_TTL = 3600       # 1 hour
+MAX_CVE_CACHE = 2000       # max entries before LRU eviction
+_CVE_CACHE_FILE = "/tmp/dtvss_cve_cache.json"
+_cve_write_buffer: dict = {}  # in-process buffer to avoid disk read on repeat hits
+
+def _load_cve_cache() -> dict:
+    try:
+        with open(_CVE_CACHE_FILE) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def _save_cve_cache(cache: dict) -> None:
+    try:
+        if len(cache) > MAX_CVE_CACHE:
+            sorted_keys = sorted(cache, key=lambda k: cache[k][1])
+            for k in sorted_keys[:len(cache) - MAX_CVE_CACHE]:
+                del cache[k]
+        with open(_CVE_CACHE_FILE, "w") as f:
+            json.dump(cache, f)
+    except Exception:
+        pass
 
 def _get_cached_cve(cve_id: str) -> dict | None:
-    entry = _cve_cache.get(cve_id)
-    if entry and (time.time() - entry[1]) < CVE_CACHE_TTL:
+    now = time.time()
+    entry = _cve_write_buffer.get(cve_id)
+    if entry and (now - entry[1]) < CVE_CACHE_TTL:
+        return entry[0]
+    cache = _load_cve_cache()
+    entry = cache.get(cve_id)
+    if entry and (now - entry[1]) < CVE_CACHE_TTL:
+        _cve_write_buffer[cve_id] = entry
         return entry[0]
     return None
 
 def _set_cached_cve(cve_id: str, result: dict) -> None:
-    if len(_cve_cache) >= MAX_CVE_CACHE:
-        oldest = min(_cve_cache, key=lambda k: _cve_cache[k][1])
-        del _cve_cache[oldest]
-    _cve_cache[cve_id] = (result, time.time())
+    entry = (result, time.time())
+    _cve_write_buffer[cve_id] = entry
+    cache = _load_cve_cache()
+    cache[cve_id] = entry
+    _save_cve_cache(cache)
 
 # ── EPSS daily cache ────────────────────────────────────────────────────
 # EPSS publishes one update per day. Cache by (sorted CVE list, date).
@@ -65,28 +91,70 @@ def _epss_cache_key(cve_ids: list[str]) -> str:
 # ── Search results cache ────────────────────────────────────────────────
 # Caches /api/search keyword results for 5 minutes.
 # Shared across all users — same query string hits cache regardless of who asks.
-_search_cache: dict = {}   # {cache_key: (results_list, cached_at)}
-SEARCH_CACHE_TTL = 300     # 5 minutes
-MAX_SEARCH_CACHE = 500     # max entries before LRU eviction
+SEARCH_CACHE_TTL = 300      # 5 minutes
+MAX_SEARCH_CACHE = 500      # max entries before LRU eviction
+_SEARCH_CACHE_FILE = "/tmp/dtvss_search_cache.json"
+
+# Small in-process write buffer — avoids disk read on every hit within same worker
+_search_write_buffer: dict = {}
 
 def _search_cache_key(query: str, tga_class: str = "") -> str:
     """Normalised cache key — lowercase, collapsed whitespace, plus optional class."""
     normalised = " ".join(query.lower().split())
     return f"{normalised}|{tga_class}"
 
+def _load_search_cache() -> dict:
+    """Load full cache from disk. Returns {} on any error."""
+    try:
+        with open(_SEARCH_CACHE_FILE) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def _save_search_cache(cache: dict) -> None:
+    """Persist cache to disk atomically. Trims to MAX_SEARCH_CACHE entries."""
+    try:
+        if len(cache) > MAX_SEARCH_CACHE:
+            # Evict oldest entries
+            sorted_keys = sorted(cache, key=lambda k: cache[k][1])
+            for k in sorted_keys[:len(cache) - MAX_SEARCH_CACHE]:
+                del cache[k]
+        with open(_SEARCH_CACHE_FILE, "w") as f:
+            json.dump(cache, f)
+    except Exception:
+        pass
+
 def get_cached_search(query: str, tga_class: str = "") -> list | None:
+    """Check disk cache — shared across all gunicorn workers."""
     key = _search_cache_key(query, tga_class)
-    entry = _search_cache.get(key)
-    if entry and (time.time() - entry[1]) < SEARCH_CACHE_TTL:
+    now = time.time()
+
+    # Check in-process buffer first (avoids disk read for repeat hits in same worker)
+    entry = _search_write_buffer.get(key)
+    if entry and (now - entry[1]) < SEARCH_CACHE_TTL:
         return entry[0]
+
+    # Check disk cache (written by any worker)
+    cache = _load_search_cache()
+    entry = cache.get(key)
+    if entry and (now - entry[1]) < SEARCH_CACHE_TTL:
+        _search_write_buffer[key] = entry  # warm the in-process buffer
+        return entry[0]
+
     return None
 
 def set_cached_search(query: str, results: list, tga_class: str = "") -> None:
-    if len(_search_cache) >= MAX_SEARCH_CACHE:
-        oldest = min(_search_cache, key=lambda k: _search_cache[k][1])
-        del _search_cache[oldest]
+    """Write to disk cache so all gunicorn workers can read it."""
     key = _search_cache_key(query, tga_class)
-    _search_cache[key] = (results, time.time())
+    entry = (results, time.time())
+
+    # Update in-process buffer
+    _search_write_buffer[key] = entry
+
+    # Load, merge, save to disk
+    cache = _load_search_cache()
+    cache[key] = entry
+    _save_search_cache(cache)
 
 # CVSS v3.1 exploitability sub-score computation from vector string
 # Used as fallback when NVD hasn't enriched the CVE (backlog)
@@ -916,7 +984,7 @@ def refresh_manufacturer_registry() -> list[dict]:
                 if time.time() > _reg_deadline:
                     break
                 params = urllib.parse.urlencode({
-                    "search": f'products.product_code:"{pc}" AND (establishment_type:"Manufacture Medical Device" OR establishment_type:"Contract Manufacturer")',
+                    "search": f'products.product_code:"{pc}" AND establishment_type:"Manufacture Medical Device"',
                     "limit": 100,
                     "skip": page_skip,
                 })
@@ -935,14 +1003,8 @@ def refresh_manufacturer_registry() -> list[dict]:
 
             for result in all_results:
                 # Double-check establishment type at record level
-                # Accept primary manufacturers and contract manufacturers who may
-                # manufacture under their own name and have their own NVD CVEs
                 estab_types = result.get("establishment_type", [])
-                is_manufacturer = any(
-                    e in ("Manufacture Medical Device", "Contract Manufacturer")
-                    for e in estab_types
-                )
-                if not is_manufacturer:
+                if not any(e == "Manufacture Medical Device" for e in estab_types):
                     continue
 
                 # Extract manufacturer name from proprietor or establishment
