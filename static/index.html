@@ -313,11 +313,28 @@ let selectedClass = 'auto';
 let lastSearchData = null;
 
 // Hardcoded fallback in case FDA API is slow on cold start
+// Fallback list: {name: display label, nvd: NVD search term}
 const FALLBACK_MDMS = [
-  "Abbott","B. Braun","Baxter","BD","Biotronik","Boston Scientific",
-  "Dexcom","Draeger","Fresenius Kabi","GE Healthcare","Hamilton Medical",
-  "Hospira","ICU Medical","Insulet","Medtronic","Mindray",
-  "Nihon Kohden","Philips","Smiths Medical","Tandem Diabetes"
+  {name:"Abbott",           nvd:"Abbott"},
+  {name:"B. Braun",         nvd:"B. Braun"},
+  {name:"Baxter",           nvd:"Baxter"},
+  {name:"BD",               nvd:"BD"},
+  {name:"Biotronik",        nvd:"Biotronik"},
+  {name:"Boston Scientific",nvd:"Boston Scientific"},
+  {name:"Dexcom",           nvd:"Dexcom"},
+  {name:"Dräger",           nvd:"Draeger"},
+  {name:"Fresenius Kabi",   nvd:"Fresenius"},
+  {name:"GE Healthcare",    nvd:"GE Healthcare"},
+  {name:"Hamilton Medical", nvd:"Hamilton Medical"},
+  {name:"Hospira",          nvd:"Hospira"},
+  {name:"ICU Medical",      nvd:"ICU Medical"},
+  {name:"Insulet",          nvd:"Insulet"},
+  {name:"Medtronic",        nvd:"Medtronic"},
+  {name:"Mindray",          nvd:"Mindray"},
+  {name:"Nihon Kohden",     nvd:"Nihon Kohden"},
+  {name:"Philips",          nvd:"Philips"},
+  {name:"Smiths Medical",   nvd:"Smiths Medical"},
+  {name:"Tandem Diabetes",  nvd:"Tandem"},
 ];
 
 // Load manufacturer dropdown from FDA registry API
@@ -330,7 +347,8 @@ async function loadManufacturers() {
       select.innerHTML = '<option value="">— Select manufacturer (' + data.count + ' from FDA) —</option>';
       data.manufacturers.forEach(m => {
         const opt = document.createElement('option');
-        opt.value = m.name;
+        // Use nvd_term as value so search hits NVD correctly (e.g. "Tandem" not "Tandem Diabetes")
+        opt.value = m.nvd_term || m.name;
         opt.textContent = m.name;
         select.appendChild(opt);
       });
@@ -339,10 +357,10 @@ async function loadManufacturers() {
   } catch(e) {}
   // Fallback to hardcoded list
   select.innerHTML = '<option value="">— Select manufacturer —</option>';
-  FALLBACK_MDMS.forEach(name => {
+  FALLBACK_MDMS.forEach(m => {
     const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
+    opt.value = m.nvd;
+    opt.textContent = m.name;
     select.appendChild(opt);
   });
 }
@@ -358,15 +376,10 @@ function setClass(cls) {
   });
 }
 
-function selectMDM(manufacturer) {
-  if (!manufacturer) return;
-  // Strip corporate suffixes so NVD search returns better results
-  // e.g. "Medtronic, Inc." → "Medtronic", "B. Braun Melsungen AG" → "B. Braun"
-  let cleaned = manufacturer
-    .replace(/,?\s*(Inc\.?|LLC|Ltd\.?|GmbH|AG|Corp\.?|Corporation|Co\.?|Limited|S\.A\.|PLC|N\.V\.|B\.V\.|S\.p\.A\.|Pty|Holdings?).*/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  document.getElementById('searchInput').value = cleaned;
+function selectMDM(nvdTerm) {
+  if (!nvdTerm) return;
+  // opt.value is already the NVD search term (set by loadManufacturers)
+  document.getElementById('searchInput').value = nvdTerm;
   document.getElementById('mdmSelect').value = '';
   doSearch();
 }
@@ -393,14 +406,18 @@ async function doSearch() {
       const data = await resp.json();
       if (data.error) {
         showError(data.error);
+      } else if (!data.score && data.score !== 0) {
+        showError(`Unexpected response for ${q} — please try again`);
       } else {
         showSingleResult(data);
       }
     } else {
       const resp = await fetch(`/api/search?q=${encodeURIComponent(q)}${classParam}&max=30`);
       const data = await resp.json();
-      if (data.count === 0) {
-        showError(`No scorable results found for "${q}"`);
+      if (data.error) {
+        showError(data.error);
+      } else if (data.count === 0) {
+        showError(data.note || `No scorable results found for "${q}"`);
       } else if (data.count === 1) {
         showSingleResult(data.results[0]);
       } else {

@@ -9,6 +9,7 @@ No Anthropic API dependency. All public data sources.
 
 import json
 import os
+import re
 import time
 import urllib.parse
 import urllib.request
@@ -19,6 +20,42 @@ from typing import Optional
 NVD_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 EPSS_URL = "https://api.first.org/data/v1/epss"
 MITRE_CVE_URL = "https://cveawg.mitre.org/api/cve"
+
+# ── NVD rate limiter ────────────────────────────────────────────────────
+# NVD allows 50 req/30 s with API key, 5 req/30 s without.
+# Sleep only the remaining gap since the last call instead of always sleeping.
+_nvd_last_call: float = 0.0
+
+def _nvd_rate_limit(api_key: bool) -> None:
+    """Sleep only as long as needed to respect NVD rate limits."""
+    global _nvd_last_call
+    min_gap = 0.7 if api_key else 6.0
+    elapsed = time.time() - _nvd_last_call
+    if elapsed < min_gap:
+        time.sleep(min_gap - elapsed)
+    _nvd_last_call = time.time()
+
+# ── CVE response cache ──────────────────────────────────────────────────
+# NVD data (B score, KEV flag) changes at most daily.
+# Cache assembled lookup results for 1 hour to avoid repeat round-trips.
+_cve_cache: dict = {}   # {cve_id: (result_dict, fetched_at)}
+CVE_CACHE_TTL = 3600    # 1 hour
+
+def _get_cached_cve(cve_id: str) -> dict | None:
+    entry = _cve_cache.get(cve_id)
+    if entry and (time.time() - entry[1]) < CVE_CACHE_TTL:
+        return entry[0]
+    return None
+
+def _set_cached_cve(cve_id: str, result: dict) -> None:
+    _cve_cache[cve_id] = (result, time.time())
+
+# ── EPSS daily cache ────────────────────────────────────────────────────
+# EPSS publishes one update per day. Cache by (sorted CVE list, date).
+_epss_cache: dict = {}  # {cache_key: (result_dict, iso_date)}
+
+def _epss_cache_key(cve_ids: list[str]) -> str:
+    return ",".join(sorted(cve_ids))
 
 # CVSS v3.1 exploitability sub-score computation from vector string
 # Used as fallback when NVD hasn't enriched the CVE (backlog)
@@ -86,7 +123,12 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
     """
     Look up a single CVE by ID from NVD API v2.
     Falls back to MITRE CVE.org API if NVD hasn't enriched the CVE (backlog).
+    Results cached for 1 hour.
     """
+    cached = _get_cached_cve(cve_id)
+    if cached is not None:
+        return cached
+
     params = {"cveId": cve_id}
     query = urllib.parse.urlencode(params)
     url = f"{NVD_URL}?{query}"
@@ -103,6 +145,7 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
         # NVD unreachable — try MITRE fallback
         mitre = mitre_lookup_cve(cve_id)
         if mitre and "error" not in mitre:
+            _set_cached_cve(cve_id, mitre)
             return mitre
         return {"error": f"NVD API error: {str(e)}"}
 
@@ -111,6 +154,7 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
         # CVE not in NVD — try MITRE
         mitre = mitre_lookup_cve(cve_id)
         if mitre and "error" not in mitre:
+            _set_cached_cve(cve_id, mitre)
             return mitre
         return {"error": f"CVE {cve_id} not found in NVD or MITRE"}
 
@@ -127,8 +171,11 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
                 mitre["kev_added"] = cve.get("cisaExploitAdd", "")
                 mitre["kev_due"] = cve.get("cisaActionDue", "")
                 mitre["kev_name"] = cve.get("cisaVulnerabilityName", "")
+            _set_cached_cve(cve_id, mitre)
             return mitre
 
+    if result and "error" not in result:
+        _set_cached_cve(cve_id, result)
     return result
 
 
@@ -249,7 +296,6 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
 
 def nvd_search_keyword(keyword: str, api_key: str = None, max_results: int = 50) -> list[dict]:
     """Search NVD by keyword, return parsed CVE list."""
-    import time as _time
     params = {
         "keywordSearch": keyword,
         "resultsPerPage": min(max_results, 100),
@@ -264,7 +310,7 @@ def nvd_search_keyword(keyword: str, api_key: str = None, max_results: int = 50)
         headers["apiKey"] = api_key
 
     # Rate limit: NVD allows 50 requests per 30 seconds with API key, 5 without
-    _time.sleep(0.7 if api_key else 6.0)
+    _nvd_rate_limit(bool(api_key))
 
     try:
         req = urllib.request.Request(url, headers=headers)
@@ -392,9 +438,16 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
 
 
 def epss_lookup(cve_ids: list[str]) -> dict:
-    """Batch lookup EPSS scores. Returns dict of cve_id -> {epss, percentile, date}."""
+    """Batch lookup EPSS scores. Returns dict of cve_id -> {epss, percentile, date}.
+    Results cached for the calendar day (EPSS publishes one update per day)."""
     if not cve_ids:
         return {}
+
+    today = date.today().isoformat()
+    cache_key = _epss_cache_key(cve_ids)
+    cached = _epss_cache.get(cache_key)
+    if cached and cached[1] == today:
+        return cached[0]
 
     results = {}
     # EPSS API supports comma-separated CVE IDs
@@ -422,8 +475,9 @@ def epss_lookup(cve_ids: list[str]) -> dict:
     # Fill missing
     for cve_id in cve_ids:
         if cve_id not in results:
-            results[cve_id] = {"epss": 0.0, "percentile": 0.0, "date": date.today().isoformat()}
+            results[cve_id] = {"epss": 0.0, "percentile": 0.0, "date": today}
 
+    _epss_cache[cache_key] = (results, today)
     return results
 
 
@@ -505,8 +559,7 @@ def cisa_kev_check(cve_id: str) -> Optional[dict]:
     Caches the full catalog in memory, refreshes hourly.
     Returns KEV details or None.
     """
-    import time as _time
-    now = _time.time()
+    now = time.time()
 
     # Refresh cache if stale
     if _kev_cache["data"] is None or (now - _kev_cache["fetched_at"]) > KEV_CACHE_TTL:
@@ -579,8 +632,7 @@ def refresh_device_keywords() -> dict:
     Returns dict of {lowercase_device_name: tga_class}.
     Cached daily.
     """
-    import time as _time
-    now = _time.time()
+    now = time.time()
 
     if _device_cache["keywords"] and (now - _device_cache["fetched_at"]) < DEVICE_CACHE_TTL:
         return _device_cache["keywords"]
@@ -621,8 +673,7 @@ def refresh_device_keywords() -> dict:
             continue  # non-fatal — keep existing cache
 
         # Rate limit: openFDA allows ~240 requests/minute without key
-        import time as _time2
-        _time2.sleep(0.3)
+        time.sleep(0.3)
 
     if keywords:
         _device_cache["keywords"] = keywords
@@ -667,8 +718,7 @@ def refresh_manufacturer_registry() -> list[dict]:
     from openFDA Registration & Listing API. Cached daily.
     Returns list of {name, product_codes, device_class} dicts.
     """
-    import time as _time
-    now = _time.time()
+    now = time.time()
 
     if _manufacturer_cache["manufacturers"] and (now - _manufacturer_cache["fetched_at"]) < MANUFACTURER_CACHE_TTL:
         return _manufacturer_cache["manufacturers"]
@@ -718,82 +768,81 @@ def refresh_manufacturer_registry() -> list[dict]:
                 # Map raw FDA name to canonical display name for known MDMs
                 # This prevents over-aggressive word splitting (Dexcom → Dex)
                 # and dedupes variants (Becton Dickinson + Becton, Dickinson)
+                # Values are (display_name, nvd_search_term).
+                # nvd_search_term is what NVD actually indexes CVEs under —
+                # often shorter than the display name (e.g. "Tandem" not "Tandem Diabetes").
+                # Short/ambiguous aliases removed to prevent false FDA firm matches.
                 CANONICAL_NAMES = {
-                    "medtronic": "Medtronic",
-                    "abbott": "Abbott",
-                    "biotronik": "Biotronik",
-                    "boston scientific": "Boston Scientific",
-                    "philips": "Philips",
-                    "baxter": "Baxter",
-                    "draeger": "Dräger",
-                    "drager": "Dräger",
-                    "dräger": "Dräger",
-                    "draegerwerk": "Dräger",
-                    "icu medical": "ICU Medical",
-                    "icu": "ICU Medical",
-                    "zoll": "Zoll",
-                    "becton dickinson": "BD (Becton Dickinson)",
-                    "becton, dickinson": "BD (Becton Dickinson)",
-                    "becton": "BD (Becton Dickinson)",
-                    "bd": "BD (Becton Dickinson)",
-                    "dexcom": "Dexcom",
-                    "dex": "Dexcom",
-                    "fresenius vial": "Fresenius Kabi",
-                    "fresenius kabi": "Fresenius Kabi",
-                    "fresenius": "Fresenius Kabi",
-                    "mindray": "Mindray",
-                    "nihon kohden": "Nihon Kohden",
-                    "nihon": "Nihon Kohden",
-                    "resmed": "ResMed",
-                    "tandem": "Tandem Diabetes",
-                    "smith": "Smiths Medical",
-                    "smiths medical": "Smiths Medical",
-                    "smiths": "Smiths Medical",
-                    "hamilton medical": "Hamilton Medical",
-                    "hamilton": "Hamilton Medical",
-                    "ge healthcare": "GE Healthcare",
-                    "general electric": "GE Healthcare",
-                    "ge": "GE Healthcare",
-                    "b. braun": "B. Braun",
-                    "b braun": "B. Braun",
-                    "braun": "B. Braun",
-                    "hospira": "Hospira",
-                    "insulet": "Insulet",
-                    "getinge": "Getinge",
-                    "st jude": "St. Jude Medical",
-                    "st. jude": "St. Jude Medical",
-                    "carestream": "Carestream",
+                    "medtronic":         ("Medtronic",             "Medtronic"),
+                    "abbott":            ("Abbott",                "Abbott"),
+                    "biotronik":         ("Biotronik",             "Biotronik"),
+                    "boston scientific": ("Boston Scientific",     "Boston Scientific"),
+                    "philips":           ("Philips",               "Philips"),
+                    "baxter":            ("Baxter",                "Baxter"),
+                    "draeger":           ("Dräger",                "Draeger"),
+                    "drager":            ("Dräger",                "Draeger"),
+                    "dräger":            ("Dräger",                "Draeger"),
+                    "draegerwerk":       ("Dräger",                "Draeger"),
+                    "icu medical":       ("ICU Medical",           "ICU Medical"),
+                    "zoll":              ("Zoll",                  "Zoll"),
+                    "becton dickinson":  ("BD (Becton Dickinson)", "BD"),
+                    "becton, dickinson": ("BD (Becton Dickinson)", "BD"),
+                    "becton":            ("BD (Becton Dickinson)", "BD"),
+                    "dexcom":            ("Dexcom",                "Dexcom"),
+                    "fresenius vial":    ("Fresenius Kabi",        "Fresenius"),
+                    "fresenius kabi":    ("Fresenius Kabi",        "Fresenius"),
+                    "fresenius":         ("Fresenius Kabi",        "Fresenius"),
+                    "mindray":           ("Mindray",               "Mindray"),
+                    "nihon kohden":      ("Nihon Kohden",          "Nihon Kohden"),
+                    "resmed":            ("ResMed",                "ResMed"),
+                    "tandem":            ("Tandem Diabetes",       "Tandem"),
+                    "smiths medical":    ("Smiths Medical",        "Smiths Medical"),
+                    "smiths":            ("Smiths Medical",        "Smiths Medical"),
+                    "hamilton medical":  ("Hamilton Medical",      "Hamilton Medical"),
+                    "hamilton":          ("Hamilton Medical",      "Hamilton Medical"),
+                    "ge healthcare":     ("GE Healthcare",         "GE Healthcare"),
+                    "general electric":  ("GE Healthcare",         "GE Healthcare"),
+                    "b. braun":          ("B. Braun",              "B. Braun"),
+                    "b braun":           ("B. Braun",              "B. Braun"),
+                    "braun":             ("B. Braun",              "B. Braun"),
+                    "hospira":           ("Hospira",               "Hospira"),
+                    "insulet":           ("Insulet",               "Insulet"),
+                    "getinge":           ("Getinge",               "Getinge"),
+                    "st jude":           ("St. Jude Medical",      "St. Jude"),
+                    "st. jude":          ("St. Jude Medical",      "St. Jude"),
+                    "carestream":        ("Carestream",            "Carestream"),
                 }
 
                 # Lowercase the firm name for matching, try progressively shorter prefixes
                 firm_lower = firm_name.lower().strip()
                 # Strip common suffixes for matching purposes
-                import re as _re2
-                cleanmatch = _re2.sub(
+                cleanmatch = re.sub(
                     r',?\s*(inc\.?|llc|ltd\.?|gmbh|ag|corp\.?|corporation|co\.?|'
                     r'limited|healthcare|medical|diabetes\s*care|usa|technology|'
                     r'systems|cardiovascular|diagnostics|services).*$',
-                    '', firm_lower, flags=_re2.IGNORECASE
+                    '', firm_lower, flags=re.IGNORECASE
                 ).strip(",. ")
 
-                canonical = None
+                matched = None
                 # Try exact match first
                 if cleanmatch in CANONICAL_NAMES:
-                    canonical = CANONICAL_NAMES[cleanmatch]
+                    matched = CANONICAL_NAMES[cleanmatch]
                 else:
                     # Try matching by checking if firm name starts with any canonical key
                     for key in sorted(CANONICAL_NAMES.keys(), key=len, reverse=True):
                         if cleanmatch.startswith(key) or key in cleanmatch.split():
-                            canonical = CANONICAL_NAMES[key]
+                            matched = CANONICAL_NAMES[key]
                             break
 
-                if not canonical:
+                if not matched:
                     continue  # Not a known MDM — skip silently
 
-                clean = canonical.upper()
+                display_name, nvd_term = matched
+                clean = display_name.upper()
                 if clean not in manufacturers:
                     manufacturers[clean] = {
-                        "name": canonical,
+                        "name": display_name,
+                        "nvd_term": nvd_term,
                         "product_codes": set(),
                     }
                 manufacturers[clean]["product_codes"].add(pc)
@@ -802,17 +851,16 @@ def refresh_manufacturer_registry() -> list[dict]:
             continue
 
         # Rate limit
-        import time as _t
-        _t.sleep(0.3)
+        time.sleep(0.3)
 
     # Sort by product count descending — manufacturers with most device categories first
     result_list = sorted(
-        [{"name": v["name"], "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
+        [{"name": v["name"], "nvd_term": v["nvd_term"], "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
          for v in manufacturers.values()],
         key=lambda x: (-x["count"], x["name"])
     )
 
-    # Build quick lookup dict: lowercase name -> entry
+    # Build quick lookup dict: lowercase display name -> entry
     lookup = {}
     for entry in result_list:
         lookup[entry["name"].lower()] = entry
@@ -868,16 +916,20 @@ def build_manufacturer_search_queries(manufacturer_name: str) -> list[str]:
     if not entry:
         return [manufacturer_name]
 
+    # Use the NVD-indexed term as the search base — this is what NVD actually
+    # has in CVE descriptions (e.g. "Tandem" not "Tandem Diabetes").
+    nvd_term = entry.get("nvd_term", manufacturer_name)
+
     queries = []
-    # Baseline: manufacturer name alone
-    queries.append(manufacturer_name)
+    # Baseline: NVD search term alone
+    queries.append(nvd_term)
 
     # Add category-based queries (up to 2)
     added_terms = set()
     for pc in entry.get("product_codes", []):
         for term in PRODUCT_CODE_TO_DEVICE_TERMS.get(pc, []):
             if term not in added_terms and len(queries) < 3:
-                queries.append(f"{manufacturer_name} {term}")
+                queries.append(f"{nvd_term} {term}")
                 added_terms.add(term)
 
     # Add top product trade names (up to 2 more)
@@ -886,7 +938,7 @@ def build_manufacturer_search_queries(manufacturer_name: str) -> list[str]:
         product_names = result.get(manufacturer_name.lower(), [])
         for product in product_names[:2]:
             if len(queries) < 5:
-                queries.append(f"{manufacturer_name} {product}")
+                queries.append(f"{nvd_term} {product}")
     except Exception:
         pass
 
@@ -909,8 +961,7 @@ def refresh_manufacturer_product_names(manufacturer_name: str = None) -> dict:
     Lazy-cached per manufacturer for 24 hours.
     If manufacturer_name is None, returns full cache dict.
     """
-    import time as _time
-    now = _time.time()
+    now = time.time()
 
     if manufacturer_name is None:
         return _product_name_cache["by_manufacturer"]
@@ -960,11 +1011,10 @@ def refresh_manufacturer_product_names(manufacturer_name: str = None) -> dict:
                         cleaned = cleaned[len(prefix):].strip(", -:")
 
                 # Strip generic suffixes to leave product line name
-                import re as _re
-                cleaned = _re.sub(
+                cleaned = re.sub(
                     r'\s*(infusion pump|insulin pump|pacemaker|defibrillator|'
                     r'monitor|ventilator|system|device|pump|implant).*$',
-                    '', cleaned, flags=_re.IGNORECASE
+                    '', cleaned, flags=re.IGNORECASE
                 ).strip()
 
                 if cleaned and 3 <= len(cleaned) <= 40:

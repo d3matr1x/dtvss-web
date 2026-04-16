@@ -305,6 +305,12 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"  Manufacturer registry refresh skipped: {e}")
 
+    try:
+        cisa_kev_check("CVE-0000-0000")  # pre-warms the full catalog cache
+        print(f"  CISA KEV catalog pre-loaded")
+    except Exception as e:
+        print(f"  CISA KEV pre-load skipped: {e}")
+
     print(f"\n{'=' * 60}")
     print(f"  DTVSS Web v1.0.0")
     print(f"  Formula: (B/10 × H/10 × (1 + 15 × L(t))) × 10")
