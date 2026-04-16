@@ -32,7 +32,12 @@
 </style>
 </head>
 <body>
-<div id="root"></div>
+<div id="root">
+  <div style="padding:40px;font-family:system-ui;color:#c8cdd8;text-align:center;background:#06080c">
+    <div style="font-size:14px;color:#4a5568">Loading calculator...</div>
+    <div style="font-size:11px;color:#4a5568;margin-top:8px">If this message persists, your browser may not support the calculator. Try the <a href="/" style="color:#4f8ef7">search interface</a> instead.</div>
+  </div>
+</div>
 <script type="text/babel">
 /* This loads the calculator JSX directly via Babel in-browser compilation.
    In production, you'd pre-compile this. For Tier 1, this is fine. */
@@ -363,7 +368,7 @@ function App(){
   );
 }
 
-ReactDOM.render(React.createElement(App), document.getElementById("root"));
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
 </html>

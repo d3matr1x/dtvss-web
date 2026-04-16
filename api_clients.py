@@ -762,30 +762,35 @@ def refresh_manufacturer_registry() -> list[dict]:
         import time as _t
         _t.sleep(0.3)
 
-    # Manufacturers with historically disclosed CVEs (from MedCrypt/ICS-CERT data)
-    # These get priority placement at the top of the dropdown
+    # Manufacturers with historically disclosed CVEs in medical devices
+    # Sourced from MedCrypt 2024 ICS-CERT analysis + CISA advisory history
+    # The dropdown only shows manufacturers that match this curated list —
+    # the FDA registry data enriches them with product codes for search expansion.
     KNOWN_CVE_MDMS = {
         "baxter", "bd", "becton dickinson", "medtronic", "philips",
         "abbott", "b. braun", "b braun", "boston scientific", "biotronik",
-        "dexcom", "draeger", "dräger", "fresenius", "ge healthcare",
-        "hamilton medical", "hospira", "icu medical", "insulet", "mindray",
-        "nihon kohden", "resmed", "smiths medical", "tandem", "zoll",
-        "getinge", "drager", "st jude", "st. jude", "carestream",
+        "dexcom", "draeger", "drager", "dräger", "fresenius", "ge healthcare",
+        "hamilton medical", "hamilton", "hospira", "icu medical", "icu",
+        "insulet", "mindray", "nihon kohden", "resmed", "smiths medical",
+        "smiths", "tandem", "zoll", "getinge", "st jude", "st. jude",
+        "carestream", "becton",
     }
 
-    def priority_rank(name):
-        low = name.lower()
+    def is_known_mdm(name):
+        low = name.lower().strip()
         for mdm in KNOWN_CVE_MDMS:
-            if mdm in low:
-                return 0  # top priority
-        return 1
+            if mdm == low or mdm in low or low in mdm:
+                return True
+        return False
 
-    # Convert to sorted list — known-CVE manufacturers first, then by product count
-    result_list = sorted(
-        [{"name": v["name"], "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
-         for v in manufacturers.values()],
-        key=lambda x: (priority_rank(x["name"]), -x["count"], x["name"])
-    )
+    # Filter to only known MDMs, then sort by product count
+    filtered = [
+        {"name": v["name"], "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
+        for v in manufacturers.values()
+        if is_known_mdm(v["name"])
+    ]
+
+    result_list = sorted(filtered, key=lambda x: (-x["count"], x["name"]))
 
     # Build quick lookup dict: lowercase name -> entry
     lookup = {}

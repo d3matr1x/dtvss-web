@@ -29,6 +29,16 @@ CORS(app)
 NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
 
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Return JSON instead of HTML for all errors so the frontend can parse them."""
+    import traceback
+    tb = traceback.format_exc()
+    print(f"ERROR: {e}\n{tb}")
+    code = getattr(e, 'code', 500)
+    return jsonify({"error": f"Server error: {str(e)}", "type": e.__class__.__name__}), code
+
+
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
