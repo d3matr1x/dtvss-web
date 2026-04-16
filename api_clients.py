@@ -811,6 +811,19 @@ def refresh_device_keywords() -> dict:
 
 OPENFDA_REG_URL = "https://api.fda.gov/device/registrationlisting.json"
 
+# ISO 3166-1 alpha-2 country codes for the 5 target regulatory markets:
+# FDA (US), TGA (AU), Medsafe (NZ), MHRA (GB), EU MDR (all 27 EU member states)
+_TARGET_MARKETS = {
+    "US",  # FDA
+    "AU",  # TGA
+    "NZ",  # Medsafe
+    "GB",  # MHRA
+    # EU MDR — all 27 member states
+    "AT","BE","BG","CY","CZ","DE","DK","EE","ES","FI",
+    "FR","GR","HR","HU","IE","IT","LT","LU","LV","MT",
+    "NL","PL","PT","RO","SE","SI","SK",
+}
+
 # Product codes for network-connected medical devices (Class II and III)
 # Comprehensive list covering all IoMT-relevant categories
 CONNECTED_PRODUCT_CODES = [
@@ -1007,6 +1020,12 @@ def refresh_manufacturer_registry() -> list[dict]:
                 if not any(e == "Manufacture Medical Device" for e in estab_types):
                     continue
 
+                # Filter to 5 target markets: FDA, TGA, Medsafe, MHRA, EU MDR
+                reg = result.get("registration", {})
+                country = reg.get("iso_country_code", "").upper().strip()
+                if country and country not in _TARGET_MARKETS:
+                    continue
+
                 # Extract manufacturer name from proprietor or establishment
                 prop = result.get("proprietor", {})
                 firm_name = prop.get("firm_name", "").strip()
@@ -1078,12 +1097,26 @@ def refresh_manufacturer_registry() -> list[dict]:
         # Rate limit
         time.sleep(0.3)
 
-    # Sort by product count descending — manufacturers with most device categories first
+    # Build canonical name set for fast lookup
+    canonical_display_names = {v[0].lower() for v in _CANONICAL_NAMES.values()}
+
+    # Filter and sort:
+    # - Always include known canonical manufacturers (in _CANONICAL_NAMES)
+    # - Unknown manufacturers only if registered for 2+ product codes
+    #   (proxy for a real multi-product IoMT company likely to have NVD CVEs)
+    all_entries = [
+        {"name": v["name"], "nvd_term": v.get("nvd_term", v["name"]),
+         "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
+        for v in manufacturers.values()
+    ]
+
+    is_canonical = lambda e: e["name"].lower() in canonical_display_names
     result_list = sorted(
-        [{"name": v["name"], "nvd_term": v.get("nvd_term", v["name"]), "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
-         for v in manufacturers.values()],
-        key=lambda x: (-x["count"], x["name"])
+        [e for e in all_entries if is_canonical(e) or e["count"] >= 2],
+        key=lambda x: (0 if is_canonical(x) else 1, x["name"].lower())
     )
+
+    print(f"[mdm registry] {len(all_entries)} total → {len(result_list)} after filtering (canonical + 2+ product codes)")
 
     # Build quick lookup dict: lowercase display name -> entry
     lookup = {}
