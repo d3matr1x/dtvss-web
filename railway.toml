@@ -2,7 +2,7 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --keep-alive 5"
+startCommand = "gunicorn app:app --bind 0.0.0.0:$PORT --worker-class gevent --workers 4 --worker-connections 100 --timeout 60 --keep-alive 5"
 healthcheckPath = "/api/device-classes"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3

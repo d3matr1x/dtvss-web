@@ -12,6 +12,10 @@ Output capped at 10.0. KEV override forces 10.0 post-scoring.
 
 K_TEMPORAL = 15.0
 
+# Maximum length for CVE descriptions stored/returned by the engine.
+# All parsers (NVD, MITRE) use this constant — do not truncate elsewhere.
+DESCRIPTION_MAX_LEN = 300
+
 TGA_CLASSES = {
     "IIb": {"H": 7.5, "label": "Class IIb", "desc": "Moderate-high risk",
             "examples": "Infusion pumps, insulin pumps, ventilators, patient monitors, CGMs",
@@ -22,13 +26,13 @@ TGA_CLASSES = {
 }
 
 THRESHOLDS = [
-    (3.0, "Low", "Standard patch cycle. Monitor L(t) for changes."),
-    (6.0, "Medium", "Remediation within 30 days."),
-    (8.0, "High", "Remediation within 7 days. Escalate to clinical risk team."),
+    (3.0,  "Low",      "Standard patch cycle. Monitor L(t) for changes."),
+    (6.0,  "Medium",   "Remediation within 30 days."),
+    (8.0,  "High",     "Remediation within 7 days. Escalate to clinical risk team."),
     (10.1, "Critical", "Immediate action. Isolate device. Treat as incident response."),
 ]
 
-# Device keyword → TGA class mapping for auto-classification
+# Device keyword → TGA class mapping for auto-classification.
 DEVICE_KEYWORDS = {
     # Infusion pumps — IIb
     "baxter": "IIb", "sigma spectrum": "IIb", "colleague": "IIb",
@@ -77,12 +81,18 @@ DEVICE_KEYWORDS = {
     "implantable": "III",
 }
 
+# Pre-sorted once at module load: longest keyword first so more-specific
+# matches win over shorter/generic ones. Avoids re-sorting on every call.
+_SORTED_DEVICE_KEYWORDS: tuple = tuple(
+    sorted(DEVICE_KEYWORDS.keys(), key=len, reverse=True)
+)
+
 
 def classify_device(description: str, use_openfda: bool = True) -> tuple[str | None, str]:
     """
     Auto-classify device from CVE description or device name.
     Cascade:
-      1. Static keyword match (fast, 80+ hardcoded device names)
+      1. Static keyword match (fast, pre-sorted at module load)
       2. Dynamic openFDA keyword cache (refreshed daily from FDA API)
       3. openFDA single-device lookup (live API call)
       4. None — caller prompts user to select manually
@@ -90,8 +100,8 @@ def classify_device(description: str, use_openfda: bool = True) -> tuple[str | N
     """
     desc_lower = description.lower()
 
-    # Layer 1: static keyword match (instant)
-    for keyword in sorted(DEVICE_KEYWORDS.keys(), key=len, reverse=True):
+    # Layer 1: static keyword match (pre-sorted, instant)
+    for keyword in _SORTED_DEVICE_KEYWORDS:
         if keyword in desc_lower:
             return DEVICE_KEYWORDS[keyword], "keyword"
 
@@ -118,6 +128,25 @@ def classify_device(description: str, use_openfda: bool = True) -> tuple[str | N
 
     # Layer 4: unclassifiable
     return None, "manual"
+
+
+def resolve_tga_class(description: str, tga_override: str) -> tuple[str, str]:
+    """
+    Resolve TGA class from an explicit override or auto-classification.
+    Returns (tga_class, classify_source).
+
+    Centralises the duplicated resolution logic that was previously copy-pasted
+    into both /api/lookup and /api/search.
+    """
+    if tga_override and tga_override in TGA_CLASSES:
+        return tga_override, "user"
+
+    tga_class, classify_source = classify_device(description)
+    if not tga_class:
+        tga_class = "IIb"       # default to IIb if unclassifiable
+        classify_source = "default"
+
+    return tga_class, classify_source
 
 
 def compute_dtvss(B: float, L: float, H: float, kev: bool = False) -> dict:
