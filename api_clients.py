@@ -715,42 +715,85 @@ def refresh_manufacturer_registry() -> list[dict]:
                 if any(kw in firm_name.lower() for kw in skip_keywords):
                     continue
 
-                # Consolidate subsidiaries under parent brand
-                # "Medtronic Minimed" → "Medtronic", "Baxter Healthcare Corporation" → "Baxter"
-                import re as _re
-                suffix_pattern = _re.compile(
-                    r',?\s*(Inc\.?|LLC|Ltd\.?|GmbH|AG|Corp\.?|Corporation|Co\.?|Limited|'
-                    r'S\.?A\.?|PLC|N\.?V\.?|B\.?V\.?|S\.?p\.?A\.?|Pty|Holdings?|Healthcare|'
-                    r'Medical|Diabetes\s*Care|Cardiovascular|Diagnostics).*$',
-                    flags=_re.IGNORECASE
-                )
-                display_name = suffix_pattern.sub('', firm_name).strip().title()
-
-                # Extract parent brand — first 1-2 words of cleaned name
-                words = display_name.split()
-                if not words:
-                    continue
-
-                # Parent brand detection: take first word, or first two for multi-word brands
-                multi_word_brands = {
-                    "b.", "st.", "boston", "becton", "icu", "nihon", "ge",
-                    "hamilton", "edwards", "fresenius", "johnson"
+                # Map raw FDA name to canonical display name for known MDMs
+                # This prevents over-aggressive word splitting (Dexcom → Dex)
+                # and dedupes variants (Becton Dickinson + Becton, Dickinson)
+                CANONICAL_NAMES = {
+                    "medtronic": "Medtronic",
+                    "abbott": "Abbott",
+                    "biotronik": "Biotronik",
+                    "boston scientific": "Boston Scientific",
+                    "philips": "Philips",
+                    "baxter": "Baxter",
+                    "draeger": "Dräger",
+                    "drager": "Dräger",
+                    "dräger": "Dräger",
+                    "draegerwerk": "Dräger",
+                    "icu medical": "ICU Medical",
+                    "icu": "ICU Medical",
+                    "zoll": "Zoll",
+                    "becton dickinson": "BD (Becton Dickinson)",
+                    "becton, dickinson": "BD (Becton Dickinson)",
+                    "becton": "BD (Becton Dickinson)",
+                    "bd": "BD (Becton Dickinson)",
+                    "dexcom": "Dexcom",
+                    "dex": "Dexcom",
+                    "fresenius vial": "Fresenius Kabi",
+                    "fresenius kabi": "Fresenius Kabi",
+                    "fresenius": "Fresenius Kabi",
+                    "mindray": "Mindray",
+                    "nihon kohden": "Nihon Kohden",
+                    "nihon": "Nihon Kohden",
+                    "resmed": "ResMed",
+                    "tandem": "Tandem Diabetes",
+                    "smith": "Smiths Medical",
+                    "smiths medical": "Smiths Medical",
+                    "smiths": "Smiths Medical",
+                    "hamilton medical": "Hamilton Medical",
+                    "hamilton": "Hamilton Medical",
+                    "ge healthcare": "GE Healthcare",
+                    "general electric": "GE Healthcare",
+                    "ge": "GE Healthcare",
+                    "b. braun": "B. Braun",
+                    "b braun": "B. Braun",
+                    "braun": "B. Braun",
+                    "hospira": "Hospira",
+                    "insulet": "Insulet",
+                    "getinge": "Getinge",
+                    "st jude": "St. Jude Medical",
+                    "st. jude": "St. Jude Medical",
+                    "carestream": "Carestream",
                 }
-                first_lower = words[0].lower().rstrip(",.")
-                if first_lower in multi_word_brands and len(words) > 1:
-                    parent = f"{words[0]} {words[1]}".strip(",.")
+
+                # Lowercase the firm name for matching, try progressively shorter prefixes
+                firm_lower = firm_name.lower().strip()
+                # Strip common suffixes for matching purposes
+                import re as _re2
+                cleanmatch = _re2.sub(
+                    r',?\s*(inc\.?|llc|ltd\.?|gmbh|ag|corp\.?|corporation|co\.?|'
+                    r'limited|healthcare|medical|diabetes\s*care|usa|technology|'
+                    r'systems|cardiovascular|diagnostics|services).*$',
+                    '', firm_lower, flags=_re2.IGNORECASE
+                ).strip(",. ")
+
+                canonical = None
+                # Try exact match first
+                if cleanmatch in CANONICAL_NAMES:
+                    canonical = CANONICAL_NAMES[cleanmatch]
                 else:
-                    parent = words[0].strip(",.")
+                    # Try matching by checking if firm name starts with any canonical key
+                    for key in sorted(CANONICAL_NAMES.keys(), key=len, reverse=True):
+                        if cleanmatch.startswith(key) or key in cleanmatch.split():
+                            canonical = CANONICAL_NAMES[key]
+                            break
 
-                # Clean up parent name
-                parent = parent.title()
-                if len(parent) < 3:
-                    continue
+                if not canonical:
+                    continue  # Not a known MDM — skip silently
 
-                clean = parent.upper()
+                clean = canonical.upper()
                 if clean not in manufacturers:
                     manufacturers[clean] = {
-                        "name": parent,
+                        "name": canonical,
                         "product_codes": set(),
                     }
                 manufacturers[clean]["product_codes"].add(pc)
@@ -762,35 +805,12 @@ def refresh_manufacturer_registry() -> list[dict]:
         import time as _t
         _t.sleep(0.3)
 
-    # Manufacturers with historically disclosed CVEs in medical devices
-    # Sourced from MedCrypt 2024 ICS-CERT analysis + CISA advisory history
-    # The dropdown only shows manufacturers that match this curated list —
-    # the FDA registry data enriches them with product codes for search expansion.
-    KNOWN_CVE_MDMS = {
-        "baxter", "bd", "becton dickinson", "medtronic", "philips",
-        "abbott", "b. braun", "b braun", "boston scientific", "biotronik",
-        "dexcom", "draeger", "drager", "dräger", "fresenius", "ge healthcare",
-        "hamilton medical", "hamilton", "hospira", "icu medical", "icu",
-        "insulet", "mindray", "nihon kohden", "resmed", "smiths medical",
-        "smiths", "tandem", "zoll", "getinge", "st jude", "st. jude",
-        "carestream", "becton",
-    }
-
-    def is_known_mdm(name):
-        low = name.lower().strip()
-        for mdm in KNOWN_CVE_MDMS:
-            if mdm == low or mdm in low or low in mdm:
-                return True
-        return False
-
-    # Filter to only known MDMs, then sort by product count
-    filtered = [
-        {"name": v["name"], "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
-        for v in manufacturers.values()
-        if is_known_mdm(v["name"])
-    ]
-
-    result_list = sorted(filtered, key=lambda x: (-x["count"], x["name"]))
+    # Sort by product count descending — manufacturers with most device categories first
+    result_list = sorted(
+        [{"name": v["name"], "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
+         for v in manufacturers.values()],
+        key=lambda x: (-x["count"], x["name"])
+    )
 
     # Build quick lookup dict: lowercase name -> entry
     lookup = {}
