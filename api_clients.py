@@ -599,3 +599,219 @@ def refresh_device_keywords() -> dict:
         _device_cache["fetched_at"] = now
 
     return keywords
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# openFDA GUDID API — Manufacturer list from official FDA registry
+# ═══════════════════════════════════════════════════════════════════════
+
+GUDID_URL = "https://api.fda.gov/device/udi.json"
+
+_manufacturer_cache = {"manufacturers": [], "fetched_at": 0}
+MANUFACTURER_CACHE_TTL = 86400  # refresh daily
+
+# Product codes for network-connected Class II/III medical devices
+# These are the device types DTVSS is calibrated for
+GUDID_PRODUCT_CODES = {
+    "FRN": "IIb",   # Infusion pump
+    "MEB": "IIb",   # Infusion pump, programmable
+    "FPA": "IIb",   # Insulin pump, external
+    "LWS": "IIb",   # Patient monitor, physiological
+    "DXY": "III",   # Pacemaker
+    "DTB": "III",   # Implantable cardioverter defibrillator
+    "DSQ": "III",   # Cardiac resynchronization therapy
+    "QBJ": "IIb",   # Continuous glucose monitor
+    "MHX": "IIb",   # Ventilator, continuous
+    "OYC": "IIb",   # External defibrillator
+    "DQA": "IIb",   # Telemetry system, physiological
+    "BSZ": "IIb",   # Syringe pump
+}
+
+
+def fetch_gudid_manufacturers() -> list[dict]:
+    """
+    Fetch unique manufacturers of network-connected medical devices
+    from the FDA GUDID registry. Cached daily.
+    Returns list of {name, device_types, class}.
+    """
+    import time as _time
+    now = _time.time()
+
+    if _manufacturer_cache["manufacturers"] and (now - _manufacturer_cache["fetched_at"]) < MANUFACTURER_CACHE_TTL:
+        return _manufacturer_cache["manufacturers"]
+
+    manufacturers = {}  # company_name -> {device_types set, highest_class}
+
+    for product_code, tga_class in GUDID_PRODUCT_CODES.items():
+        try:
+            params = urllib.parse.urlencode({
+                "search": f'product_codes.openfda.device_class:"2"+product_codes.code:"{product_code}"',
+                "count": "company_name.exact",
+                "limit": 50,
+            })
+            # Also search Class 3
+            params3 = urllib.parse.urlencode({
+                "search": f'product_codes.openfda.device_class:"3"+product_codes.code:"{product_code}"',
+                "count": "company_name.exact",
+                "limit": 50,
+            })
+
+            for p in [params, params3]:
+                url = f"{GUDID_URL}?{p}"
+                try:
+                    req = urllib.request.Request(url, headers={
+                        "Accept": "application/json", "User-Agent": "DTVSS/6.0"
+                    })
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        data = json.loads(resp.read().decode("utf-8"))
+
+                    for result in data.get("results", []):
+                        name = result.get("term", "").strip()
+                        if not name or len(name) < 3:
+                            continue
+
+                        if name not in manufacturers:
+                            manufacturers[name] = {"device_types": set(), "class": tga_class}
+
+                        manufacturers[name]["device_types"].add(product_code)
+                        # Upgrade class to III if any device is Class III
+                        if tga_class == "III":
+                            manufacturers[name]["class"] = "III"
+                except Exception:
+                    continue
+
+            # Rate limit
+            import time as _t
+            _t.sleep(0.3)
+
+        except Exception:
+            continue
+
+    if manufacturers:
+        # Sort by name, format for frontend
+        result = []
+        for name, info in sorted(manufacturers.items()):
+            result.append({
+                "name": name,
+                "class": info["class"],
+                "device_count": len(info["device_types"]),
+            })
+
+        _manufacturer_cache["manufacturers"] = result
+        _manufacturer_cache["fetched_at"] = now
+
+    return _manufacturer_cache["manufacturers"]
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# FDA Manufacturer Registry — Daily cached from openFDA Registration API
+# ═══════════════════════════════════════════════════════════════════════
+
+OPENFDA_REG_URL = "https://api.fda.gov/device/registrationlisting.json"
+
+# Product codes for network-connected medical devices (Class II and III)
+CONNECTED_PRODUCT_CODES = [
+    "FRN",   # Pump, infusion
+    "MEB",   # Pump, infusion, programmable
+    "FPA",   # Pump, infusion, insulin
+    "DXY",   # Pacemaker, cardiac
+    "DTB",   # Defibrillator, implantable
+    "DSQ",   # Cardiac resynchronization therapy
+    "LWS",   # Monitor, physiological, patient
+    "DQA",   # Telemetry, physiological
+    "MHX",   # Ventilator, continuous
+    "QBJ",   # Monitor, glucose, continuous
+    "OYC",   # Defibrillator, external
+    "BSX",   # Pump, infusion, enteral
+    "DPS",   # Recorder, cardiac event
+    "DRE",   # Monitor, cardiac (incl. ECG)
+    "FLL",   # Pump, infusion, syringe
+    "BRY",   # Ventilator, non-continuous
+]
+
+_manufacturer_cache = {"manufacturers": [], "lookup": {}, "fetched_at": 0}
+MANUFACTURER_CACHE_TTL = 86400  # 24 hours
+
+
+def refresh_manufacturer_registry() -> list[dict]:
+    """
+    Fetch manufacturers of network-connected Class II/III medical devices
+    from openFDA Registration & Listing API. Cached daily.
+    Returns list of {name, product_codes, device_class} dicts.
+    """
+    import time as _time
+    now = _time.time()
+
+    if _manufacturer_cache["manufacturers"] and (now - _manufacturer_cache["fetched_at"]) < MANUFACTURER_CACHE_TTL:
+        return _manufacturer_cache["manufacturers"]
+
+    manufacturers = {}  # name -> {product_codes, device_classes}
+
+    for pc in CONNECTED_PRODUCT_CODES:
+        try:
+            params = urllib.parse.urlencode({
+                "search": f'products.product_code:"{pc}"',
+                "limit": 100,
+            })
+            url = f"{OPENFDA_REG_URL}?{params}"
+            req = urllib.request.Request(url, headers={
+                "Accept": "application/json", "User-Agent": "DTVSS/6.0"
+            })
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+
+            for result in data.get("results", []):
+                # Extract manufacturer name from proprietor or establishment
+                prop = result.get("proprietor", {})
+                firm_name = prop.get("firm_name", "").strip()
+                if not firm_name:
+                    estab = result.get("establishment_type", [])
+                    firm_name = result.get("registration", {}).get("name", "").strip()
+
+                if not firm_name or len(firm_name) < 3:
+                    continue
+
+                # Clean up name — title case, remove Inc/LLC/etc for matching
+                display_name = firm_name.title()
+                clean = firm_name.upper()
+                for suffix in [", INC", " INC.", " INC", ", LLC", " LLC", ", LTD", " LTD", " GMBH", " CO.", " CORP", " CORPORATION"]:
+                    clean = clean.replace(suffix, "")
+                clean = clean.strip()
+
+                if clean not in manufacturers:
+                    manufacturers[clean] = {
+                        "name": display_name,
+                        "product_codes": set(),
+                    }
+                manufacturers[clean]["product_codes"].add(pc)
+
+        except Exception:
+            continue
+
+        # Rate limit
+        import time as _t
+        _t.sleep(0.3)
+
+    # Convert to sorted list
+    result_list = sorted(
+        [{"name": v["name"], "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
+         for v in manufacturers.values()],
+        key=lambda x: (-x["count"], x["name"])
+    )
+
+    # Build quick lookup dict: lowercase name -> entry
+    lookup = {}
+    for entry in result_list:
+        lookup[entry["name"].lower()] = entry
+
+    if result_list:
+        _manufacturer_cache["manufacturers"] = result_list
+        _manufacturer_cache["lookup"] = lookup
+        _manufacturer_cache["fetched_at"] = now
+
+    return result_list
+
+
+def get_manufacturer_list() -> list[dict]:
+    """Return cached manufacturer list, refreshing if stale."""
+    return refresh_manufacturer_registry()

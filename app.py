@@ -21,7 +21,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
-from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check
+from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check, get_manufacturer_list
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
@@ -242,16 +242,29 @@ def device_classes():
     return jsonify(TGA_CLASSES)
 
 
+@app.route("/api/manufacturers")
+def manufacturers():
+    """Return list of medical device manufacturers from FDA registry. Cached daily."""
+    mdm_list = get_manufacturer_list()
+    return jsonify({"manufacturers": mdm_list, "count": len(mdm_list), "source": "openFDA Registration & Listing API"})
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
-    # Pre-load device keyword cache from openFDA on startup
+    # Pre-load caches on startup
     try:
         from api_clients import refresh_device_keywords
         keywords = refresh_device_keywords()
         print(f"  Device keywords loaded: {len(keywords)} from openFDA")
     except Exception as e:
         print(f"  Device keyword refresh skipped: {e}")
+
+    try:
+        mdm = get_manufacturer_list()
+        print(f"  Manufacturers loaded: {len(mdm)} from FDA registry")
+    except Exception as e:
+        print(f"  Manufacturer registry refresh skipped: {e}")
 
     print(f"\n{'=' * 60}")
     print(f"  DTVSS Web v1.0.0")

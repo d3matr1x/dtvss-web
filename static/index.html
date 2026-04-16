@@ -181,27 +181,58 @@ a{color:var(--acc);text-decoration:none}
 <div class="header">
   <h1>DTVSS</h1>
   <span class="ver">v6.0 — Dynamic Temporal Vulnerability Scoring</span>
-  <span class="right">Patent Pending — Broglio 2026</span>
+  <span class="right">
+    <a href="/" style="color:var(--dim);text-decoration:none">Search</a> ·
+    <a href="/calculator" style="color:var(--dim);text-decoration:none">Calculator</a> ·
+    <a href="/about" style="color:var(--dim);text-decoration:none">About</a>
+  </span>
 </div>
 
 <div class="container">
 
+  <!-- Landing / Value Proposition -->
+  <div id="landing" style="padding:18px;background:linear-gradient(135deg,rgba(79,142,247,0.04),rgba(168,85,247,0.04));border:1px solid rgba(79,142,247,0.12);border-radius:10px;font-family:var(--body)">
+    <div style="font-size:13px;color:var(--hd);line-height:1.7">
+      A patent-pending <span style="color:var(--acc)">multiplicative risk engine</span> for medical device cybersecurity. Integrates
+      <span style="color:#a855f7">real-time exploit likelihood</span>,
+      <span style="color:var(--high)">regulatory device classification</span>, and
+      <span style="color:var(--crit)">patient harm potential</span>.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-top:12px;font-family:var(--mono);font-size:9px;line-height:1.5;color:var(--dim)">
+      <div>× Multiplicative coupling of B, H, and L(t)</div>
+      <div>H Patient harm from TGA / EU MDR / MHRA / FDA</div>
+      <div>L EPSS as continuous daily probability</div>
+      <div>! KEV override forces maximum score</div>
+    </div>
+    <div style="margin-top:10px;font-family:var(--mono);font-size:8px;color:var(--dim);opacity:.7">
+      Calibrated against 96 real medical device CVEs · All public data sources · <a href="/about" style="color:var(--acc);text-decoration:none">Learn more →</a>
+    </div>
+  </div>
+
   <!-- Search -->
   <div class="search-box">
     <div class="search-row">
-      <input class="search-input" id="searchInput" placeholder="CVE-2017-12725 or Medfusion 4000"
+      <input class="search-input" id="searchInput" placeholder="CVE-2017-12725 or infusion pump"
              onkeydown="if(event.key==='Enter')doSearch()">
       <button class="search-btn" id="searchBtn" onclick="doSearch()">SCORE</button>
     </div>
     <div class="search-hint">
-      Enter a <span>CVE ID</span> for single lookup or a <span>device name</span> to search all matching vulnerabilities.
-      B, L(t), and KEV status are fetched automatically from NVD and EPSS.
+      Enter a <span>CVE ID</span>, <span>device name</span>, or select a <span>manufacturer</span> below. Data fetched live from NVD, EPSS, and CISA KEV.
     </div>
     <div class="class-row">
       <label>DEVICE CLASS:</label>
       <button class="cls-btn auto-active" id="clsAuto" onclick="setClass('auto')">AUTO</button>
       <button class="cls-btn" id="clsIIb" onclick="setClass('IIb')">IIb</button>
       <button class="cls-btn" id="clsIII" onclick="setClass('III')">III</button>
+    </div>
+    <div style="margin-top:10px">
+      <label style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.06em">MANUFACTURER (FDA Registry):</label>
+      <select id="mdmSelect" onchange="selectMDM(this.value)" style="
+        margin-left:6px;background:var(--s1);border:1px solid var(--bd);border-radius:4px;
+        padding:4px 8px;color:var(--hd);font-family:var(--mono);font-size:10px;outline:none;cursor:pointer;
+      ">
+        <option value="">— Loading from FDA... —</option>
+      </select>
     </div>
   </div>
 
@@ -279,7 +310,43 @@ const TIER_COLOR = {Critical:'var(--crit)',High:'var(--high)',Medium:'var(--med)
 const TIER_BG = {Critical:'rgba(217,79,79,.08)',High:'rgba(217,124,42,.08)',Medium:'rgba(201,180,40,.08)',Low:'rgba(76,175,122,.08)'};
 const TIER_BD = {Critical:'rgba(217,79,79,.25)',High:'rgba(217,124,42,.25)',Medium:'rgba(201,180,40,.25)',Low:'rgba(76,175,122,.25)'};
 let selectedClass = 'auto';
-let lastSearchData = null;  // stores last multi-result search for back button
+let lastSearchData = null;
+
+// Hardcoded fallback in case FDA API is slow on cold start
+const FALLBACK_MDMS = [
+  "Abbott","B. Braun","Baxter","BD","Biotronik","Boston Scientific",
+  "Dexcom","Draeger","Fresenius Kabi","GE Healthcare","Hamilton Medical",
+  "Hospira","ICU Medical","Insulet","Medtronic","Mindray",
+  "Nihon Kohden","Philips","Smiths Medical","Tandem Diabetes"
+];
+
+// Load manufacturer dropdown from FDA registry API
+async function loadManufacturers() {
+  const select = document.getElementById('mdmSelect');
+  try {
+    const resp = await fetch('/api/manufacturers');
+    const data = await resp.json();
+    if (data.manufacturers && data.manufacturers.length > 0) {
+      select.innerHTML = '<option value="">— Select manufacturer (' + data.count + ' from FDA) —</option>';
+      data.manufacturers.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.name;
+        opt.textContent = m.name;
+        select.appendChild(opt);
+      });
+      return;
+    }
+  } catch(e) {}
+  // Fallback to hardcoded list
+  select.innerHTML = '<option value="">— Select manufacturer —</option>';
+  FALLBACK_MDMS.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+}
+loadManufacturers();
 
 function setClass(cls) {
   selectedClass = cls;
@@ -291,11 +358,20 @@ function setClass(cls) {
   });
 }
 
+function selectMDM(manufacturer) {
+  if (!manufacturer) return;
+  document.getElementById('searchInput').value = manufacturer;
+  document.getElementById('mdmSelect').value = '';
+  doSearch();
+}
+
 async function doSearch() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return;
 
-  // Hide previous results
+  // Hide landing and previous results
+  const landing = document.getElementById('landing');
+  if (landing) landing.style.display = 'none';
   document.getElementById('scoreCard').classList.remove('visible');
   document.getElementById('detail').classList.remove('visible');
   document.getElementById('resultsList').classList.remove('visible');
