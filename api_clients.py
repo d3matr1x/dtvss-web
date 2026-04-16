@@ -472,27 +472,28 @@ def epss_lookup(cve_ids: list[str]) -> dict:
         return cached[0]
 
     results = {}
-    # EPSS API supports comma-separated CVE IDs
-    batch = ",".join(cve_ids[:100])  # max 100 per request
-    params = f"?cve={batch}"
+    # EPSS API supports comma-separated CVE IDs — chunk into batches of 100
+    chunk_size = 100
+    for i in range(0, len(cve_ids), chunk_size):
+        chunk = cve_ids[i:i + chunk_size]
+        params = f"?cve={','.join(chunk)}"
+        try:
+            req = urllib.request.Request(
+                EPSS_URL + params,
+                headers={"Accept": "application/json", "User-Agent": "DTVSS/6.0"},
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
 
-    try:
-        req = urllib.request.Request(
-            EPSS_URL + params,
-            headers={"Accept": "application/json", "User-Agent": "DTVSS/6.0"},
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-
-        if data and data.get("data"):
-            for row in data["data"]:
-                results[row["cve"]] = {
-                    "epss": float(row["epss"]),
-                    "percentile": float(row["percentile"]),
-                    "date": row.get("date", ""),
-                }
-    except Exception as e:
-        pass  # EPSS failure is non-fatal; L(t) defaults to 0.0
+            if data and data.get("data"):
+                for row in data["data"]:
+                    results[row["cve"]] = {
+                        "epss": float(row["epss"]),
+                        "percentile": float(row["percentile"]),
+                        "date": row.get("date", ""),
+                    }
+        except Exception:
+            pass  # EPSS failure is non-fatal; L(t) defaults to 0.0 for this chunk
 
     # Fill missing
     for cve_id in cve_ids:
@@ -583,26 +584,46 @@ def cisa_kev_check(cve_id: str) -> Optional[dict]:
     """
     now = time.time()
 
+    KEV_DISK_CACHE = "/tmp/dtvss_kev_cache.json"
+
     # Refresh cache if stale
     if _kev_cache["data"] is None or (now - _kev_cache["fetched_at"]) > KEV_CACHE_TTL:
-        try:
-            req = urllib.request.Request(KEV_CATALOG_URL, headers={
-                "Accept": "application/json", "User-Agent": "DTVSS/6.0"
-            })
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                catalog = json.loads(resp.read().decode("utf-8"))
+        # Try disk cache first (survives restarts, not deploys)
+        if _kev_cache["data"] is None:
+            try:
+                with open(KEV_DISK_CACHE) as f:
+                    disk = json.load(f)
+                if now - disk.get("fetched_at", 0) < KEV_CACHE_TTL:
+                    _kev_cache["data"] = disk["data"]
+                    _kev_cache["fetched_at"] = disk["fetched_at"]
+            except Exception:
+                pass
 
-            # Index by CVE ID for O(1) lookup
-            indexed = {}
-            for vuln in catalog.get("vulnerabilities", []):
-                indexed[vuln.get("cveID", "")] = vuln
+        if _kev_cache["data"] is None or (now - _kev_cache["fetched_at"]) > KEV_CACHE_TTL:
+            try:
+                req = urllib.request.Request(KEV_CATALOG_URL, headers={
+                    "Accept": "application/json", "User-Agent": "DTVSS/6.0"
+                })
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    catalog = json.loads(resp.read().decode("utf-8"))
 
-            _kev_cache["data"] = indexed
-            _kev_cache["fetched_at"] = now
-        except Exception:
-            # If fetch fails and we have stale data, use it
-            if _kev_cache["data"] is None:
-                return None
+                # Index by CVE ID for O(1) lookup
+                indexed = {}
+                for vuln in catalog.get("vulnerabilities", []):
+                    indexed[vuln.get("cveID", "")] = vuln
+
+                _kev_cache["data"] = indexed
+                _kev_cache["fetched_at"] = now
+                # Persist to disk for next cold start
+                try:
+                    with open(KEV_DISK_CACHE, "w") as f:
+                        json.dump({"data": indexed, "fetched_at": now}, f)
+                except Exception:
+                    pass
+            except Exception:
+                # If fetch fails and we have stale data, use it
+                if _kev_cache["data"] is None:
+                    return None
 
     entry = _kev_cache["data"].get(cve_id)
     if not entry:
@@ -749,7 +770,12 @@ def refresh_manufacturer_registry() -> list[dict]:
 
     manufacturers = {}  # name -> {product_codes, device_classes}
 
+    _reg_deadline = time.time() + 60  # 60-second total wall-clock budget for all product codes
+
     for pc in CONNECTED_PRODUCT_CODES:
+        if time.time() > _reg_deadline:
+            print(f"[manufacturer registry] deadline reached after {len(manufacturers)} entries — returning partial result")
+            break
         try:
             # Filter to establishments that are MANUFACTURERS (not distributors, sterilisers, etc.)
             params = urllib.parse.urlencode({

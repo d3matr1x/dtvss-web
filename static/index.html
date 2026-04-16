@@ -136,7 +136,7 @@ a{color:var(--acc);text-decoration:none}
 .results-list{display:flex;flex-direction:column;gap:6px;display:none}
 .results-list.visible{display:flex}
 .results-header{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em;padding:4px 0}
-.result-row{display:grid;grid-template-columns:40px 150px 1fr 50px 60px 70px;align-items:center;gap:8px;
+.result-row{display:grid;grid-template-columns:40px 150px 1fr 40px 50px 60px 70px;align-items:center;gap:8px;
   padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;cursor:pointer;
   transition:border-color .15s;font-family:var(--mono);font-size:10px}
 .result-row:hover{border-color:var(--acc)}
@@ -144,6 +144,7 @@ a{color:var(--acc);text-decoration:none}
 .result-cve{color:var(--hd);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .result-desc{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--body);font-size:10px}
 .result-b{color:var(--acc);text-align:right}
+.result-year{color:var(--dim);text-align:right}
 .result-score{font-weight:600;text-align:right}
 .result-tier{text-align:center}
 .tier-sm{font-size:8px;font-weight:600;padding:2px 6px;border-radius:3px}
@@ -171,6 +172,7 @@ a{color:var(--acc);text-decoration:none}
 @media(max-width:600px){
   .result-row{grid-template-columns:30px 110px 1fr 50px 60px}
   .result-desc{display:none}
+  .result-year{display:none}
   .detail-grid{grid-template-columns:1fr}
   .juris-grid{grid-template-columns:repeat(2,1fr)}
 }
@@ -337,32 +339,43 @@ const FALLBACK_MDMS = [
   {name:"Tandem Diabetes",  nvd:"Tandem"},
 ];
 
-// Load manufacturer dropdown from FDA registry API
-async function loadManufacturers() {
+function _populateFallbackMDMs(label) {
   const select = document.getElementById('mdmSelect');
-  try {
-    const resp = await fetch('/api/manufacturers');
-    const data = await resp.json();
-    if (data.manufacturers && data.manufacturers.length > 0) {
-      select.innerHTML = '<option value="">— Select manufacturer (' + data.count + ' from FDA) —</option>';
-      data.manufacturers.forEach(m => {
-        const opt = document.createElement('option');
-        // Use nvd_term as value so search hits NVD correctly (e.g. "Tandem" not "Tandem Diabetes")
-        opt.value = m.nvd_term || m.name;
-        opt.textContent = m.name;
-        select.appendChild(opt);
-      });
-      return;
-    }
-  } catch(e) {}
-  // Fallback to hardcoded list
-  select.innerHTML = '<option value="">— Select manufacturer —</option>';
+  select.innerHTML = '<option value="">' + label + '</option>';
   FALLBACK_MDMS.forEach(m => {
     const opt = document.createElement('option');
     opt.value = m.nvd;
     opt.textContent = m.name;
     select.appendChild(opt);
   });
+}
+
+async function loadManufacturers() {
+  // Fall back to hardcoded list after 4s if FDA API is slow or errors
+  const fallbackTimer = setTimeout(() => _populateFallbackMDMs('— Select manufacturer —'), 4000);
+  try {
+    const resp = await fetch('/api/manufacturers');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const contentType = resp.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) throw new Error('non-JSON response');
+    const data = await resp.json();
+    clearTimeout(fallbackTimer);
+    if (data.manufacturers && data.manufacturers.length > 0) {
+      const select = document.getElementById('mdmSelect');
+      select.innerHTML = '<option value="">— Select manufacturer (' + data.count + ' from FDA) —</option>';
+      data.manufacturers.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.nvd_term || m.name;
+        opt.textContent = m.name;
+        select.appendChild(opt);
+      });
+      return;
+    }
+    clearTimeout(fallbackTimer);
+  } catch(e) {
+    clearTimeout(fallbackTimer);
+  }
+  _populateFallbackMDMs('— Select manufacturer —');
 }
 loadManufacturers();
 
@@ -496,7 +509,7 @@ function showSingleResult(r) {
       <div class="df"><div class="df-label">B (Exploitability)</div><div class="df-val">${r.B.toFixed(3)}</div></div>
       <div class="df"><div class="df-label">L(t) (EPSS)</div><div class="df-val">${r.L.toFixed(4)}</div></div>
       <div class="df"><div class="df-label">H (Patient Harm)</div><div class="df-val">${r.H.toFixed(1)}</div></div>
-      <div class="df"><div class="df-label">TGA Class</div><div class="df-val" style="color:${color}">${r.tga_class}</div></div>
+      <div class="df"><div class="df-label">TGA Class</div><div class="df-val" style="color:${color}">${r.tga_class}${r.classify_source === 'default' ? ' <span style="color:var(--high);font-size:9px" title="Could not auto-detect — defaulted to IIb">⚠ defaulted</span>' : r.classify_source === 'user' ? ' <span style="color:var(--acc);font-size:9px">manual</span>' : ''}</div></div>
       <div class="df"><div class="df-label">CVSS Version</div><div class="df-val">${r.cvss_version}</div></div>
       <div class="df"><div class="df-label">EPSS Percentile</div><div class="df-val">${r.epss_percentile ? (r.epss_percentile*100).toFixed(1)+'%' : '—'}</div></div>
       <div class="df"><div class="df-label">Published</div><div class="df-val">${(r.published||'').slice(0,10)}</div></div>
@@ -511,7 +524,7 @@ function showSingleResult(r) {
 function showSearchResults(data) {
   lastSearchData = data;  // store for back button
   const list = document.getElementById('resultsList');
-  let html = `<div class="results-header">${data.count} CVEs found for "${data.query}" — sorted by DTVSS score</div>`;
+  let html = `<div class="results-header">${data.count} CVEs · "${data.query}" · sorted by DTVSS score${data.cached ? ' · <span style="color:var(--low)">cached</span>' : ''}</div>`;
 
   data.results.forEach((r, i) => {
     const color = TIER_COLOR[r.risk_level] || 'var(--tx)';
@@ -526,6 +539,7 @@ function showSearchResults(data) {
         <div class="result-rank">${i+1}</div>
         <div class="result-cve">${r.cve_id}</div>
         <div class="result-desc">${r.description || '—'}</div>
+        <div class="result-year">${(r.published||'').slice(0,4)||'—'}</div>
         <div class="result-b" style="color:var(--acc)">${r.B.toFixed(2)}</div>
         <div class="result-score" style="color:${color}">${r.score.toFixed(2)}</div>
         <div class="result-tier"><span class="tier-sm" style="background:${tierBg};color:${color}">${r.risk_level}${flags ? ' '+flags : ''}</span></div>

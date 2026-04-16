@@ -17,14 +17,27 @@ All data from NVD API v2 + EPSS API. No Anthropic API. No operator config requir
 
 import os
 import json
+import re as _re
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    _limiter_available = True
+except ImportError:
+    _limiter_available = False
 
 from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
 from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check, get_manufacturer_list, build_manufacturer_search_queries, get_cached_search, set_cached_search
 
 app = Flask(__name__, static_folder="static", static_url_path="")
-CORS(app)
+CORS(app, origins=["https://dtvss.io", "http://localhost:5000", "http://127.0.0.1:5000"])
+
+# Rate limiting — 60 searches or lookups per minute per IP
+if _limiter_available:
+    limiter = Limiter(get_remote_address, app=app, default_limits=[], storage_uri="memory://")
+else:
+    limiter = None
 
 NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
 
@@ -81,6 +94,10 @@ def lookup():
 
     if not cve_id.startswith("CVE-"):
         cve_id = "CVE-" + cve_id
+
+    # Validate CVE ID format before hitting NVD
+    if not _re.match(r"^CVE-\d{4}-\d{1,7}$", cve_id):
+        return jsonify({"error": f"Invalid CVE ID format: {cve_id}"}), 400
 
     # Fetch from NVD
     nvd = nvd_lookup_cve(cve_id, api_key=NVD_API_KEY)
@@ -144,6 +161,7 @@ def lookup():
         "ics_advisory": nvd.get("ics_advisory", False),
         "ics_urls": nvd.get("ics_urls", []),
         "impact_score": nvd.get("impact_score", 0.0),
+        "classify_source": classify_source,
     })
 
     return jsonify(result)
@@ -279,10 +297,20 @@ def score():
     POST {"B": 3.9, "L": 0.0089, "H": 7.5, "kev": false}
     """
     data = request.json or {}
-    B = float(data.get("B", 0))
-    L = float(data.get("L", 0))
-    H = float(data.get("H", 7.5))
-    kev = bool(data.get("kev", False))
+    try:
+        B = float(data.get("B", 0))
+        L = float(data.get("L", 0))
+        H = float(data.get("H", 7.5))
+        kev = bool(data.get("kev", False))
+    except (TypeError, ValueError) as exc:
+        return jsonify({"error": f"Invalid input: {exc}"}), 400
+
+    if not (0.0 <= B <= 10.0):
+        return jsonify({"error": f"B must be between 0.0 and 10.0, got {B}"}), 400
+    if not (0.0 <= L <= 1.0):
+        return jsonify({"error": f"L must be between 0.0 and 1.0, got {L}"}), 400
+    if H not in (2.0, 5.0, 7.5, 10.0):
+        return jsonify({"error": f"H must be a valid TGA class value (2.0, 5.0, 7.5, or 10.0), got {H}"}), 400
 
     result = compute_dtvss(B, L, H, kev)
     return jsonify(result)
@@ -301,28 +329,40 @@ def manufacturers():
     return jsonify({"manufacturers": mdm_list, "count": len(mdm_list), "source": "openFDA Registration & Listing API"})
 
 
+# ── Startup pre-warming — runs under gunicorn AND python app.py ─────────
+# Uses before_request so it fires on the very first real request to the worker,
+# which works correctly under gunicorn (unlike __main__).
+_startup_done = False
+
+@app.before_request
+def _startup_prewarm():
+    global _startup_done
+    if _startup_done:
+        return
+    _startup_done = True
+    import threading
+    def _warm():
+        try:
+            from api_clients import refresh_device_keywords
+            kw = refresh_device_keywords()
+            print(f"[prewarm] Device keywords: {len(kw)} from openFDA")
+        except Exception as e:
+            print(f"[prewarm] Device keywords skipped: {e}")
+        try:
+            mdm = get_manufacturer_list()
+            print(f"[prewarm] Manufacturers: {len(mdm)} from FDA registry")
+        except Exception as e:
+            print(f"[prewarm] Manufacturers skipped: {e}")
+        try:
+            cisa_kev_check("CVE-0000-0000")
+            print("[prewarm] CISA KEV catalog loaded")
+        except Exception as e:
+            print(f"[prewarm] CISA KEV skipped: {e}")
+    threading.Thread(target=_warm, daemon=True).start()
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-
-    # Pre-load caches on startup
-    try:
-        from api_clients import refresh_device_keywords
-        keywords = refresh_device_keywords()
-        print(f"  Device keywords loaded: {len(keywords)} from openFDA")
-    except Exception as e:
-        print(f"  Device keyword refresh skipped: {e}")
-
-    try:
-        mdm = get_manufacturer_list()
-        print(f"  Manufacturers loaded: {len(mdm)} from FDA registry")
-    except Exception as e:
-        print(f"  Manufacturer registry refresh skipped: {e}")
-
-    try:
-        cisa_kev_check("CVE-0000-0000")  # pre-warms the full catalog cache
-        print(f"  CISA KEV catalog pre-loaded")
-    except Exception as e:
-        print(f"  CISA KEV pre-load skipped: {e}")
 
     print(f"\n{'=' * 60}")
     print(f"  DTVSS Web v1.0.0")

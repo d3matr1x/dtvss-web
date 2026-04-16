@@ -123,6 +123,7 @@ window.addEventListener('error', function(e) {
     const [copied, setCopied] = useState(false);
     const [lookupLoading, setLookupLoading] = useState(false);
     const [lookupMsg, setLookupMsg] = useState("");
+    const [publishedDate, setPublishedDate] = useState("");
 
     const lookupCVE = async (id) => {
       const cve = id || cveId;
@@ -138,6 +139,7 @@ window.addEventListener('error', function(e) {
           if (data.L !== undefined) setL(data.L);
           if (data.kev_override) setKev(true); else setKev(!!data.kev_added);
           if (data.tga_class && TGA_CLASSES[data.tga_class]) setTgaClass(data.tga_class);
+          if (data.published) setPublishedDate(data.published);
           setLookupMsg(`Loaded: B=${data.B} L=${data.L} ${data.tga_class || ""} ${data.kev_override ? "KEV" : ""}`);
         }
       } catch(err) {
@@ -148,7 +150,14 @@ window.addEventListener('error', function(e) {
 
     const H = TGA_CLASSES[tgaClass].H;
     const cveYear = cveId.match(/CVE-(\d{4})/i)?.[1];
-    const cveAge = cveYear ? (2026 - parseInt(cveYear)) : 0;
+    // Use full published date for precise age if available, else fall back to year only
+    const cveAge = (() => {
+      if (publishedDate) {
+        const pub = new Date(publishedDate);
+        if (!isNaN(pub)) return Math.max(0, (Date.now() - pub.getTime()) / (365.25 * 24 * 3600 * 1000));
+      }
+      return cveYear ? (new Date().getFullYear() - parseInt(cveYear)) : 0;
+    })();
     const halfLife = tgaClass === "III" ? 13.9 : 10;
     const lambda = Math.log(2) / halfLife;
     const L_eff = decayEnabled && cveAge > 0 ? L * Math.exp(-lambda * cveAge) : L;
