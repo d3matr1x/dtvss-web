@@ -721,7 +721,9 @@ def refresh_manufacturer_registry() -> list[dict]:
     now = time.time()
 
     if _manufacturer_cache["manufacturers"] and (now - _manufacturer_cache["fetched_at"]) < MANUFACTURER_CACHE_TTL:
-        return _manufacturer_cache["manufacturers"]
+        # Invalidate cache if entries are missing nvd_term (stale pre-deploy cache)
+        if all("nvd_term" in m for m in _manufacturer_cache["manufacturers"]):
+            return _manufacturer_cache["manufacturers"]
 
     manufacturers = {}  # name -> {product_codes, device_classes}
 
@@ -855,7 +857,7 @@ def refresh_manufacturer_registry() -> list[dict]:
 
     # Sort by product count descending — manufacturers with most device categories first
     result_list = sorted(
-        [{"name": v["name"], "nvd_term": v["nvd_term"], "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
+        [{"name": v["name"], "nvd_term": v.get("nvd_term", v["name"]), "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
          for v in manufacturers.values()],
         key=lambda x: (-x["count"], x["name"])
     )
