@@ -40,6 +40,7 @@ def _nvd_rate_limit(api_key: bool) -> None:
 # Cache assembled lookup results for 1 hour to avoid repeat round-trips.
 _cve_cache: dict = {}   # {cve_id: (result_dict, fetched_at)}
 CVE_CACHE_TTL = 3600    # 1 hour
+MAX_CVE_CACHE = 2000    # max entries before LRU eviction
 
 def _get_cached_cve(cve_id: str) -> dict | None:
     entry = _cve_cache.get(cve_id)
@@ -48,11 +49,15 @@ def _get_cached_cve(cve_id: str) -> dict | None:
     return None
 
 def _set_cached_cve(cve_id: str, result: dict) -> None:
+    if len(_cve_cache) >= MAX_CVE_CACHE:
+        oldest = min(_cve_cache, key=lambda k: _cve_cache[k][1])
+        del _cve_cache[oldest]
     _cve_cache[cve_id] = (result, time.time())
 
 # ── EPSS daily cache ────────────────────────────────────────────────────
 # EPSS publishes one update per day. Cache by (sorted CVE list, date).
 _epss_cache: dict = {}  # {cache_key: (result_dict, iso_date)}
+MAX_EPSS_CACHE = 1000   # max entries before LRU eviction
 
 def _epss_cache_key(cve_ids: list[str]) -> str:
     return ",".join(sorted(cve_ids))
@@ -62,6 +67,7 @@ def _epss_cache_key(cve_ids: list[str]) -> str:
 # Shared across all users — same query string hits cache regardless of who asks.
 _search_cache: dict = {}   # {cache_key: (results_list, cached_at)}
 SEARCH_CACHE_TTL = 300     # 5 minutes
+MAX_SEARCH_CACHE = 500     # max entries before LRU eviction
 
 def _search_cache_key(query: str, tga_class: str = "") -> str:
     """Normalised cache key — lowercase, collapsed whitespace, plus optional class."""
@@ -76,6 +82,9 @@ def get_cached_search(query: str, tga_class: str = "") -> list | None:
     return None
 
 def set_cached_search(query: str, results: list, tga_class: str = "") -> None:
+    if len(_search_cache) >= MAX_SEARCH_CACHE:
+        oldest = min(_search_cache, key=lambda k: _search_cache[k][1])
+        del _search_cache[oldest]
     key = _search_cache_key(query, tga_class)
     _search_cache[key] = (results, time.time())
 
@@ -500,6 +509,9 @@ def epss_lookup(cve_ids: list[str]) -> dict:
         if cve_id not in results:
             results[cve_id] = {"epss": 0.0, "percentile": 0.0, "date": today}
 
+    if len(_epss_cache) >= MAX_EPSS_CACHE:
+        oldest = min(_epss_cache, key=lambda k: _epss_cache[k][1] if isinstance(_epss_cache[k][1], float) else 0)
+        del _epss_cache[oldest]
     _epss_cache[cache_key] = (results, today)
     return results
 
@@ -732,45 +744,165 @@ def refresh_device_keywords() -> dict:
 OPENFDA_REG_URL = "https://api.fda.gov/device/registrationlisting.json"
 
 # Product codes for network-connected medical devices (Class II and III)
+# Comprehensive list covering all IoMT-relevant categories
 CONNECTED_PRODUCT_CODES = [
+    # Infusion / drug delivery
     "FRN",   # Pump, infusion
     "MEB",   # Pump, infusion, programmable
     "FPA",   # Pump, infusion, insulin
+    "BSX",   # Pump, infusion, enteral
+    "FLL",   # Pump, infusion, syringe
+    "JAK",   # Drug delivery, implantable programmable
+    "MYN",   # Drug infusion controller
+    "OZO",   # Insulin pump system
+    # Cardiac implantable / rhythm
     "DXY",   # Pacemaker, cardiac
     "DTB",   # Defibrillator, implantable
     "DSQ",   # Cardiac resynchronization therapy
+    "DXX",   # Pacemaker programmer
+    "OYC",   # Defibrillator, external / AED
+    # Monitoring
     "LWS",   # Monitor, physiological, patient
     "DQA",   # Telemetry, physiological
-    "MHX",   # Ventilator, continuous
-    "QBJ",   # Monitor, glucose, continuous
-    "OYC",   # Defibrillator, external
-    "BSX",   # Pump, infusion, enteral
     "DPS",   # Recorder, cardiac event
-    "DRE",   # Monitor, cardiac (incl. ECG)
-    "FLL",   # Pump, infusion, syringe
-    "BRY",   # Ventilator, non-continuous
+    "DRE",   # Monitor, cardiac / ECG
+    "PIB",   # Monitoring system, physiological
+    "PIE",   # Bedside monitor
+    "NBW",   # Wearable monitoring
+    "PEI",   # Remote patient monitoring
+    "QIH",   # Home monitoring system
+    # Glucose / diabetes
+    "QBJ",   # Monitor, glucose, continuous (CGM)
+    "KZH",   # Blood glucose meter, connected
+    "NBE",   # Continuous glucose monitor
+    # Respiratory
+    "MHX",   # Ventilator, continuous
+    "BRY",   # Ventilator, non-continuous / CPAP
+    "MHY",   # Ventilator, high frequency
 ]
 
 _manufacturer_cache = {"manufacturers": [], "lookup": {}, "fetched_at": 0}
 MANUFACTURER_CACHE_TTL = 86400  # 24 hours
 
 
+# Canonical name map: FDA raw name fragment → (display_name, nvd_search_term)
+# Used for dedup and normalisation of known major MDMs.
+# Firms not in this map pass through with their cleaned FDA name.
+_CANONICAL_NAMES = {
+    "medtronic":         ("Medtronic",             "Medtronic"),
+    "abbott":            ("Abbott",                "Abbott"),
+    "biotronik":         ("Biotronik",             "Biotronik"),
+    "boston scientific": ("Boston Scientific",     "Boston Scientific"),
+    "philips":           ("Philips",               "Philips"),
+    "baxter":            ("Baxter",                "Baxter"),
+    "draeger":           ("Dräger",                "Draeger"),
+    "drager":            ("Dräger",                "Draeger"),
+    "dräger":            ("Dräger",                "Draeger"),
+    "draegerwerk":       ("Dräger",                "Draeger"),
+    "icu medical":       ("ICU Medical",           "ICU Medical"),
+    "zoll":              ("Zoll",                  "Zoll"),
+    "becton dickinson":  ("BD (Becton Dickinson)", "BD"),
+    "becton, dickinson": ("BD (Becton Dickinson)", "BD"),
+    "becton":            ("BD (Becton Dickinson)", "BD"),
+    "dexcom":            ("Dexcom",                "Dexcom"),
+    "fresenius vial":    ("Fresenius Kabi",        "Fresenius"),
+    "fresenius kabi":    ("Fresenius Kabi",        "Fresenius"),
+    "fresenius":         ("Fresenius Kabi",        "Fresenius"),
+    "mindray":           ("Mindray",               "Mindray"),
+    "nihon kohden":      ("Nihon Kohden",          "Nihon Kohden"),
+    "resmed":            ("ResMed",                "ResMed"),
+    "tandem":            ("Tandem Diabetes",       "Tandem"),
+    "smiths medical":    ("Smiths Medical",        "Smiths Medical"),
+    "smiths":            ("Smiths Medical",        "Smiths Medical"),
+    "hamilton medical":  ("Hamilton Medical",      "Hamilton Medical"),
+    "hamilton":          ("Hamilton Medical",      "Hamilton Medical"),
+    "ge healthcare":     ("GE Healthcare",         "GE Healthcare"),
+    "general electric":  ("GE Healthcare",         "GE Healthcare"),
+    "b. braun":          ("B. Braun",              "B. Braun"),
+    "b braun":           ("B. Braun",              "B. Braun"),
+    "braun":             ("B. Braun",              "B. Braun"),
+    "hospira":           ("Hospira",               "Hospira"),
+    "insulet":           ("Insulet",               "Insulet"),
+    "getinge":           ("Getinge",               "Getinge"),
+    "st jude":           ("St. Jude Medical",      "St. Jude"),
+    "st. jude":          ("St. Jude Medical",      "St. Jude"),
+    "carestream":        ("Carestream",            "Carestream"),
+    "eitan":             ("Eitan Medical",         "Eitan"),
+    "ivenix":            ("Ivenix",                "Ivenix"),
+    "moog":              ("Moog",                  "Moog"),
+    "carefusion":        ("CareFusion",            "CareFusion"),
+    "alaris":            ("BD Alaris",             "Alaris"),
+    "spacelabs":         ("Spacelabs Healthcare",  "Spacelabs"),
+    "welch allyn":       ("Welch Allyn",           "Welch Allyn"),
+    "masimo":            ("Masimo",                "Masimo"),
+    "nellcor":           ("Nellcor",               "Nellcor"),
+    "covidien":          ("Covidien",              "Covidien"),
+    "hill-rom":          ("Hill-Rom",              "Hill-Rom"),
+    "hillrom":           ("Hill-Rom",              "Hill-Rom"),
+    "stryker":           ("Stryker",               "Stryker"),
+    "omron":             ("Omron",                 "Omron"),
+    "roche":             ("Roche",                 "Roche"),
+    "siemens":           ("Siemens Healthineers",  "Siemens"),
+    "abbott diabetes":   ("Abbott",                "Abbott"),
+    "abbott vascular":   ("Abbott",                "Abbott"),
+    "st. jude medical":  ("St. Jude Medical",      "St. Jude"),
+    "cardiac science":   ("Cardiac Science",       "Cardiac Science"),
+    "physio-control":    ("Physio-Control",        "Physio-Control"),
+    "lifepoint":         ("LifePoint",             "LifePoint"),
+    "natus":             ("Natus Medical",         "Natus"),
+    "criticare":         ("Criticare",             "Criticare"),
+    "datascope":         ("Datascope",             "Datascope"),
+    "datex":             ("Datex-Ohmeda",          "Datex"),
+    "ohmeda":            ("Datex-Ohmeda",          "Datex"),
+    "criticare":         ("Criticare",             "Criticare"),
+    "nonin":             ("Nonin Medical",         "Nonin"),
+    "natus":             ("Natus Medical",         "Natus"),
+    "shenzhen mindray":  ("Mindray",               "Mindray"),
+    "edan":              ("Edan Instruments",      "Edan"),
+    "contec":            ("Contec Medical",        "Contec"),
+    "biotelemetry":      ("BioTelemetry",          "BioTelemetry"),
+    "irhythm":           ("iRhythm",               "iRhythm"),
+    "livanova":          ("LivaNova",              "LivaNova"),
+    "nuvectra":          ("Nuvectra",              "Nuvectra"),
+    "nevro":             ("Nevro",                 "Nevro"),
+    "integer":           ("Integer Holdings",      "Integer"),
+    "greatbatch":        ("Integer Holdings",      "Integer"),
+}
+
+
 def refresh_manufacturer_registry() -> list[dict]:
     """
     Fetch manufacturers of network-connected Class II/III medical devices
     from openFDA Registration & Listing API. Cached daily.
-    Returns list of {name, product_codes, device_class} dicts.
+    Returns list of {name, nvd_term, product_codes, count} dicts, sorted by product breadth.
+    Unknown firms (not in _CANONICAL_NAMES) pass through with their cleaned FDA name.
     """
     now = time.time()
+
+    MDM_DISK_CACHE = "/tmp/dtvss_mdm_cache.json"
 
     if _manufacturer_cache["manufacturers"] and (now - _manufacturer_cache["fetched_at"]) < MANUFACTURER_CACHE_TTL:
         # Invalidate cache if entries are missing nvd_term (stale pre-deploy cache)
         if all("nvd_term" in m for m in _manufacturer_cache["manufacturers"]):
             return _manufacturer_cache["manufacturers"]
 
+    # Try disk cache first — survives process restarts
+    if not _manufacturer_cache["manufacturers"]:
+        try:
+            with open(MDM_DISK_CACHE) as f:
+                disk = json.load(f)
+            if (now - disk.get("fetched_at", 0)) < MANUFACTURER_CACHE_TTL and                all("nvd_term" in m for m in disk.get("manufacturers", [])):
+                _manufacturer_cache["manufacturers"] = disk["manufacturers"]
+                _manufacturer_cache["fetched_at"] = disk["fetched_at"]
+                _manufacturer_cache["lookup"] = {m["name"].lower(): m for m in disk["manufacturers"]}
+                print(f"[mdm cache] loaded {len(disk['manufacturers'])} manufacturers from disk")
+                return _manufacturer_cache["manufacturers"]
+        except Exception:
+            pass
+
     manufacturers = {}  # name -> {product_codes, device_classes}
 
-    _reg_deadline = time.time() + 60  # 60-second total wall-clock budget for all product codes
+    _reg_deadline = time.time() + 120  # 120-second budget — 28 product codes × up to 3 pages each
 
     for pc in CONNECTED_PRODUCT_CODES:
         if time.time() > _reg_deadline:
@@ -778,18 +910,30 @@ def refresh_manufacturer_registry() -> list[dict]:
             break
         try:
             # Filter to establishments that are MANUFACTURERS (not distributors, sterilisers, etc.)
-            params = urllib.parse.urlencode({
-                "search": f'products.product_code:"{pc}" AND establishment_type:"Manufacture Medical Device"',
-                "limit": 100,
-            })
-            url = f"{OPENFDA_REG_URL}?{params}"
-            req = urllib.request.Request(url, headers={
-                "Accept": "application/json", "User-Agent": "DTVSS/6.0"
-            })
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
+            # Paginate: fetch up to 3 pages of 100 to capture all manufacturers
+            all_results = []
+            for page_skip in range(0, 300, 100):
+                if time.time() > _reg_deadline:
+                    break
+                params = urllib.parse.urlencode({
+                    "search": f'products.product_code:"{pc}" AND establishment_type:"Manufacture Medical Device"',
+                    "limit": 100,
+                    "skip": page_skip,
+                })
+                url = f"{OPENFDA_REG_URL}?{params}"
+                req = urllib.request.Request(url, headers={
+                    "Accept": "application/json", "User-Agent": "DTVSS/6.0"
+                })
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    page_data = json.loads(resp.read().decode("utf-8"))
+                page_results = page_data.get("results", [])
+                all_results.extend(page_results)
+                total_available = page_data.get("meta", {}).get("results", {}).get("total", 0)
+                if len(all_results) >= total_available or len(page_results) < 100:
+                    break  # got everything
+                time.sleep(0.15)  # brief pause between pages
 
-            for result in data.get("results", []):
+            for result in all_results:
                 # Double-check establishment type at record level
                 estab_types = result.get("establishment_type", [])
                 if not any("Manufacture" in e for e in estab_types):
@@ -815,79 +959,42 @@ def refresh_manufacturer_registry() -> list[dict]:
                 if any(kw in firm_name.lower() for kw in skip_keywords):
                     continue
 
-                # Map raw FDA name to canonical display name for known MDMs
-                # This prevents over-aggressive word splitting (Dexcom → Dex)
-                # and dedupes variants (Becton Dickinson + Becton, Dickinson)
-                # Values are (display_name, nvd_search_term).
-                # nvd_search_term is what NVD actually indexes CVEs under —
-                # often shorter than the display name (e.g. "Tandem" not "Tandem Diabetes").
-                # Short/ambiguous aliases removed to prevent false FDA firm matches.
-                CANONICAL_NAMES = {
-                    "medtronic":         ("Medtronic",             "Medtronic"),
-                    "abbott":            ("Abbott",                "Abbott"),
-                    "biotronik":         ("Biotronik",             "Biotronik"),
-                    "boston scientific": ("Boston Scientific",     "Boston Scientific"),
-                    "philips":           ("Philips",               "Philips"),
-                    "baxter":            ("Baxter",                "Baxter"),
-                    "draeger":           ("Dräger",                "Draeger"),
-                    "drager":            ("Dräger",                "Draeger"),
-                    "dräger":            ("Dräger",                "Draeger"),
-                    "draegerwerk":       ("Dräger",                "Draeger"),
-                    "icu medical":       ("ICU Medical",           "ICU Medical"),
-                    "zoll":              ("Zoll",                  "Zoll"),
-                    "becton dickinson":  ("BD (Becton Dickinson)", "BD"),
-                    "becton, dickinson": ("BD (Becton Dickinson)", "BD"),
-                    "becton":            ("BD (Becton Dickinson)", "BD"),
-                    "dexcom":            ("Dexcom",                "Dexcom"),
-                    "fresenius vial":    ("Fresenius Kabi",        "Fresenius"),
-                    "fresenius kabi":    ("Fresenius Kabi",        "Fresenius"),
-                    "fresenius":         ("Fresenius Kabi",        "Fresenius"),
-                    "mindray":           ("Mindray",               "Mindray"),
-                    "nihon kohden":      ("Nihon Kohden",          "Nihon Kohden"),
-                    "resmed":            ("ResMed",                "ResMed"),
-                    "tandem":            ("Tandem Diabetes",       "Tandem"),
-                    "smiths medical":    ("Smiths Medical",        "Smiths Medical"),
-                    "smiths":            ("Smiths Medical",        "Smiths Medical"),
-                    "hamilton medical":  ("Hamilton Medical",      "Hamilton Medical"),
-                    "hamilton":          ("Hamilton Medical",      "Hamilton Medical"),
-                    "ge healthcare":     ("GE Healthcare",         "GE Healthcare"),
-                    "general electric":  ("GE Healthcare",         "GE Healthcare"),
-                    "b. braun":          ("B. Braun",              "B. Braun"),
-                    "b braun":           ("B. Braun",              "B. Braun"),
-                    "braun":             ("B. Braun",              "B. Braun"),
-                    "hospira":           ("Hospira",               "Hospira"),
-                    "insulet":           ("Insulet",               "Insulet"),
-                    "getinge":           ("Getinge",               "Getinge"),
-                    "st jude":           ("St. Jude Medical",      "St. Jude"),
-                    "st. jude":          ("St. Jude Medical",      "St. Jude"),
-                    "carestream":        ("Carestream",            "Carestream"),
-                }
-
-                # Lowercase the firm name for matching, try progressively shorter prefixes
+                # ── Name normalisation ──────────────────────────────────
+                # CANONICAL_NAMES: known firms that need display name cleanup
+                # or dedup (e.g. "Becton, Dickinson" → "BD (Becton Dickinson)").
+                # Firms NOT in this map pass through with their cleaned FDA name.
+                # Values: (display_name, nvd_search_term)
                 firm_lower = firm_name.lower().strip()
-                # Strip common suffixes for matching purposes
                 cleanmatch = re.sub(
                     r',?\s*(inc\.?|llc|ltd\.?|gmbh|ag|corp\.?|corporation|co\.?|'
                     r'limited|healthcare|medical|diabetes\s*care|usa|technology|'
-                    r'systems|cardiovascular|diagnostics|services).*$',
+                    r'systems|cardiovascular|diagnostics|services|international|'
+                    r'americas|europe|global|north\s*america|holdings?).*$',
                     '', firm_lower, flags=re.IGNORECASE
                 ).strip(",. ")
 
-                matched = None
-                # Try exact match first
-                if cleanmatch in CANONICAL_NAMES:
-                    matched = CANONICAL_NAMES[cleanmatch]
-                else:
-                    # Try matching by checking if firm name starts with any canonical key
-                    for key in sorted(CANONICAL_NAMES.keys(), key=len, reverse=True):
+                if len(cleanmatch) < 2:
+                    continue
+
+                matched = _CANONICAL_NAMES.get(cleanmatch)
+                if not matched:
+                    for key in sorted(_CANONICAL_NAMES.keys(), key=len, reverse=True):
                         if cleanmatch.startswith(key) or key in cleanmatch.split():
-                            matched = CANONICAL_NAMES[key]
+                            matched = _CANONICAL_NAMES[key]
                             break
 
-                if not matched:
-                    continue  # Not a known MDM — skip silently
+                if matched:
+                    display_name, nvd_term = matched
+                else:
+                    # Unknown firm — pass through with title-cased cleaned name
+                    # Capitalise each word, preserve known acronyms
+                    display_name = " ".join(
+                        w.upper() if w in ("bd","ge","icu","ecg","cgm","aed","mri","ct")
+                        else w.capitalize()
+                        for w in cleanmatch.split()
+                    )
+                    nvd_term = display_name  # use same for NVD search
 
-                display_name, nvd_term = matched
                 clean = display_name.upper()
                 if clean not in manufacturers:
                     manufacturers[clean] = {
@@ -919,6 +1026,20 @@ def refresh_manufacturer_registry() -> list[dict]:
         _manufacturer_cache["manufacturers"] = result_list
         _manufacturer_cache["lookup"] = lookup
         _manufacturer_cache["fetched_at"] = now
+        # Persist to disk for next cold start
+        try:
+            with open(MDM_DISK_CACHE, "w") as f:
+                json.dump({
+                    "manufacturers": [
+                        {k: v for k, v in m.items() if k != "product_codes"}
+                        | {"product_codes": m.get("product_codes", [])}
+                        for m in result_list
+                    ],
+                    "fetched_at": now,
+                }, f)
+            print(f"[mdm cache] persisted {len(result_list)} manufacturers to disk")
+        except Exception:
+            pass
 
     return result_list
 
