@@ -903,7 +903,7 @@ _CANONICAL_NAMES = {
     "b braun":           ("B. Braun",              "B. Braun"),
     "braun":             ("B. Braun",              "B. Braun"),
     "hospira":           ("Hospira",               "Hospira"),
-    "insulet":           ("Insulet",               "Insulet"),
+    "insulet":           ("Insulet",               "Omnipod"),
     "getinge":           ("Getinge",               "Getinge"),
     "st jude":           ("St. Jude Medical",      "St. Jude"),
     "st. jude":          ("St. Jude Medical",      "St. Jude"),
@@ -1181,7 +1181,10 @@ def build_manufacturer_search_queries(manufacturer_name: str) -> list[str]:
     that manufacturer's registered device categories AND actual product trade names.
     Capped at 5 queries to avoid NVD rate limits.
     """
-    mdm_list = get_manufacturer_list()
+    # Use cached lookup directly — get_manufacturer_list() reads disk on every call
+    # if the in-process cache is empty, so trigger it once here
+    if not _manufacturer_cache.get("lookup"):
+        get_manufacturer_list()
     lookup = _manufacturer_cache.get("lookup", {})
 
     entry = lookup.get(manufacturer_name.lower())
@@ -1224,7 +1227,33 @@ def build_manufacturer_search_queries(manufacturer_name: str) -> list[str]:
 OPENFDA_510K_URL = "https://api.fda.gov/device/510k.json"
 
 _product_name_cache = {"by_manufacturer": {}, "fetched_at": 0}
-PRODUCT_NAME_CACHE_TTL = 86400  # 24 hours
+PRODUCT_NAME_CACHE_TTL = 86400   # 24 hours — checked daily
+_PRODUCT_NAME_CACHE_FILE = "/tmp/dtvss_product_names.json"
+
+
+def _load_product_name_cache() -> dict:
+    """Load product name cache from disk. Returns empty dict on error."""
+    try:
+        with open(_PRODUCT_NAME_CACHE_FILE) as f:
+            data = json.load(f)
+        # Only use if not stale
+        if (time.time() - data.get("fetched_at", 0)) < PRODUCT_NAME_CACHE_TTL:
+            return data.get("by_manufacturer", {})
+    except Exception:
+        pass
+    return {}
+
+
+def _save_product_name_cache() -> None:
+    """Persist product name cache to disk."""
+    try:
+        with open(_PRODUCT_NAME_CACHE_FILE, "w") as f:
+            json.dump({
+                "by_manufacturer": _product_name_cache["by_manufacturer"],
+                "fetched_at": time.time(),
+            }, f)
+    except Exception:
+        pass
 
 
 def refresh_manufacturer_product_names(manufacturer_name: str = None) -> dict:
@@ -1239,10 +1268,17 @@ def refresh_manufacturer_product_names(manufacturer_name: str = None) -> dict:
         return _product_name_cache["by_manufacturer"]
 
     key = manufacturer_name.lower()
+
+    # Load from disk cache if in-process cache is empty (cold start / new worker)
+    if not _product_name_cache["by_manufacturer"]:
+        disk = _load_product_name_cache()
+        if disk:
+            _product_name_cache["by_manufacturer"] = disk
+
     cached = _product_name_cache["by_manufacturer"].get(key)
     cached_at = _product_name_cache.get("per_mdm_fetched", {}).get(key, 0)
 
-    # Return cached if fresh
+    # Return cached if fresh (daily TTL)
     if cached is not None and (now - cached_at) < PRODUCT_NAME_CACHE_TTL:
         return {key: cached}
 
@@ -1297,10 +1333,13 @@ def refresh_manufacturer_product_names(manufacturer_name: str = None) -> dict:
 
     final_list = list(product_names)[:10]  # Limit to 10 names per manufacturer
 
-    # Update cache
+    # Update in-process cache
     _product_name_cache["by_manufacturer"][key] = final_list
     if "per_mdm_fetched" not in _product_name_cache:
         _product_name_cache["per_mdm_fetched"] = {}
     _product_name_cache["per_mdm_fetched"][key] = now
+
+    # Persist to disk so all workers and restarts share the cache
+    _save_product_name_cache()
 
     return {key: final_list}
