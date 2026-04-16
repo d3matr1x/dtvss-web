@@ -916,7 +916,7 @@ def refresh_manufacturer_registry() -> list[dict]:
                 if time.time() > _reg_deadline:
                     break
                 params = urllib.parse.urlencode({
-                    "search": f'products.product_code:"{pc}" AND establishment_type:"Manufacture Medical Device"',
+                    "search": f'products.product_code:"{pc}" AND (establishment_type:"Manufacture Medical Device" OR establishment_type:"Contract Manufacturer")',
                     "limit": 100,
                     "skip": page_skip,
                 })
@@ -935,8 +935,14 @@ def refresh_manufacturer_registry() -> list[dict]:
 
             for result in all_results:
                 # Double-check establishment type at record level
+                # Accept primary manufacturers and contract manufacturers who may
+                # manufacture under their own name and have their own NVD CVEs
                 estab_types = result.get("establishment_type", [])
-                if not any("Manufacture" in e for e in estab_types):
+                is_manufacturer = any(
+                    e in ("Manufacture Medical Device", "Contract Manufacturer")
+                    for e in estab_types
+                )
+                if not is_manufacturer:
                     continue
 
                 # Extract manufacturer name from proprietor or establishment
