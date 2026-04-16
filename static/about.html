@@ -79,7 +79,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.1em;c
       DTVSS(t) = (<span style="color:var(--acc)">B/10</span> × <span style="color:var(--high)">H/10</span> × <span style="color:var(--purple)">(1 + 15 × L(t))</span>) × 10
     </div>
     <p style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.8">
-      <span style="color:var(--acc)">B</span> — CVSS exploitability sub-score (NVD API v2, MITRE CVE.org fallback)<br>
+      <span style="color:var(--acc)">B</span> — CVSS exploitability sub-score, supporting CVSS v2.0 through v4.0 (NVD API v2, MITRE CVE.org fallback)<br>
       <span style="color:var(--high)">H</span> — Patient harm modifier from medical device regulatory classification (TGA / Medsafe / EU MDR / MHRA / FDA)<br>
       <span style="color:var(--purple)">L(t)</span> — Daily exploitation probability (EPSS API from FIRST.org)<br>
       <span style="color:var(--crit)">KEV override</span> — Confirmed active exploitation (CISA KEV catalog) forces score to 10.0<br>

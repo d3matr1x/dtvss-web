@@ -394,7 +394,7 @@ async function doSearch() {
       const resp = await fetch(`/api/search?q=${encodeURIComponent(q)}${classParam}&max=30`);
       const data = await resp.json();
       if (data.count === 0) {
-        showError(`No CVSS v3.x results found for "${q}"`);
+        showError(`No scorable results found for "${q}"`);
       } else if (data.count === 1) {
         showSingleResult(data.results[0]);
       } else {

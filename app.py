@@ -159,14 +159,17 @@ def search():
     nvd_results = nvd_search_keyword(query, api_key=NVD_API_KEY, max_results=max_results)
 
     if not nvd_results:
-        return jsonify({"results": [], "count": 0, "query": query})
+        return jsonify({"results": [], "count": 0, "query": query,
+                        "note": f"No CVEs found in NVD for \"{query}\". This manufacturer may not have any disclosed vulnerabilities."})
 
     # Filter out errors and v2.0-only
     valid = [r for r in nvd_results if "error" not in r]
 
     if not valid:
+        # All results had errors (mostly v2-only or no CVSS)
+        total = len(nvd_results)
         return jsonify({"results": [], "count": 0, "query": query,
-                        "note": "No CVSS v3.x results found"})
+                        "note": f"Found {total} CVE(s) for \"{query}\" but none have CVSS scores available for DTVSS scoring."})
 
     # Batch EPSS lookup
     cve_ids = [r["cve_id"] for r in valid]

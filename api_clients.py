@@ -166,39 +166,59 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
     cvss_vec = ""
     sev = ""
 
+    # Try CNA metrics — check all CVSS versions, prefer newer
+    version_keys = ["cvssV4_0", "cvssV3_1", "cvssV3_0", "cvssV2_0"]
+    version_labels = {"cvssV4_0": "4.0", "cvssV3_1": "3.1", "cvssV3_0": "3.0", "cvssV2_0": "2.0"}
+
     for metric_block in cna.get("metrics", []):
-        # Try cvssV3_1 first, then cvssV3_0
-        for ver_key in ("cvssV3_1", "cvssV3_0"):
+        for ver_key in version_keys:
             if ver_key in metric_block:
                 cvss_data = metric_block[ver_key]
                 cvss_vec = cvss_data.get("vectorString", "")
                 sev = cvss_data.get("baseSeverity", "")
-                cvss_ver = "3.1" if "3_1" in ver_key else "3.0"
+                cvss_ver = version_labels[ver_key]
 
-                # Compute exploitability from vector
-                B = parse_cvss31_exploitability(cvss_vec) or 0.0
+                if ver_key == "cvssV2_0":
+                    # v2.0 — use vector components (AV, AC, Au)
+                    # fall through: the parser won't handle v2.0, so approximate from base score
+                    base = float(cvss_data.get("baseScore", 0))
+                    B = round(min(base * 0.5, 10.0), 1) if base else 0.0
+                else:
+                    B = parse_cvss31_exploitability(cvss_vec) or 0.0
+                    # v4.0 fallback: approximate from base score if vector parse fails
+                    if not B and ver_key == "cvssV4_0":
+                        base = float(cvss_data.get("baseScore", 0))
+                        B = round(min(base * 0.5, 10.0), 1) if base else 0.0
                 break
         if B > 0:
             break
 
-    # Also check adp containers (CISA Vulnrichment provides CVSS here)
+    # Check ADP containers (CISA Vulnrichment provides CVSS here when CNA doesn't)
     for adp in data.get("containers", {}).get("adp", []):
         if B > 0:
             break
         for metric_block in adp.get("metrics", []):
-            for ver_key in ("cvssV3_1", "cvssV3_0"):
+            for ver_key in version_keys:
                 if ver_key in metric_block:
                     cvss_data = metric_block[ver_key]
                     cvss_vec = cvss_data.get("vectorString", "")
                     sev = cvss_data.get("baseSeverity", "")
-                    cvss_ver = "3.1" if "3_1" in ver_key else "3.0"
-                    B = parse_cvss31_exploitability(cvss_vec) or 0.0
+                    cvss_ver = version_labels[ver_key]
+
+                    if ver_key == "cvssV2_0":
+                        base = float(cvss_data.get("baseScore", 0))
+                        B = round(min(base * 0.5, 10.0), 1) if base else 0.0
+                    else:
+                        B = parse_cvss31_exploitability(cvss_vec) or 0.0
+                        if not B and ver_key == "cvssV4_0":
+                            base = float(cvss_data.get("baseScore", 0))
+                            B = round(min(base * 0.5, 10.0), 1) if base else 0.0
                     break
             if B > 0:
                 break
 
     if not B:
-        return {"error": f"No CVSS v3.x vector available for {cve_id} from MITRE"}
+        return {"error": f"No CVSS scoring data published for {cve_id}"}
 
     # KEV — not available from MITRE API, will be checked separately
     # ICS — check references
@@ -792,11 +812,29 @@ def refresh_manufacturer_registry() -> list[dict]:
         import time as _t
         _t.sleep(0.3)
 
-    # Convert to sorted list
+    # Manufacturers with historically disclosed CVEs (from MedCrypt/ICS-CERT data)
+    # These get priority placement at the top of the dropdown
+    KNOWN_CVE_MDMS = {
+        "baxter", "bd", "becton dickinson", "medtronic", "philips",
+        "abbott", "b. braun", "b braun", "boston scientific", "biotronik",
+        "dexcom", "draeger", "dräger", "fresenius", "ge healthcare",
+        "hamilton medical", "hospira", "icu medical", "insulet", "mindray",
+        "nihon kohden", "resmed", "smiths medical", "tandem", "zoll",
+        "getinge", "drager", "st jude", "st. jude", "carestream",
+    }
+
+    def priority_rank(name):
+        low = name.lower()
+        for mdm in KNOWN_CVE_MDMS:
+            if mdm in low:
+                return 0  # top priority
+        return 1
+
+    # Convert to sorted list — known-CVE manufacturers first, then by product count
     result_list = sorted(
         [{"name": v["name"], "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
          for v in manufacturers.values()],
-        key=lambda x: (-x["count"], x["name"])
+        key=lambda x: (priority_rank(x["name"]), -x["count"], x["name"])
     )
 
     # Build quick lookup dict: lowercase name -> entry
