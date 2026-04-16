@@ -155,22 +155,32 @@ def search():
     if not query:
         return jsonify({"error": "Missing 'q' parameter"}), 400
 
-    # Expand manufacturer names into scoped device queries
-    # If query matches a registered manufacturer, run multiple NVD searches
-    # each constrained to "Manufacturer + device-term" so results only contain
-    # that manufacturer's devices
-    queries_to_run = build_manufacturer_search_queries(query)
-
-    # Run all queries and dedupe by CVE ID
+    # Always run the baseline query first (most reliable)
     nvd_results_map = {}
-    for q in queries_to_run:
-        batch = nvd_search_keyword(q, api_key=NVD_API_KEY, max_results=max_results)
-        for r in batch:
-            if "error" in r:
+    baseline = nvd_search_keyword(query, api_key=NVD_API_KEY, max_results=max_results)
+    for r in baseline:
+        if "error" in r:
+            continue
+        cve_id = r.get("cve_id", "")
+        if cve_id:
+            nvd_results_map[cve_id] = r
+
+    # Then try manufacturer expansion (additive — adds more results, can't reduce)
+    try:
+        expanded_queries = build_manufacturer_search_queries(query)
+        # Skip the baseline query (already done) to avoid duplicate API calls
+        for q in expanded_queries:
+            if q == query:
                 continue
-            cve_id = r.get("cve_id", "")
-            if cve_id and cve_id not in nvd_results_map:
-                nvd_results_map[cve_id] = r
+            batch = nvd_search_keyword(q, api_key=NVD_API_KEY, max_results=max_results)
+            for r in batch:
+                if "error" in r:
+                    continue
+                cve_id = r.get("cve_id", "")
+                if cve_id and cve_id not in nvd_results_map:
+                    nvd_results_map[cve_id] = r
+    except Exception as e:
+        print(f"Manufacturer expansion failed for '{query}': {e}")
 
     nvd_results = list(nvd_results_map.values())
 

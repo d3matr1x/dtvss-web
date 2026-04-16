@@ -249,6 +249,7 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
 
 def nvd_search_keyword(keyword: str, api_key: str = None, max_results: int = 50) -> list[dict]:
     """Search NVD by keyword, return parsed CVE list."""
+    import time as _time
     params = {
         "keywordSearch": keyword,
         "resultsPerPage": min(max_results, 100),
@@ -262,12 +263,21 @@ def nvd_search_keyword(keyword: str, api_key: str = None, max_results: int = 50)
     if api_key:
         headers["apiKey"] = api_key
 
+    # Rate limit: NVD allows 50 requests per 30 seconds with API key, 5 without
+    _time.sleep(0.7 if api_key else 6.0)
+
     try:
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-    except Exception as e:
-        return [{"error": f"NVD search error: {str(e)}"}]
+            raw = resp.read().decode("utf-8")
+            # Guard against HTML error pages
+            if raw.strip().startswith("<"):
+                return []
+            data = json.loads(raw)
+    except json.JSONDecodeError:
+        return []  # Silent fail — caller continues with other queries
+    except Exception:
+        return []
 
     results = []
     for vuln in data.get("vulnerabilities", []):
@@ -769,8 +779,9 @@ def refresh_manufacturer_registry() -> list[dict]:
 
     for pc in CONNECTED_PRODUCT_CODES:
         try:
+            # Filter to establishments that are MANUFACTURERS (not distributors, sterilisers, etc.)
             params = urllib.parse.urlencode({
-                "search": f'products.product_code:"{pc}"',
+                "search": f'products.product_code:"{pc}" AND establishment_type:"Manufacture Medical Device"',
                 "limit": 100,
             })
             url = f"{OPENFDA_REG_URL}?{params}"
@@ -781,32 +792,67 @@ def refresh_manufacturer_registry() -> list[dict]:
                 data = json.loads(resp.read().decode("utf-8"))
 
             for result in data.get("results", []):
+                # Double-check establishment type at record level
+                estab_types = result.get("establishment_type", [])
+                if not any("Manufacture" in e for e in estab_types):
+                    continue
+
                 # Extract manufacturer name from proprietor or establishment
                 prop = result.get("proprietor", {})
                 firm_name = prop.get("firm_name", "").strip()
                 if not firm_name:
-                    estab = result.get("establishment_type", [])
                     firm_name = result.get("registration", {}).get("name", "").strip()
 
                 if not firm_name or len(firm_name) < 3:
                     continue
 
-                # Clean up name — strip corporate suffixes for both display and dedup key
+                # Skip obvious non-manufacturers
+                skip_keywords = [
+                    "distribution", "logistics", "supply chain", "sterilization",
+                    "sterilisation", "sterigenics", "isomedix", "synergy health",
+                    "dhl", "ups ", "ceva ", "flash global", "repair", "services",
+                    "warehouse", "operations center", "distripark", "donnelley",
+                    "sterile", "sterilis",
+                ]
+                if any(kw in firm_name.lower() for kw in skip_keywords):
+                    continue
+
+                # Consolidate subsidiaries under parent brand
+                # "Medtronic Minimed" → "Medtronic", "Baxter Healthcare Corporation" → "Baxter"
                 import re as _re
                 suffix_pattern = _re.compile(
                     r',?\s*(Inc\.?|LLC|Ltd\.?|GmbH|AG|Corp\.?|Corporation|Co\.?|Limited|'
-                    r'S\.?A\.?|PLC|N\.?V\.?|B\.?V\.?|S\.?p\.?A\.?|Pty|Holdings?).*$',
+                    r'S\.?A\.?|PLC|N\.?V\.?|B\.?V\.?|S\.?p\.?A\.?|Pty|Holdings?|Healthcare|'
+                    r'Medical|Diabetes\s*Care|Cardiovascular|Diagnostics).*$',
                     flags=_re.IGNORECASE
                 )
                 display_name = suffix_pattern.sub('', firm_name).strip().title()
-                if not display_name or len(display_name) < 3:
-                    display_name = firm_name.title()
 
-                clean = display_name.upper()
+                # Extract parent brand — first 1-2 words of cleaned name
+                words = display_name.split()
+                if not words:
+                    continue
 
+                # Parent brand detection: take first word, or first two for multi-word brands
+                multi_word_brands = {
+                    "b.", "st.", "boston", "becton", "icu", "nihon", "ge",
+                    "hamilton", "edwards", "fresenius", "johnson"
+                }
+                first_lower = words[0].lower().rstrip(",.")
+                if first_lower in multi_word_brands and len(words) > 1:
+                    parent = f"{words[0]} {words[1]}".strip(",.")
+                else:
+                    parent = words[0].strip(",.")
+
+                # Clean up parent name
+                parent = parent.title()
+                if len(parent) < 3:
+                    continue
+
+                clean = parent.upper()
                 if clean not in manufacturers:
                     manufacturers[clean] = {
-                        "name": display_name,
+                        "name": parent,
                         "product_codes": set(),
                     }
                 manufacturers[clean]["product_codes"].add(pc)
@@ -890,39 +936,38 @@ def build_manufacturer_search_queries(manufacturer_name: str) -> list[str]:
     """
     Given a manufacturer name, return list of NVD search queries scoped to
     that manufacturer's registered device categories AND actual product trade names.
-    Each query contains the manufacturer name AND a device term / product name
-    so NVD's implicit AND logic returns only that manufacturer's devices.
+    Capped at 5 queries to avoid NVD rate limits.
     """
     mdm_list = get_manufacturer_list()
     lookup = _manufacturer_cache.get("lookup", {})
 
     entry = lookup.get(manufacturer_name.lower())
     if not entry:
-        # Manufacturer not in FDA registry — just search the name alone
         return [manufacturer_name]
 
-    queries = set()
-    # Always include plain manufacturer search as baseline
-    queries.add(manufacturer_name)
+    queries = []
+    # Baseline: manufacturer name alone
+    queries.append(manufacturer_name)
 
-    # Add category-based queries: "Manufacturer device-term"
+    # Add category-based queries (up to 2)
+    added_terms = set()
     for pc in entry.get("product_codes", []):
         for term in PRODUCT_CODE_TO_DEVICE_TERMS.get(pc, []):
-            queries.add(f"{manufacturer_name} {term}")
+            if term not in added_terms and len(queries) < 3:
+                queries.append(f"{manufacturer_name} {term}")
+                added_terms.add(term)
 
-    # Add actual product trade names from FDA 510(k) submissions (lazy-fetched)
+    # Add top product trade names (up to 2 more)
     try:
         result = refresh_manufacturer_product_names(manufacturer_name)
         product_names = result.get(manufacturer_name.lower(), [])
-        for product in product_names:
-            queries.add(f"{manufacturer_name} {product}")
-            # Search the product name alone if distinctive
-            if len(product) >= 5 and not any(g in product.lower() for g in ["system", "device", "pump", "monitor"]):
-                queries.add(product)
+        for product in product_names[:2]:
+            if len(queries) < 5:
+                queries.append(f"{manufacturer_name} {product}")
     except Exception:
         pass
 
-    return list(queries)
+    return queries
 
 
 # ═══════════════════════════════════════════════════════════════════════
