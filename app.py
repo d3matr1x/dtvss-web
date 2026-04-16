@@ -21,7 +21,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
-from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check, get_manufacturer_list
+from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check, get_manufacturer_list, build_manufacturer_search_queries
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
@@ -155,8 +155,24 @@ def search():
     if not query:
         return jsonify({"error": "Missing 'q' parameter"}), 400
 
-    # Search NVD
-    nvd_results = nvd_search_keyword(query, api_key=NVD_API_KEY, max_results=max_results)
+    # Expand manufacturer names into scoped device queries
+    # If query matches a registered manufacturer, run multiple NVD searches
+    # each constrained to "Manufacturer + device-term" so results only contain
+    # that manufacturer's devices
+    queries_to_run = build_manufacturer_search_queries(query)
+
+    # Run all queries and dedupe by CVE ID
+    nvd_results_map = {}
+    for q in queries_to_run:
+        batch = nvd_search_keyword(q, api_key=NVD_API_KEY, max_results=max_results)
+        for r in batch:
+            if "error" in r:
+                continue
+            cve_id = r.get("cve_id", "")
+            if cve_id and cve_id not in nvd_results_map:
+                nvd_results_map[cve_id] = r
+
+    nvd_results = list(nvd_results_map.values())
 
     if not nvd_results:
         return jsonify({"results": [], "count": 0, "query": query,

@@ -791,12 +791,18 @@ def refresh_manufacturer_registry() -> list[dict]:
                 if not firm_name or len(firm_name) < 3:
                     continue
 
-                # Clean up name — title case, remove Inc/LLC/etc for matching
-                display_name = firm_name.title()
-                clean = firm_name.upper()
-                for suffix in [", INC", " INC.", " INC", ", LLC", " LLC", ", LTD", " LTD", " GMBH", " CO.", " CORP", " CORPORATION"]:
-                    clean = clean.replace(suffix, "")
-                clean = clean.strip()
+                # Clean up name — strip corporate suffixes for both display and dedup key
+                import re as _re
+                suffix_pattern = _re.compile(
+                    r',?\s*(Inc\.?|LLC|Ltd\.?|GmbH|AG|Corp\.?|Corporation|Co\.?|Limited|'
+                    r'S\.?A\.?|PLC|N\.?V\.?|B\.?V\.?|S\.?p\.?A\.?|Pty|Holdings?).*$',
+                    flags=_re.IGNORECASE
+                )
+                display_name = suffix_pattern.sub('', firm_name).strip().title()
+                if not display_name or len(display_name) < 3:
+                    display_name = firm_name.title()
+
+                clean = display_name.upper()
 
                 if clean not in manufacturers:
                     manufacturers[clean] = {
@@ -853,3 +859,158 @@ def refresh_manufacturer_registry() -> list[dict]:
 def get_manufacturer_list() -> list[dict]:
     """Return cached manufacturer list, refreshing if stale."""
     return refresh_manufacturer_registry()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Manufacturer Search Expansion — Manufacturer + device terms (scoped search)
+# ═══════════════════════════════════════════════════════════════════════
+
+# Maps FDA product code → list of device terms to combine WITH manufacturer name
+PRODUCT_CODE_TO_DEVICE_TERMS = {
+    "FRN": ["infusion pump"],
+    "MEB": ["infusion pump"],
+    "FPA": ["insulin pump"],
+    "BSX": ["enteral pump", "feeding pump"],
+    "FLL": ["syringe pump"],
+    "DXY": ["pacemaker"],
+    "DTB": ["defibrillator", "ICD"],
+    "DSQ": ["CRT", "cardiac resynchronization"],
+    "DPS": ["cardiac monitor"],
+    "LWS": ["patient monitor"],
+    "DQA": ["telemetry"],
+    "DRE": ["ECG monitor"],
+    "MHX": ["ventilator"],
+    "BRY": ["CPAP", "ventilator"],
+    "QBJ": ["glucose monitor", "CGM"],
+    "OYC": ["AED", "defibrillator"],
+}
+
+
+def build_manufacturer_search_queries(manufacturer_name: str) -> list[str]:
+    """
+    Given a manufacturer name, return list of NVD search queries scoped to
+    that manufacturer's registered device categories AND actual product trade names.
+    Each query contains the manufacturer name AND a device term / product name
+    so NVD's implicit AND logic returns only that manufacturer's devices.
+    """
+    mdm_list = get_manufacturer_list()
+    lookup = _manufacturer_cache.get("lookup", {})
+
+    entry = lookup.get(manufacturer_name.lower())
+    if not entry:
+        # Manufacturer not in FDA registry — just search the name alone
+        return [manufacturer_name]
+
+    queries = set()
+    # Always include plain manufacturer search as baseline
+    queries.add(manufacturer_name)
+
+    # Add category-based queries: "Manufacturer device-term"
+    for pc in entry.get("product_codes", []):
+        for term in PRODUCT_CODE_TO_DEVICE_TERMS.get(pc, []):
+            queries.add(f"{manufacturer_name} {term}")
+
+    # Add actual product trade names from FDA 510(k) submissions (lazy-fetched)
+    try:
+        result = refresh_manufacturer_product_names(manufacturer_name)
+        product_names = result.get(manufacturer_name.lower(), [])
+        for product in product_names:
+            queries.add(f"{manufacturer_name} {product}")
+            # Search the product name alone if distinctive
+            if len(product) >= 5 and not any(g in product.lower() for g in ["system", "device", "pump", "monitor"]):
+                queries.add(product)
+    except Exception:
+        pass
+
+    return list(queries)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 510(k) Product Name Lookup — Real trade names from FDA premarket submissions
+# ═══════════════════════════════════════════════════════════════════════
+
+OPENFDA_510K_URL = "https://api.fda.gov/device/510k.json"
+
+_product_name_cache = {"by_manufacturer": {}, "fetched_at": 0}
+PRODUCT_NAME_CACHE_TTL = 86400  # 24 hours
+
+
+def refresh_manufacturer_product_names(manufacturer_name: str = None) -> dict:
+    """
+    Fetch actual product trade names for a manufacturer from FDA 510(k) API.
+    Lazy-cached per manufacturer for 24 hours.
+    If manufacturer_name is None, returns full cache dict.
+    """
+    import time as _time
+    now = _time.time()
+
+    if manufacturer_name is None:
+        return _product_name_cache["by_manufacturer"]
+
+    key = manufacturer_name.lower()
+    cached = _product_name_cache["by_manufacturer"].get(key)
+    cached_at = _product_name_cache.get("per_mdm_fetched", {}).get(key, 0)
+
+    # Return cached if fresh
+    if cached is not None and (now - cached_at) < PRODUCT_NAME_CACHE_TTL:
+        return {key: cached}
+
+    # Fetch for this manufacturer only
+    mdm_list = get_manufacturer_list()
+    lookup = _manufacturer_cache.get("lookup", {})
+    entry = lookup.get(key)
+
+    if not entry:
+        return {}
+
+    product_names = set()
+
+    for pc in entry.get("product_codes", []):
+        if pc not in PRODUCT_CODE_TO_DEVICE_TERMS:
+            continue
+        try:
+            params = urllib.parse.urlencode({
+                "search": f'applicant:"{manufacturer_name}" AND product_code:"{pc}"',
+                "limit": 15,
+            })
+            url = f"{OPENFDA_510K_URL}?{params}"
+            req = urllib.request.Request(url, headers={
+                "Accept": "application/json", "User-Agent": "DTVSS/6.0"
+            })
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+
+            for entry_510k in data.get("results", []):
+                device_name = entry_510k.get("device_name", "").strip()
+                if not device_name or len(device_name) < 4:
+                    continue
+
+                # Strip manufacturer prefix if present
+                cleaned = device_name
+                for prefix in [manufacturer_name, manufacturer_name.upper(), manufacturer_name.lower()]:
+                    if cleaned.lower().startswith(prefix.lower()):
+                        cleaned = cleaned[len(prefix):].strip(", -:")
+
+                # Strip generic suffixes to leave product line name
+                import re as _re
+                cleaned = _re.sub(
+                    r'\s*(infusion pump|insulin pump|pacemaker|defibrillator|'
+                    r'monitor|ventilator|system|device|pump|implant).*$',
+                    '', cleaned, flags=_re.IGNORECASE
+                ).strip()
+
+                if cleaned and 3 <= len(cleaned) <= 40:
+                    product_names.add(cleaned)
+
+        except Exception:
+            continue
+
+    final_list = list(product_names)[:10]  # Limit to 10 names per manufacturer
+
+    # Update cache
+    _product_name_cache["by_manufacturer"][key] = final_list
+    if "per_mdm_fetched" not in _product_name_cache:
+        _product_name_cache["per_mdm_fetched"] = {}
+    _product_name_cache["per_mdm_fetched"][key] = now
+
+    return {key: final_list}

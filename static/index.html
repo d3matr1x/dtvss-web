@@ -360,7 +360,13 @@ function setClass(cls) {
 
 function selectMDM(manufacturer) {
   if (!manufacturer) return;
-  document.getElementById('searchInput').value = manufacturer;
+  // Strip corporate suffixes so NVD search returns better results
+  // e.g. "Medtronic, Inc." → "Medtronic", "B. Braun Melsungen AG" → "B. Braun"
+  let cleaned = manufacturer
+    .replace(/,?\s*(Inc\.?|LLC|Ltd\.?|GmbH|AG|Corp\.?|Corporation|Co\.?|Limited|S\.A\.|PLC|N\.V\.|B\.V\.|S\.p\.A\.|Pty|Holdings?).*/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  document.getElementById('searchInput').value = cleaned;
   document.getElementById('mdmSelect').value = '';
   doSearch();
 }
