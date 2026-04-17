@@ -53,122 +53,127 @@
 }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anybody:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#06080c; --s1:#0d1017; --s2:#131820; --bd:#1a2030;
-  --tx:#c8cdd8; --dim:#4a5568; --hd:#e8ecf5; --trk:#151b28;
-  --acc:#4f8ef7; --purple:#a855f7;
-  --crit:#d94f4f; --high:#d97c2a; --med:#c9b428; --low:#4caf7a;
-  --mono:'JetBrains Mono',monospace; --body:'DM Sans',sans-serif; --display:'Anybody',sans-serif;
+  --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
+  --tx:#b8bcc8; --dim:#6b7280; --hd:#e2e6f0; --trk:#181d2a;
+  --acc:#5b93f5; --purple:#a070e8;
+  --crit:#e05252; --high:#e08a3a; --med:#d4b832; --low:#48b878;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:13px;min-height:100vh}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;min-height:100vh;
+  -webkit-font-smoothing:antialiased}
 a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
 
-.header{border-bottom:1px solid var(--bd);padding:16px 24px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.header h1{font-family:var(--display);font-size:16px;font-weight:900;color:var(--hd);letter-spacing:-0.02em}
-.header .ver{font-family:var(--mono);font-size:10px;color:var(--dim)}
-.header .right{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim)}
+/* Header */
+.header{border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.header h1{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--hd);letter-spacing:0.04em}
+.header .ver{font-size:13px;color:var(--dim);font-weight:400}
+.header .right{margin-left:auto;font-size:13px;display:flex;gap:20px}
+.header .right a{color:var(--dim);text-decoration:none;transition:color .15s}
+.header .right a:hover{color:var(--hd)}
 
-.container{max-width:720px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:20px}
+.container{max-width:740px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:24px}
 
 /* Search */
-.search-box{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:16px}
-.search-row{display:flex;gap:8px}
-.search-input{flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:10px 14px;
-  color:var(--hd);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s}
+.search-box{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:20px}
+.search-row{display:flex;gap:10px}
+.search-input{flex:1;background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:12px 16px;
+  color:var(--hd);font-family:var(--mono);font-size:14px;outline:none;transition:border-color .2s}
 .search-input:focus{border-color:var(--acc)}
 .search-input::placeholder{color:var(--dim)}
-.search-btn{background:var(--acc);border:none;border-radius:6px;padding:10px 20px;color:#fff;
-  font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.04em;
-  transition:opacity .15s;white-space:nowrap}
-.search-btn:hover{opacity:.85}
+.search-btn{background:var(--acc);border:none;border-radius:6px;padding:12px 28px;color:#fff;
+  font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.02em;transition:background .15s}
+.search-btn:hover{background:#4a82e0}
 .search-btn:disabled{opacity:.4;cursor:not-allowed}
-.search-hint{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:8px;line-height:1.6}
-.search-hint span{color:var(--tx)}
+.search-hint{font-size:13px;color:var(--dim);margin-top:10px;line-height:1.6}
+.search-hint span{color:var(--hd);font-weight:500}
 
 /* Class selector */
-.class-row{display:flex;gap:6px;margin-top:10px;align-items:center}
-.class-row label{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.06em}
-.cls-btn{font-family:var(--mono);font-size:9px;font-weight:600;padding:4px 10px;border-radius:4px;
+.class-row{display:flex;gap:8px;margin-top:14px;align-items:center}
+.class-row label{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+.cls-btn{font-family:var(--mono);font-size:12px;font-weight:600;padding:6px 14px;border-radius:5px;
   cursor:pointer;border:1px solid var(--bd);background:transparent;color:var(--dim);transition:all .15s}
-.cls-btn.active-IIb{border-color:var(--high);background:rgba(217,124,42,.15);color:var(--high)}
-.cls-btn.active-III{border-color:var(--crit);background:rgba(217,79,79,.15);color:var(--crit)}
-.cls-btn.auto-active{border-color:var(--acc);background:rgba(79,142,247,.15);color:var(--acc)}
+.cls-btn:hover{border-color:var(--acc);color:var(--acc)}
+.cls-btn.active-IIb{border-color:var(--high);background:rgba(224,138,58,.12);color:var(--high)}
+.cls-btn.active-III{border-color:var(--crit);background:rgba(224,82,82,.12);color:var(--crit)}
+.cls-btn.auto-active{border-color:var(--acc);background:rgba(91,147,245,.12);color:var(--acc)}
 
 /* Score card */
-.score-card{border-radius:12px;padding:28px 24px;display:flex;flex-direction:column;align-items:center;
-  gap:8px;position:relative;overflow:hidden;display:none}
+.score-card{border-radius:12px;padding:32px 28px;display:flex;flex-direction:column;align-items:center;
+  gap:10px;position:relative;overflow:hidden;display:none}
 .score-card.visible{display:flex}
-.score-num{font-family:var(--display);font-size:56px;font-weight:900;line-height:1;letter-spacing:-0.03em}
+.score-num{font-family:var(--mono);font-size:64px;font-weight:700;line-height:1;letter-spacing:-0.02em}
 .score-bar{width:100%;max-width:320px;height:6px;background:var(--trk);border-radius:3px;overflow:hidden}
 .score-fill{height:100%;border-radius:3px;transition:width .4s cubic-bezier(.16,1,.3,1)}
-.tier-badge{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;letter-spacing:.06em}
-.guidance{font-family:var(--body);font-size:12px;color:var(--dim);text-align:center;max-width:400px}
-.baseline{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.tier-badge{font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 14px;border-radius:4px;letter-spacing:.04em}
+.guidance{font-size:14px;color:var(--dim);text-align:center;max-width:440px;line-height:1.6}
+.baseline{font-family:var(--mono);font-size:12px;color:var(--dim)}
 
 /* Result detail */
-.detail{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:16px;display:none;
-  font-family:var(--mono);font-size:10px;line-height:1.7}
+.detail{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:20px;display:none;
+  font-size:13px;line-height:1.7}
 .detail.visible{display:block}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.df{padding:6px 8px;background:var(--s1);border-radius:4px}
-.df-label{color:var(--dim);font-size:9px;letter-spacing:.04em}
-.df-val{color:var(--hd);font-weight:600;margin-top:2px}
-.desc{color:var(--tx);font-family:var(--body);font-size:11px;line-height:1.6;margin-top:8px;
-  padding:10px;background:var(--s1);border-radius:6px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.df{padding:10px;background:var(--bg);border-radius:6px}
+.df-label{font-family:var(--mono);color:var(--dim);font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.df-val{color:var(--hd);font-family:var(--mono);font-weight:600;margin-top:4px;font-size:14px}
+.desc{color:var(--tx);font-size:13px;line-height:1.7;margin-top:10px;padding:12px;background:var(--bg);border-radius:6px}
 
 /* Jurisdiction table */
 .juris-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--bd);
-  border-radius:4px;overflow:hidden;margin-top:10px}
-.juris-cell{background:var(--s1);padding:6px 4px;text-align:center}
-.juris-label{color:var(--dim);font-size:8px;letter-spacing:.04em;line-height:1.2}
-.juris-val{font-weight:600;font-size:9px;margin-top:2px}
-.juris-note{font-size:8px;color:var(--dim);margin-top:6px;text-align:center}
+  border-radius:6px;overflow:hidden;margin-top:12px}
+.juris-cell{background:var(--bg);padding:10px 6px;text-align:center}
+.juris-label{font-family:var(--mono);color:var(--dim);font-size:11px;letter-spacing:.04em}
+.juris-val{font-family:var(--mono);font-weight:600;font-size:12px;margin-top:4px}
+.juris-note{font-size:11px;color:var(--dim);margin-top:8px;text-align:center}
 
 /* Flags */
-.flag{font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 8px;border-radius:3px;display:inline-block;margin:2px}
-.flag-kev{background:rgba(217,79,79,.15);color:var(--crit);border:1px solid rgba(217,79,79,.3)}
-.flag-ics{background:rgba(217,124,42,.15);color:var(--high);border:1px solid rgba(217,124,42,.3)}
+.flag{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;display:inline-block;margin:2px}
+.flag-kev{background:rgba(224,82,82,.12);color:var(--crit);border:1px solid rgba(224,82,82,.25)}
+.flag-ics{background:rgba(224,138,58,.12);color:var(--high);border:1px solid rgba(224,138,58,.25)}
 
 /* Search results list */
 .results-list{display:flex;flex-direction:column;gap:6px;display:none}
 .results-list.visible{display:flex}
-.results-header{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em;padding:4px 0}
+.results-header{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.04em;padding:4px 0}
 .result-row{display:grid;grid-template-columns:4px 40px 150px 1fr 40px 50px 60px 70px;align-items:center;gap:8px;
-  padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;cursor:pointer;
-  transition:border-color .15s;font-family:var(--mono);font-size:10px}
-.result-row:hover{border-color:var(--acc)}
-.result-strip{width:4px;height:100%;border-radius:2px;min-height:24px}
+  padding:10px 12px;background:var(--s1);border:1px solid var(--bd);border-radius:8px;cursor:pointer;
+  transition:all .15s;font-family:var(--mono);font-size:12px}
+.result-row:hover{border-color:var(--acc);background:var(--s2)}
+.result-strip{width:4px;height:100%;border-radius:2px;min-height:28px}
 .result-rank{color:var(--dim);text-align:center}
 .result-cve{color:var(--hd);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.result-desc{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--body);font-size:10px}
+.result-desc{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
 .result-b{color:var(--acc);text-align:right}
 .result-year{color:var(--dim);text-align:right}
-.result-score{font-weight:600;text-align:right}
+.result-score{font-weight:600;text-align:right;font-size:13px}
 .result-tier{text-align:center}
-.tier-sm{font-size:8px;font-weight:600;padding:2px 6px;border-radius:3px}
+.tier-sm{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px}
 
 /* Loading */
-.loading{display:none;text-align:center;padding:20px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.loading{display:none;text-align:center;padding:24px;font-family:var(--mono);font-size:13px;color:var(--dim)}
 .loading.visible{display:block}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .loading .dot{animation:pulse 1s infinite;color:var(--acc)}
 
 /* Formula */
-.formula-toggle{width:100%;padding:12px 16px;background:var(--s2);border:1px solid var(--bd);
+.formula-toggle{width:100%;padding:14px 18px;background:var(--s1);border:1px solid var(--bd);
   border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
-  color:var(--dim);font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em}
-.formula-content{padding:0 16px 16px;background:var(--s2);border:1px solid var(--bd);border-top:none;
-  border-radius:0 0 10px 10px;display:none;font-family:var(--mono);font-size:10px}
+  color:var(--dim);font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.04em;transition:border-color .15s}
+.formula-toggle:hover{border-color:var(--acc)}
+.formula-content{padding:0 18px 18px;background:var(--s1);border:1px solid var(--bd);border-top:none;
+  border-radius:0 0 10px 10px;display:none;font-family:var(--mono);font-size:12px}
 .formula-content.visible{display:block}
-.formula-block{padding:10px;background:var(--bg);border-radius:6px;line-height:1.8;margin-bottom:8px}
+.formula-block{padding:12px;background:var(--bg);border-radius:6px;line-height:1.8;margin-bottom:10px}
 
 /* Footer */
-.footer{text-align:center;padding:16px 0;font-family:var(--mono);font-size:9px;color:var(--dim);
-  border-top:1px solid var(--bd);line-height:1.8}
-.footer .bsl{font-size:10px;color:var(--tx);margin-top:4px;padding:4px 0}
+.footer{text-align:center;padding:24px 0;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
+.footer .bsl{font-size:12px;color:var(--tx);margin-top:6px}
 
 @media(max-width:600px){
   .result-row{grid-template-columns:4px 30px 110px 1fr 50px 60px}
@@ -176,6 +181,8 @@ a{color:var(--acc);text-decoration:none}
   .result-year{display:none}
   .detail-grid{grid-template-columns:1fr}
   .juris-grid{grid-template-columns:repeat(2,1fr)}
+  .header{padding:12px 16px}
+  .container{padding:20px 16px}
 }
 </style>
 </head>
@@ -185,30 +192,30 @@ a{color:var(--acc);text-decoration:none}
   <h1>DTVSS</h1>
   <span class="ver">v6.0 - Dynamic Temporal Vulnerability Scoring</span>
   <span class="right">
-    <a href="/" style="color:var(--dim);text-decoration:none">Search</a> ·
-    <a href="/calculator" style="color:var(--dim);text-decoration:none">Calculator</a> ·
-    <a href="/about" style="color:var(--dim);text-decoration:none">About</a>
+    <a href="/">Search</a>
+    <a href="/calculator">Calculator</a>
+    <a href="/about">About</a>
   </span>
 </div>
 
 <div class="container">
 
-  <!-- Landing / Value Proposition -->
-  <div id="landing" style="padding:18px;background:linear-gradient(135deg,rgba(79,142,247,0.04),rgba(168,85,247,0.04));border:1px solid rgba(79,142,247,0.12);border-radius:10px;font-family:var(--body)">
-    <div style="font-size:13px;color:var(--hd);line-height:1.7">
-      A patent-pending <span style="color:var(--acc)">multiplicative risk engine</span> for medical device cybersecurity. Integrates
-      <span style="color:#a855f7">real-time exploit likelihood</span>,
-      <span style="color:var(--high)">regulatory device classification</span>, and
-      <span style="color:var(--crit)">patient harm potential</span>.
+  <!-- Landing -->
+  <div id="landing" style="padding:28px 24px;background:var(--s1);border:1px solid var(--bd);border-radius:10px">
+    <div style="font-size:17px;color:var(--hd);line-height:1.7;font-weight:400">
+      A patent-pending <span style="color:var(--acc);font-weight:600">multiplicative risk engine</span> for medical device cybersecurity. Integrates
+      <span style="color:var(--purple);font-weight:600">real-time exploit likelihood</span>,
+      <span style="color:var(--high);font-weight:600">regulatory device classification</span>, and
+      <span style="color:var(--crit);font-weight:600">patient harm potential</span>.
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-top:12px;font-family:var(--mono);font-size:9px;line-height:1.5;color:var(--dim)">
-      <div>× Multiplicative coupling of B, H, and L(t)</div>
-      <div>H Patient harm from TGA / EU MDR / MHRA / FDA</div>
-      <div>L EPSS as continuous daily probability</div>
-      <div>! KEV override forces maximum score</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-top:18px;font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--dim)">
+      <div><span style="color:var(--acc)">x</span> Multiplicative coupling of B, H, and L(t)</div>
+      <div><span style="color:var(--high)">H</span> Patient harm from TGA / EU MDR / MHRA / FDA</div>
+      <div><span style="color:var(--purple)">L</span> EPSS as continuous daily probability</div>
+      <div><span style="color:var(--crit)">!</span> KEV override forces maximum score</div>
     </div>
-    <div style="margin-top:10px;font-family:var(--mono);font-size:8px;color:var(--dim);opacity:.7">
-      Calibrated against 96 real medical device CVEs · All public data sources · <a href="/about" style="color:var(--acc);text-decoration:none">Learn more →</a>
+    <div style="margin-top:14px;font-size:12px;color:var(--dim)">
+      Calibrated against 96 real medical device CVEs · All public data sources · <a href="/about">Learn more</a>
     </div>
   </div>
 
@@ -228,11 +235,11 @@ a{color:var(--acc);text-decoration:none}
       <button class="cls-btn" id="clsIIb" onclick="setClass('IIb')">IIb</button>
       <button class="cls-btn" id="clsIII" onclick="setClass('III')">III</button>
     </div>
-    <div style="margin-top:10px">
-      <label style="font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.06em">MANUFACTURER (CISA ICSMA):</label>
+    <div style="margin-top:12px">
+      <label style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.06em">MANUFACTURER (CISA ICSMA):</label>
       <select id="mdmSelect" onchange="selectMDM(this.value)" style="
-        margin-left:6px;background:var(--s1);border:1px solid var(--bd);border-radius:4px;
-        padding:4px 8px;color:var(--hd);font-family:var(--mono);font-size:10px;outline:none;cursor:pointer;
+        margin-left:8px;background:var(--s1);border:1px solid var(--bd);border-radius:6px;
+        padding:6px 10px;color:var(--hd);font-family:var(--mono);font-size:12px;outline:none;cursor:pointer;
       ">
         <option value=""> - Loading from FDA... -</option>
       </select>
@@ -240,20 +247,20 @@ a{color:var(--acc);text-decoration:none}
   </div>
 
   <!-- Example Score (hidden when results are showing) -->
-  <div id="exampleCard" style="padding:14px;background:linear-gradient(135deg,rgba(217,124,42,0.08),var(--s2));border:1px solid rgba(217,124,42,0.25);border-radius:8px">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <div style="font-family:var(--display);font-size:32px;font-weight:900;color:var(--high);line-height:1">7.35</div>
+  <div id="exampleCard" style="padding:18px 20px;background:var(--s1);border:1px solid rgba(224,138,58,0.2);border-radius:10px">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="font-family:var(--mono);font-size:36px;font-weight:700;color:var(--high);line-height:1">7.35</div>
       <div style="flex:1;min-width:150px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--hd);font-weight:600">CVE-2017-12725 · Smiths Medical Medfusion 4000</div>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">Hard-coded credentials in wireless syringe infusion pump</div>
+        <div style="font-family:var(--mono);font-size:13px;color:var(--hd);font-weight:600">CVE-2017-12725 · Smiths Medical Medfusion 4000</div>
+        <div style="font-size:13px;color:var(--dim);margin-top:4px">Hard-coded credentials in wireless syringe infusion pump</div>
       </div>
-      <div style="font-family:var(--mono);font-size:9px;font-weight:600;padding:3px 8px;border-radius:3px;background:rgba(217,124,42,0.15);color:var(--high);border:1px solid rgba(217,124,42,0.3)">HIGH</div>
+      <div style="font-family:var(--mono);font-size:11px;font-weight:600;padding:5px 14px;border-radius:4px;background:rgba(224,138,58,.12);color:var(--high);border:1px solid rgba(224,138,58,.25)">HIGH</div>
     </div>
-    <div style="display:flex;gap:16px;margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--dim)">
+    <div style="display:flex;gap:20px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--dim)">
       <span><span style="color:var(--acc)">B</span> 3.9</span>
       <span><span style="color:var(--purple)">L(t)</span> 0.0089</span>
       <span><span style="color:var(--high)">H</span> 7.5 · IIb</span>
-      <span style="margin-left:auto;color:var(--dim);font-size:8px">Example · Try it above ↑</span>
+      <span style="margin-left:auto;font-size:12px">Example · Try it above</span>
     </div>
   </div>
 
@@ -271,7 +278,7 @@ a{color:var(--acc);text-decoration:none}
     <div class="guidance" id="guidance"></div>
     <div class="baseline" id="baseline"></div>
     <button id="copyBtn" onclick="copyScoreSummary()" style="
-      margin-top:8px;font-family:var(--mono);font-size:9px;padding:5px 14px;border-radius:4px;
+      margin-top:8px;font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:4px;
       cursor:pointer;border:1px solid var(--bd);background:var(--s1);color:var(--dim);
       transition:all .15s;letter-spacing:.04em
     ">Copy score summary</button>
@@ -291,17 +298,17 @@ a{color:var(--acc);text-decoration:none}
     </button>
     <div class="formula-content" id="formulaContent">
       <div class="formula-block" style="margin-top:12px">
-        <div style="color:var(--dim);font-size:9px;margin-bottom:4px;letter-spacing:.1em">MULTIPLICATIVE ARCHITECTURE</div>
+        <div style="color:var(--dim);font-size:11px;margin-bottom:4px;letter-spacing:.1em">MULTIPLICATIVE ARCHITECTURE</div>
         <div>Risk = <span style="color:var(--acc)">Exploitability</span> × <span style="color:var(--high)">Consequence</span> × <span style="color:var(--purple)">Threat Amplification</span></div>
         <div style="margin-top:6px">DTVSS(t) = (<span style="color:var(--acc)">B/10</span> × <span style="color:var(--high)">H/10</span> × <span style="color:var(--purple)">(1 + 15 × L(t))</span>) × 10</div>
       </div>
       <div class="formula-block">
-        <div style="color:var(--dim);font-size:9px;margin-bottom:4px;letter-spacing:.1em">EQUATION 1 - PIECEWISE</div>
+        <div style="color:var(--dim);font-size:11px;margin-bottom:4px;letter-spacing:.1em">EQUATION 1 - PIECEWISE</div>
         <div style="color:var(--crit)">DTVSS(t) = 10.0 <span style="color:var(--dim);font-weight:400"> - if CVE in CISA KEV</span></div>
         <div>DTVSS(t) = min((B/10 × H/10 × (1+15×L(t))) × 10, 10.0) <span style="color:var(--dim);font-weight:400"> - otherwise</span></div>
       </div>
       <div class="formula-block">
-        <div style="color:var(--dim);font-size:9px;margin-bottom:4px;letter-spacing:.1em">JURISDICTION PORTABILITY</div>
+        <div style="color:var(--dim);font-size:11px;margin-bottom:4px;letter-spacing:.1em">JURISDICTION PORTABILITY</div>
         <div>TGA / Medsafe (AU · NZ) = EU MDR = MHRA (UK) = FDA (US)</div>
         <div>Infusion/insulin pumps, ventilators, monitors → IIb / FDA II (H=7.5)</div>
         <div>Pacemakers/ICDs/CRT devices → III / FDA III (H=10.0)</div>
@@ -313,26 +320,26 @@ a{color:var(--acc);text-decoration:none}
 
   <!-- Footer -->
   <div class="footer">
-    <div>DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10 · k=15 empirically calibrated against 96 medical device CVEs</div>
-    <div>NVD → MITRE fallback → CISA Vulnrichment · All public data sources</div>
-    <div style="margin-top:4px">© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia</div>
+    <div style="font-size:12px;color:var(--tx)">DTVSS(t) = (B/10 x H/10 x (1 + 15 x L(t))) x 10</div>
+    <div>k=15 empirically calibrated against 96 medical device CVEs</div>
+    <div style="margin-top:6px">© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia</div>
     <div class="bsl">Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use</div>
-    <div style="margin-top:8px">
-      <a href="/" style="color:var(--acc);text-decoration:none">Search</a> ·
-      <a href="/calculator" style="color:var(--acc);text-decoration:none">Calculator</a> ·
-      <a href="/about" style="color:var(--acc);text-decoration:none">About</a>
+    <div style="margin-top:10px;font-size:12px">
+      <a href="/" style="color:var(--acc)">Search</a> ·
+      <a href="/calculator" style="color:var(--acc)">Calculator</a> ·
+      <a href="/about" style="color:var(--acc)">About</a>
     </div>
-    <div style="margin-top:4px">
-      <a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer" style="color:var(--acc);text-decoration:none;font-weight:600">
-        Reach out for information about Tier 2–4 offerings → LinkedIn
+    <div style="margin-top:6px">
+      <a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer" style="color:var(--acc);font-weight:600">
+        Reach out for information about Tier 2-4 offerings → LinkedIn
       </a>
     </div>
   </div>
 
   <!-- Disclaimer -->
   <div style="max-width:680px;margin:0 auto;padding:16px 24px">
-    <div style="padding:12px 16px;border:1px solid rgba(217,79,79,0.3);border-radius:8px;background:rgba(217,79,79,0.06);font-family:var(--mono);font-size:10px;color:var(--tx);line-height:1.8;text-align:center">
-      <span style="color:#d94f4f;font-weight:600">RESEARCH PREVIEW</span> - This is a non-commercial research demonstration of the DTVSS scoring methodology. It is not a certified medical device risk management tool. Scores are derived from public data sources (NVD, EPSS, CISA KEV) which may be incomplete, delayed, or inaccurate. Do not use this system as the sole basis for clinical, procurement, or remediation decisions. The author accepts no liability for decisions made using this tool.
+    <div style="padding:12px 16px;border:1px solid rgba(217,79,79,0.3);border-radius:8px;background:rgba(217,79,79,0.06);font-family:var(--mono);font-size:11px;color:var(--tx);line-height:1.8;text-align:center">
+      <span style="color:var(--crit);font-weight:600">RESEARCH PREVIEW</span> - Non-commercial research demonstration. Not a certified medical device risk management tool. Commercial licence required for production use.
     </div>
   </div>
 
@@ -570,13 +577,13 @@ function showSingleResult(r) {
 
   document.getElementById('baseline').innerHTML = r.kev_override ? '' :
     `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:360px">` +
-    `<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Static baseline (L=0): ${r.static_baseline.toFixed(2)} · Temporal lift: +${(r.score - r.static_baseline).toFixed(2)}</div>` +
+    `<div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Static baseline (L=0): ${r.static_baseline.toFixed(2)} · Temporal lift: +${(r.score - r.static_baseline).toFixed(2)}</div>` +
     `<div style="display:flex;width:100%;height:8px;border-radius:4px;overflow:hidden;background:var(--trk)">` +
     `<div style="width:${bPct}%;background:var(--acc)" title="B contribution: ${bContrib.toFixed(2)}"></div>` +
     `<div style="width:${hPct}%;background:var(--high)" title="H contribution: ${hContrib.toFixed(2)}"></div>` +
     `<div style="width:${Math.max(lPct,2)}%;background:var(--purple)" title="L(t) contribution: ${(lContrib-1).toFixed(4)}"></div>` +
     `</div>` +
-    `<div style="display:flex;gap:12px;font-family:var(--mono);font-size:8px;color:var(--dim)">` +
+    `<div style="display:flex;gap:12px;font-family:var(--mono);font-size:11px;color:var(--dim)">` +
     `<span><span style="display:inline-block;width:6px;height:6px;border-radius:1px;background:var(--acc);margin-right:3px"></span>B=${r.B.toFixed(1)}</span>` +
     `<span><span style="display:inline-block;width:6px;height:6px;border-radius:1px;background:var(--high);margin-right:3px"></span>H=${r.H.toFixed(1)}</span>` +
     `<span><span style="display:inline-block;width:6px;height:6px;border-radius:1px;background:var(--purple);margin-right:3px"></span>L=${r.L.toFixed(4)}</span>` +
@@ -588,7 +595,7 @@ function showSingleResult(r) {
   ).join('') : '';
 
   // Back button (only if we came from a multi-result search)
-  const backBtn = lastSearchData ? `<button onclick="backToResults()" style="font-family:var(--mono);font-size:10px;font-weight:600;padding:6px 14px;border-radius:4px;cursor:pointer;border:1px solid var(--bd);background:var(--s1);color:var(--acc);margin-bottom:10px">← Back to ${lastSearchData.count} results for "${lastSearchData.query}"</button>` : '';
+  const backBtn = lastSearchData ? `<button onclick="backToResults()" style="font-family:var(--mono);font-size:11px;font-weight:600;padding:6px 14px;border-radius:4px;cursor:pointer;border:1px solid var(--bd);background:var(--s1);color:var(--acc);margin-bottom:10px">← Back to ${lastSearchData.count} results for "${lastSearchData.query}"</button>` : '';
 
   document.getElementById('detail').innerHTML = `
     ${backBtn}
@@ -598,7 +605,7 @@ function showSingleResult(r) {
       <div class="df"><div class="df-label">B (Exploitability)</div><div class="df-val">${r.B.toFixed(3)}</div></div>
       <div class="df"><div class="df-label">L(t) (EPSS)</div><div class="df-val">${r.L.toFixed(4)}</div></div>
       <div class="df"><div class="df-label">H (Patient Harm)</div><div class="df-val">${r.H.toFixed(1)}</div></div>
-      <div class="df"><div class="df-label">TGA Class</div><div class="df-val" style="color:${color}">${r.tga_class}${r.classify_source === 'default' ? ' <span style="color:var(--high);font-size:9px" title="Could not auto-detect - defaulted to IIb">⚠ defaulted</span>' : r.classify_source === 'user' ? ' <span style="color:var(--acc);font-size:9px">manual</span>' : ''}</div></div>
+      <div class="df"><div class="df-label">TGA Class</div><div class="df-val" style="color:${color}">${r.tga_class}${r.classify_source === 'default' ? ' <span style="color:var(--high);font-size:11px" title="Could not auto-detect - defaulted to IIb">⚠ defaulted</span>' : r.classify_source === 'user' ? ' <span style="color:var(--acc);font-size:11px">manual</span>' : ''}</div></div>
       <div class="df"><div class="df-label">CVSS Version</div><div class="df-val">${r.cvss_version}</div></div>
       <div class="df"><div class="df-label">EPSS Percentile</div><div class="df-val">${r.epss_percentile ? (r.epss_percentile*100).toFixed(1)+'%' : '-'}</div></div>
       <div class="df"><div class="df-label">Published</div><div class="df-val">${(r.published||'').slice(0,10)}</div></div>
@@ -631,7 +638,7 @@ function showSearchResults(data, page) {
   let html = `<div class="results-header">${totalResults} CVEs · "${data.query}" · showing ${startIdx+1}–${endIdx}</div>`;
 
   // Severity summary bar
-  html += `<div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;margin-bottom:4px;font-family:var(--mono);font-size:10px;align-items:center">`;
+  html += `<div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;margin-bottom:4px;font-family:var(--mono);font-size:11px;align-items:center">`;
   if (kevCount > 0) html += `<span style="color:var(--crit);font-weight:600"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--crit);margin-right:4px"></span>KEV ${kevCount}</span>`;
   if (counts.Critical > 0) html += `<span style="color:var(--crit)"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--crit);margin-right:4px"></span>Critical ${counts.Critical}</span>`;
   if (counts.High > 0) html += `<span style="color:var(--high)"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--high);margin-right:4px"></span>High ${counts.High}</span>`;
@@ -662,14 +669,14 @@ function showSearchResults(data, page) {
       html += `
         <div onclick="lookupCVE('${r.cve_id}')" style="padding:12px 14px;background:linear-gradient(135deg,${tierBg},var(--s2));border:1px solid ${TIER_BD[r.risk_level]};border-radius:8px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='${TIER_BD[r.risk_level]}'">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-            <div style="font-family:var(--display);font-size:28px;font-weight:900;color:${color};line-height:1">${r.score.toFixed(2)}</div>
+            <div style="font-family:var(--mono);font-size:28px;font-weight:900;color:${color};line-height:1">${r.score.toFixed(2)}</div>
             <div style="flex:1;min-width:140px">
-              <div style="font-family:var(--mono);font-size:10px;color:var(--hd);font-weight:600">${r.cve_id}</div>
-              <div style="font-family:var(--body);font-size:10px;color:var(--dim);margin-top:2px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${r.description || '-'}</div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--hd);font-weight:600">${r.cve_id}</div>
+              <div style="font-family:var(--sans);font-size:11px;color:var(--dim);margin-top:2px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${r.description || '-'}</div>
             </div>
-            <div style="font-family:var(--mono);font-size:9px;font-weight:600;padding:3px 8px;border-radius:3px;background:${tierBg};color:${color};border:1px solid ${TIER_BD[r.risk_level]}">${r.risk_level}${flags ? ' '+flags : ''}</div>
+            <div style="font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 8px;border-radius:3px;background:${tierBg};color:${color};border:1px solid ${TIER_BD[r.risk_level]}">${r.risk_level}${flags ? ' '+flags : ''}</div>
           </div>
-          <div style="display:flex;gap:14px;margin-top:8px;font-family:var(--mono);font-size:9px;color:var(--dim)">
+          <div style="display:flex;gap:14px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--dim)">
             <span><span style="color:var(--acc)">B</span> ${r.B.toFixed(2)}</span>
             <span><span style="color:var(--purple)">L</span> ${r.L.toFixed(4)}</span>
             <span><span style="color:var(--high)">H</span> ${r.H.toFixed(1)} · ${r.tga_class}</span>
@@ -694,16 +701,16 @@ function showSearchResults(data, page) {
 
   // Pagination bar
   if (totalPages > 1) {
-    html += '<div style="display:flex;gap:6px;justify-content:center;align-items:center;padding:12px 0;font-family:var(--mono);font-size:10px">';
+    html += '<div style="display:flex;gap:6px;justify-content:center;align-items:center;padding:12px 0;font-family:var(--mono);font-size:11px">';
     if (currentPage > 1) {
-      html += `<button onclick="showSearchResults(lastSearchData,${currentPage-1})" style="padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1);color:var(--acc);cursor:pointer;font-family:var(--mono);font-size:10px">← Prev</button>`;
+      html += `<button onclick="showSearchResults(lastSearchData,${currentPage-1})" style="padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1);color:var(--acc);cursor:pointer;font-family:var(--mono);font-size:11px">← Prev</button>`;
     }
     for (let p = 1; p <= totalPages; p++) {
       const active = p === currentPage;
-      html += `<button onclick="showSearchResults(lastSearchData,${p})" style="padding:4px 8px;border-radius:4px;border:1px solid ${active?'var(--acc)':'var(--bd)'};background:${active?'rgba(79,142,247,0.15)':'var(--s1)'};color:${active?'var(--acc)':'var(--dim)'};cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:${active?'600':'400'}">${p}</button>`;
+      html += `<button onclick="showSearchResults(lastSearchData,${p})" style="padding:4px 8px;border-radius:4px;border:1px solid ${active?'var(--acc)':'var(--bd)'};background:${active?'rgba(79,142,247,0.15)':'var(--s1)'};color:${active?'var(--acc)':'var(--dim)'};cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:${active?'600':'400'}">${p}</button>`;
     }
     if (currentPage < totalPages) {
-      html += `<button onclick="showSearchResults(lastSearchData,${currentPage+1})" style="padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1);color:var(--acc);cursor:pointer;font-family:var(--mono);font-size:10px">Next →</button>`;
+      html += `<button onclick="showSearchResults(lastSearchData,${currentPage+1})" style="padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1);color:var(--acc);cursor:pointer;font-family:var(--mono);font-size:11px">Next →</button>`;
     }
     html += '</div>';
   }

@@ -16,15 +16,15 @@
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://dtvss.io/calculator">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anybody:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #06080c; }
+  body { background: #080a0f; }
   input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
-  input[type=range]::-webkit-slider-track { height: 3px; background: #1a2030; border-radius: 2px; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #c8cdd8; margin-top: -4px; cursor: pointer; }
+  input[type=range]::-webkit-slider-track { height: 3px; background: #1e2433; border-radius: 2px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #b8bcc8; margin-top: -4px; cursor: pointer; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
   @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
@@ -32,10 +32,10 @@
 </head>
 <body>
 <div id="root">
-  <div style="padding:40px;font-family:system-ui;color:#c8cdd8;text-align:center;background:#06080c">
-    <div style="font-size:14px;color:#4a5568">Loading calculator...</div>
-    <div id="errMsg" style="font-size:11px;color:#d94f4f;margin-top:8px;font-family:monospace;white-space:pre-wrap"></div>
-    <div style="font-size:11px;color:#4a5568;margin-top:8px">If this message persists, try the <a href="/" style="color:#4f8ef7">search interface</a> instead.</div>
+  <div style="padding:40px;font-family:system-ui;color:#b8bcc8;text-align:center;background:#080a0f">
+    <div style="font-size:14px;color:#6b7280">Loading calculator...</div>
+    <div id="errMsg" style="font-size:11px;color:#e05252;margin-top:8px;font-family:monospace;white-space:pre-wrap"></div>
+    <div style="font-size:11px;color:#6b7280;margin-top:8px">If this message persists, try the <a href="/" style="color:#5b93f5">search interface</a> instead.</div>
   </div>
 </div>
 <script>
@@ -55,7 +55,7 @@ window.addEventListener('error', function(e) {
   const TGA_CLASSES = {
     IIb: {
       H: 7.5, label: "Class IIb", desc: "Moderate-high risk - Network-connected therapeutic devices",
-      color: "#d97c2a",
+      color: "#e08a3a",
       examples: "Infusion pumps, insulin pumps, ventilators, patient monitors, CGMs",
       jurisdictions: {
         "TGA / Medsafe (AU / NZ)": "Class IIb",
@@ -66,7 +66,7 @@ window.addEventListener('error', function(e) {
     },
     III: {
       H: 10.0, label: "Class III", desc: "Highest risk - Implantable life-sustaining devices",
-      color: "#d94f4f",
+      color: "#e05252",
       examples: "Pacemakers, implantable defibrillators, CRT devices",
       jurisdictions: {
         "TGA / Medsafe (AU / NZ)": "Class III",
@@ -78,16 +78,16 @@ window.addEventListener('error', function(e) {
   };
 
   const THRESHOLDS = [
-    { max: 3.0,  level: "Low",      color: "#4caf7a", bg: "rgba(76,175,122,0.08)",  border: "rgba(76,175,122,0.25)",  sla: "Monitor",
+    { max: 3.0,  level: "Low",      color: "#48b878", bg: "rgba(76,175,122,0.08)",  border: "rgba(76,175,122,0.25)",  sla: "Monitor",
       guidance: "No immediate remediation required. Maintain routine patch cycle and continuous monitoring.",
       rationale: "Represents minimal exploitability or impact. Managed under standard vulnerability management." },
-    { max: 6.0,  level: "Medium",   color: "#c9b428", bg: "rgba(201,180,40,0.08)",  border: "rgba(201,180,40,0.25)",  sla: "≤ 30 days",
+    { max: 6.0,  level: "Medium",   color: "#d4b832", bg: "rgba(201,180,40,0.08)",  border: "rgba(201,180,40,0.25)",  sla: "≤ 30 days",
       guidance: "Remediate within defined maintenance window. Prioritise based on asset criticality.",
       rationale: "Requires timely remediation per NIST risk-based prioritisation and FDA postmarket expectations." },
-    { max: 8.0,  level: "High",     color: "#d97c2a", bg: "rgba(217,124,42,0.08)",  border: "rgba(217,124,42,0.25)",  sla: "≤ 7 days",
+    { max: 8.0,  level: "High",     color: "#e08a3a", bg: "rgba(217,124,42,0.08)",  border: "rgba(217,124,42,0.25)",  sla: "≤ 7 days",
       guidance: "Expedite remediation. Escalate to clinical/biomedical engineering and risk management teams.",
       rationale: "Indicates credible exploitation risk with potential clinical impact." },
-    { max: 10.1, level: "Critical", color: "#d94f4f", bg: "rgba(217,79,79,0.08)",   border: "rgba(217,79,79,0.25)",   sla: "Immediate",
+    { max: 10.1, level: "Critical", color: "#e05252", bg: "rgba(217,79,79,0.08)",   border: "rgba(217,79,79,0.25)",   sla: "Immediate",
       guidance: "Initiate incident response immediately. Isolate or remove affected systems.",
       rationale: "Represents active exploitation or severe patient safety risk. k=15 calibration criterion satisfied." },
   ];
@@ -204,18 +204,18 @@ window.addEventListener('error', function(e) {
       lookupCVE(cve);
     };
 
-    const mono = "'JetBrains Mono',monospace";
-    const body = "'DM Sans',system-ui,sans-serif";
-    const disp = "'Anybody',system-ui,sans-serif";
+    const mono = "'IBM Plex Mono',monospace";
+    const body = "'IBM Plex Sans',system-ui,sans-serif";
+    const disp = "'IBM Plex Mono',system-ui,sans-serif";
     const scorePct = (animScore / 10) * 100;
 
-    return e('div', { style: { background: "#06080c", color: "#c8cdd8", minHeight: "100vh", fontFamily: body, fontSize: "13px" } },
+    return e('div', { style: { background: "#080a0f", color: "#b8bcc8", minHeight: "100vh", fontFamily: body, fontSize: "13px" } },
 
       // Header
-      e('div', { style: { padding: "20px 24px 16px", borderBottom: "1px solid #1a2030", display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" } },
-        e('a', { href: "/", style: { fontFamily: disp, fontSize: "16px", fontWeight: 900, color: "#e8ecf5", letterSpacing: "-0.02em", textDecoration: "none" } }, "DTVSS"),
-        e('span', { style: { fontFamily: mono, fontSize: "10px", color: "#4a5568" } }, "v6.0 - Interactive Calculator"),
-        e('a', { href: "/", style: { marginLeft: "auto", fontFamily: mono, fontSize: "10px", color: "#4f8ef7", textDecoration: "none" } }, "← Back to Search")
+      e('div', { style: { padding: "20px 24px 16px", borderBottom: "1px solid #1e2433", display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" } },
+        e('a', { href: "/", style: { fontFamily: disp, fontSize: "18px", fontWeight: 700, color: "#e2e6f0", letterSpacing: "-0.02em", textDecoration: "none" } }, "DTVSS"),
+        e('span', { style: { fontFamily: mono, fontSize: "11px", color: "#6b7280" } }, "v6.0 - Interactive Calculator"),
+        e('a', { href: "/", style: { marginLeft: "auto", fontFamily: mono, fontSize: "11px", color: "#5b93f5", textDecoration: "none" } }, "← Back to Search")
       ),
 
       e('div', { style: { padding: "20px 24px", display: "flex", flexDirection: "column", gap: "20px", maxWidth: "720px", margin: "0 auto", width: "100%" } },
@@ -223,7 +223,7 @@ window.addEventListener('error', function(e) {
         // Score Display
         e('div', {
           style: {
-            background: `linear-gradient(135deg,${tier.bg},#131820)`,
+            background: `linear-gradient(135deg,${tier.bg},#141820)`,
             border: `1px solid ${tier.border}`,
             borderRadius: "12px", padding: "28px 24px",
             display: "flex", flexDirection: "column", alignItems: "center", gap: "8px",
@@ -232,36 +232,36 @@ window.addEventListener('error', function(e) {
         },
           e('div', { style: { position: "absolute", top: "-40px", left: "50%", transform: "translateX(-50%)", width: "200px", height: "120px", background: `radial-gradient(ellipse,${tier.color}15,transparent 70%)`, pointerEvents: "none" } }),
           e('div', { style: { fontFamily: disp, fontSize: "56px", fontWeight: 900, color: tier.color, lineHeight: 1, letterSpacing: "-0.03em" } }, animScore.toFixed(2)),
-          e('div', { style: { width: "100%", maxWidth: "320px", height: "6px", background: "#151b28", borderRadius: "3px", overflow: "hidden" } },
+          e('div', { style: { width: "100%", maxWidth: "320px", height: "6px", background: "#181d2a", borderRadius: "3px", overflow: "hidden" } },
             e('div', { style: { width: `${scorePct}%`, height: "100%", background: `linear-gradient(90deg,${tier.color}88,${tier.color})`, borderRadius: "3px", transition: "width 0.4s cubic-bezier(0.16,1,0.3,1)" } })
           ),
           e('div', { style: { display: "flex", gap: "8px", alignItems: "center" } },
             e('span', { style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, color: tier.color, background: `${tier.color}18`, padding: "3px 10px", borderRadius: "4px", border: `1px solid ${tier.color}30` } },
               (result.kevOverride ? "KEV OVERRIDE - " : "") + tier.level.toUpperCase()
             ),
-            e('span', { style: { fontFamily: mono, fontSize: "9px", color: "#4a5568", background: "#0d1017", padding: "3px 8px", borderRadius: "4px", border: "1px solid #1a2030" } }, "SLA: " + tier.sla)
+            e('span', { style: { fontFamily: mono, fontSize: "11px", color: "#6b7280", background: "#0e1118", padding: "3px 8px", borderRadius: "4px", border: "1px solid #1e2433" } }, "SLA: " + tier.sla)
           ),
-          e('div', { style: { fontFamily: body, fontSize: "11px", color: "#4a5568", textAlign: "center", maxWidth: "420px", lineHeight: 1.5 } }, tier.guidance),
-          e('button', { onClick: () => setShowRationale(!showRationale), style: { fontFamily: mono, fontSize: "8px", color: "#4a5568", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", opacity: .6 } },
+          e('div', { style: { fontFamily: body, fontSize: "11px", color: "#6b7280", textAlign: "center", maxWidth: "420px", lineHeight: 1.5 } }, tier.guidance),
+          e('button', { onClick: () => setShowRationale(!showRationale), style: { fontFamily: mono, fontSize: "11px", color: "#6b7280", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", opacity: .6 } },
             showRationale ? "Hide rationale" : "Show rationale"
           ),
-          showRationale && e('div', { style: { fontFamily: mono, fontSize: "9px", color: "#4a5568", textAlign: "center", maxWidth: "400px", opacity: .7 } }, tier.rationale),
+          showRationale && e('div', { style: { fontFamily: mono, fontSize: "11px", color: "#6b7280", textAlign: "center", maxWidth: "400px", opacity: .7 } }, tier.rationale),
           e('button', {
             onClick: shareSummary,
-            style: { fontFamily: mono, fontSize: "9px", fontWeight: 600, padding: "4px 12px", borderRadius: "4px", cursor: "pointer", border: "1px solid #1a2030", background: copied ? "rgba(76,175,122,0.15)" : "#0d1017", color: copied ? "#4caf7a" : "#4a5568", marginTop: "4px" }
+            style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "4px 12px", borderRadius: "4px", cursor: "pointer", border: "1px solid #1e2433", background: copied ? "rgba(76,175,122,0.15)" : "#0e1118", color: copied ? "#48b878" : "#6b7280", marginTop: "4px" }
           }, copied ? "Copied" : "Copy score summary"),
-          !result.kevOverride && e('div', { style: { fontFamily: mono, fontSize: "10px", color: "#4a5568", textAlign: "center" } },
+          !result.kevOverride && e('div', { style: { fontFamily: mono, fontSize: "11px", color: "#6b7280", textAlign: "center" } },
             `Static baseline (L=0): ${staticBaseline.toFixed(2)} · Temporal lift: +${(result.score - staticBaseline).toFixed(2)}`,
             baseResult && !baseResult.kevOverride && e('span', null, ` · Unmodified: ${baseResult.score.toFixed(2)}`)
           )
         ),
 
         // Input Controls
-        e('div', { style: { background: "#131820", border: "1px solid #1a2030", borderRadius: "12px", padding: "20px 16px" } },
+        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", padding: "20px 16px" } },
 
           // CVE lookup
           e('div', { style: { marginBottom: "16px" } },
-            e('div', { style: { fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", color: "#4a5568", fontFamily: mono, marginBottom: "6px" } },
+            e('div', { style: { fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", color: "#6b7280", fontFamily: mono, marginBottom: "6px" } },
               "CVE ID - enter and click Lookup to auto-populate B, L(t), H, and KEV"
             ),
             e('div', { style: { display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" } },
@@ -270,53 +270,53 @@ window.addEventListener('error', function(e) {
                 onChange: ev => setCveId(ev.target.value.toUpperCase()),
                 onKeyDown: ev => { if (ev.key === "Enter") lookupCVE(); },
                 placeholder: "CVE-2017-12725",
-                style: { width: "100%", maxWidth: "220px", background: "#06080c", border: "1px solid #1a2030", borderRadius: "6px", padding: "8px 12px", color: "#e8ecf5", fontFamily: mono, fontSize: "12px", outline: "none" }
+                style: { width: "100%", maxWidth: "220px", background: "#080a0f", border: "1px solid #1e2433", borderRadius: "6px", padding: "8px 12px", color: "#e2e6f0", fontFamily: mono, fontSize: "12px", outline: "none" }
               }),
               e('button', {
                 onClick: () => lookupCVE(),
                 disabled: lookupLoading || !cveId.match(/^CVE-\d{4}-\d+$/i),
-                style: { background: "#4f8ef7", border: "none", borderRadius: "6px", padding: "8px 16px", color: "#fff", fontFamily: mono, fontSize: "10px", fontWeight: 600, cursor: "pointer", opacity: (lookupLoading || !cveId.match(/^CVE-\d{4}-\d+$/i)) ? .4 : 1, whiteSpace: "nowrap" }
+                style: { background: "#5b93f5", border: "none", borderRadius: "6px", padding: "8px 16px", color: "#fff", fontFamily: mono, fontSize: "11px", fontWeight: 600, cursor: "pointer", opacity: (lookupLoading || !cveId.match(/^CVE-\d{4}-\d+$/i)) ? .4 : 1, whiteSpace: "nowrap" }
               }, lookupLoading ? "Loading..." : "Lookup"),
-              cveYear && e('span', { style: { fontFamily: mono, fontSize: "9px", color: "#4a5568" } }, `Year: ${cveYear} · Age: ${Math.round(cveAge)}yr`)
+              cveYear && e('span', { style: { fontFamily: mono, fontSize: "11px", color: "#6b7280" } }, `Year: ${cveYear} · Age: ${Math.round(cveAge)}yr`)
             ),
-            lookupMsg && e('div', { style: { fontFamily: mono, fontSize: "9px", color: lookupMsg.startsWith("Loaded") ? "#4caf7a" : "#d94f4f", marginTop: "6px" } }, lookupMsg)
+            lookupMsg && e('div', { style: { fontFamily: mono, fontSize: "11px", color: lookupMsg.startsWith("Loaded") ? "#48b878" : "#e05252", marginTop: "6px" } }, lookupMsg)
           ),
 
           // Sliders: B and L
           e('div', { style: { display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap" } },
             ...[
-              { val: B, set: setB, min: 0, max: 10,  step: 0.01,   label: "B",    sub: "CVSS Exploitability", color: "#4f8ef7", dec: 2 },
-              { val: L, set: setL, min: 0, max: 1,   step: 0.0001, label: "L(t)", sub: "EPSS Likelihood",     color: "#a855f7", dec: 4 },
+              { val: B, set: setB, min: 0, max: 10,  step: 0.01,   label: "B",    sub: "CVSS Exploitability", color: "#5b93f5", dec: 2 },
+              { val: L, set: setL, min: 0, max: 1,   step: 0.0001, label: "L(t)", sub: "EPSS Likelihood",     color: "#a070e8", dec: 4 },
             ].map((k, i) => e('div', { key: i, style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", minWidth: "130px" } },
-              e('div', { style: { fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", color: "#4a5568", fontFamily: mono } }, k.label),
+              e('div', { style: { fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", color: "#6b7280", fontFamily: mono } }, k.label),
               e('div', { style: { fontFamily: mono, fontSize: "22px", fontWeight: 700, color: k.color } }, k.val.toFixed(k.dec)),
               e('input', { type: "range", min: k.min, max: k.max, step: k.step, value: k.val, onChange: ev => k.set(parseFloat(ev.target.value)), style: { width: "120px", accentColor: k.color, height: "3px" } }),
-              e('input', { type: "number", value: k.val, min: k.min, max: k.max, step: k.step, onChange: ev => { const v = parseFloat(ev.target.value); if (!isNaN(v)) k.set(Math.max(k.min, Math.min(k.max, v))); }, style: { width: "80px", background: "#06080c", border: "1px solid #1a2030", borderRadius: "4px", padding: "4px 6px", color: k.color, fontFamily: mono, fontSize: "10px", textAlign: "center", outline: "none" } }),
-              e('div', { style: { fontSize: "9px", color: "#4a5568", fontFamily: mono } }, k.sub)
+              e('input', { type: "number", value: k.val, min: k.min, max: k.max, step: k.step, onChange: ev => { const v = parseFloat(ev.target.value); if (!isNaN(v)) k.set(Math.max(k.min, Math.min(k.max, v))); }, style: { width: "80px", background: "#080a0f", border: "1px solid #1e2433", borderRadius: "4px", padding: "4px 6px", color: k.color, fontFamily: mono, fontSize: "11px", textAlign: "center", outline: "none" } }),
+              e('div', { style: { fontSize: "11px", color: "#6b7280", fontFamily: mono } }, k.sub)
             )),
 
             // H selector
             e('div', { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", minWidth: "130px" } },
-              e('div', { style: { fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", color: "#4a5568", fontFamily: mono } }, "H"),
+              e('div', { style: { fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", color: "#6b7280", fontFamily: mono } }, "H"),
               e('div', { style: { fontFamily: mono, fontSize: "22px", fontWeight: 700, color: TGA_CLASSES[tgaClass].color } }, H.toFixed(1)),
               e('div', { style: { display: "flex", gap: "4px", marginTop: "4px" } },
                 ...Object.entries(TGA_CLASSES).map(([cls, info]) => e('button', {
                   key: cls, onClick: () => setTgaClass(cls),
-                  style: { fontFamily: mono, fontSize: "9px", fontWeight: 600, padding: "4px 8px", borderRadius: "3px", cursor: "pointer", border: `1px solid ${tgaClass === cls ? info.color : "#1a2030"}`, background: tgaClass === cls ? `${info.color}20` : "transparent", color: tgaClass === cls ? info.color : "#4a5568" }
+                  style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "4px 8px", borderRadius: "3px", cursor: "pointer", border: `1px solid ${tgaClass === cls ? info.color : "#1e2433"}`, background: tgaClass === cls ? `${info.color}20` : "transparent", color: tgaClass === cls ? info.color : "#6b7280" }
                 }, cls))
               ),
-              e('div', { style: { fontSize: "9px", color: "#4a5568", fontFamily: mono } }, "Patient Harm")
+              e('div', { style: { fontSize: "11px", color: "#6b7280", fontFamily: mono } }, "Patient Harm")
             )
           ),
 
           // Jurisdiction table
           e('div', { style: { marginTop: "14px", padding: "12px", background: `${TGA_CLASSES[tgaClass].color}08`, border: `1px solid ${TGA_CLASSES[tgaClass].color}15`, borderRadius: "6px" } },
-            e('div', { style: { fontFamily: mono, fontSize: "10px", color: TGA_CLASSES[tgaClass].color, fontWeight: 600 } }, `${TGA_CLASSES[tgaClass].label} · H = ${H.toFixed(1)} - ${TGA_CLASSES[tgaClass].desc}`),
-            e('div', { style: { fontFamily: body, fontSize: "10px", color: "#4a5568", marginTop: "2px" } }, TGA_CLASSES[tgaClass].examples),
-            e('div', { style: { marginTop: "10px", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px", background: "#1a2030", borderRadius: "4px", overflow: "hidden" } },
-              ...Object.entries(TGA_CLASSES[tgaClass].jurisdictions).map(([j, c], i) => e('div', { key: i, style: { background: "#0d1017", padding: "6px 4px", textAlign: "center", fontFamily: mono } },
-                e('div', { style: { color: "#4a5568", fontSize: "8px" } }, j),
-                e('div', { style: { color: TGA_CLASSES[tgaClass].color, fontWeight: 600, fontSize: "9px", marginTop: "2px" } }, c)
+            e('div', { style: { fontFamily: mono, fontSize: "11px", color: TGA_CLASSES[tgaClass].color, fontWeight: 600 } }, `${TGA_CLASSES[tgaClass].label} · H = ${H.toFixed(1)} - ${TGA_CLASSES[tgaClass].desc}`),
+            e('div', { style: { fontFamily: body, fontSize: "11px", color: "#6b7280", marginTop: "2px" } }, TGA_CLASSES[tgaClass].examples),
+            e('div', { style: { marginTop: "10px", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px", background: "#1e2433", borderRadius: "4px", overflow: "hidden" } },
+              ...Object.entries(TGA_CLASSES[tgaClass].jurisdictions).map(([j, c], i) => e('div', { key: i, style: { background: "#0e1118", padding: "6px 4px", textAlign: "center", fontFamily: mono } },
+                e('div', { style: { color: "#6b7280", fontSize: "11px" } }, j),
+                e('div', { style: { color: TGA_CLASSES[tgaClass].color, fontWeight: 600, fontSize: "11px", marginTop: "2px" } }, c)
               ))
             )
           ),
@@ -325,113 +325,113 @@ window.addEventListener('error', function(e) {
           e('div', { style: { display: "flex", justifyContent: "center", marginTop: "14px" } },
             e('button', {
               onClick: () => setKev(!kev),
-              style: { fontFamily: mono, fontSize: "10px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${kev ? "#d94f4f" : "#1a2030"}`, background: kev ? "rgba(217,79,79,0.15)" : "transparent", color: kev ? "#d94f4f" : "#4a5568", animation: kev ? "pulse 1.5s infinite" : "none" }
+              style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${kev ? "#e05252" : "#1e2433"}`, background: kev ? "rgba(217,79,79,0.15)" : "transparent", color: kev ? "#e05252" : "#6b7280", animation: kev ? "pulse 1.5s infinite" : "none" }
             }, kev ? "⚠ KEV OVERRIDE ACTIVE - SCORE FORCED TO 10.0" : "KEV Override (CISA Known Exploited)")
           )
         ),
 
         // Optional Embodiments label
-        e('div', { style: { fontFamily: mono, fontSize: "9px", color: "#4a5568", letterSpacing: "0.1em", textAlign: "center" } }, "OPTIONAL EMBODIMENTS"),
+        e('div', { style: { fontFamily: mono, fontSize: "11px", color: "#6b7280", letterSpacing: "0.1em", textAlign: "center" } }, "OPTIONAL EMBODIMENTS"),
 
         // Environment-Adjusted
-        e('div', { style: { background: "#131820", border: "1px solid #1a2030", borderRadius: "12px", overflow: "hidden" } },
+        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden" } },
           e('button', {
             onClick: () => setShowEnvAdj(!showEnvAdj),
-            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "10px" }
+            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
           },
-            e('span', { style: { color: ztaEnabled ? "#4f8ef7" : "#4a5568", fontWeight: 600 } }, `ENVIRONMENT-ADJUSTED EXPLOITABILITY${ztaEnabled ? " · ACTIVE" : ""}`),
-            e('span', { style: { color: "#4a5568", transform: showEnvAdj ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
+            e('span', { style: { color: ztaEnabled ? "#5b93f5" : "#6b7280", fontWeight: 600 } }, `ENVIRONMENT-ADJUSTED EXPLOITABILITY${ztaEnabled ? " · ACTIVE" : ""}`),
+            e('span', { style: { color: "#6b7280", transform: showEnvAdj ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
           ),
-          showEnvAdj && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "10px" } },
-            e('div', { style: { color: "#4a5568", fontSize: "9px", lineHeight: 1.6, marginBottom: "10px" } }, "ZTA / network segmentation reduces B by factor 0.571 (Broglio 2024)."),
+          showEnvAdj && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
+            e('div', { style: { color: "#6b7280", fontSize: "11px", lineHeight: 1.6, marginBottom: "10px" } }, "ZTA / network segmentation reduces B by factor 0.571 (Broglio 2024)."),
             e('button', {
               onClick: () => setZtaEnabled(!ztaEnabled),
-              style: { fontFamily: mono, fontSize: "10px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${ztaEnabled ? "#4f8ef7" : "#1a2030"}`, background: ztaEnabled ? "rgba(79,142,247,0.15)" : "transparent", color: ztaEnabled ? "#4f8ef7" : "#4a5568" }
+              style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${ztaEnabled ? "#5b93f5" : "#1e2433"}`, background: ztaEnabled ? "rgba(79,142,247,0.15)" : "transparent", color: ztaEnabled ? "#5b93f5" : "#6b7280" }
             }, ztaEnabled ? `ZTA: ON - B_adj = ${B_adj.toFixed(2)}` : "ZTA: OFF")
           )
         ),
 
         // Temporal Decay
-        e('div', { style: { background: "#131820", border: "1px solid #1a2030", borderRadius: "12px", overflow: "hidden" } },
+        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden" } },
           e('button', {
             onClick: () => setShowDecay(!showDecay),
-            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "10px" }
+            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
           },
-            e('span', { style: { color: decayEnabled ? "#a855f7" : "#4a5568", fontWeight: 600 } }, `TEMPORAL DECAY${decayEnabled ? " · ACTIVE" : ""}`),
-            e('span', { style: { color: "#4a5568", transform: showDecay ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
+            e('span', { style: { color: decayEnabled ? "#a070e8" : "#6b7280", fontWeight: 600 } }, `TEMPORAL DECAY${decayEnabled ? " · ACTIVE" : ""}`),
+            e('span', { style: { color: "#6b7280", transform: showDecay ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
           ),
-          showDecay && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "10px" } },
-            e('div', { style: { color: "#4a5568", fontSize: "9px", lineHeight: 1.6, marginBottom: "10px" } },
+          showDecay && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
+            e('div', { style: { color: "#6b7280", fontSize: "11px", lineHeight: 1.6, marginBottom: "10px" } },
               `L_eff = L(t) × exp(-λ × age). IIb: half-life 10yr. III: 13.9yr.${!cveId ? " Enter CVE ID above." : ""}`
             ),
             e('button', {
               onClick: () => setDecayEnabled(!decayEnabled),
-              style: { fontFamily: mono, fontSize: "10px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${decayEnabled ? "#a855f7" : "#1a2030"}`, background: decayEnabled ? "rgba(168,85,247,0.15)" : "transparent", color: decayEnabled ? "#a855f7" : "#4a5568" }
+              style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${decayEnabled ? "#a070e8" : "#1e2433"}`, background: decayEnabled ? "rgba(168,85,247,0.15)" : "transparent", color: decayEnabled ? "#a070e8" : "#6b7280" }
             }, decayEnabled ? "Decay: ON" : "Decay: OFF"),
-            decayEnabled && cveAge > 0 && e('span', { style: { color: "#a855f7", fontSize: "10px", marginLeft: "10px" } }, `Age:${Math.round(cveAge)}yr · L_eff=${L_eff.toFixed(6)}`)
+            decayEnabled && cveAge > 0 && e('span', { style: { color: "#a070e8", fontSize: "11px", marginLeft: "10px" } }, `Age:${Math.round(cveAge)}yr · L_eff=${L_eff.toFixed(6)}`)
           )
         ),
 
         // ORS
-        e('div', { style: { background: "#131820", border: "1px solid #1a2030", borderRadius: "12px", overflow: "hidden" } },
+        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden" } },
           e('button', {
             onClick: () => setShowORS(!showORS),
-            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "10px" }
+            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
           },
-            e('span', { style: { color: showORS ? "#c9b428" : "#4a5568", fontWeight: 600 } }, "ORGANISATIONAL RISK SCALING · ORS(t)"),
-            e('span', { style: { color: "#4a5568", transform: showORS ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
+            e('span', { style: { color: showORS ? "#d4b832" : "#6b7280", fontWeight: 600 } }, "ORGANISATIONAL RISK SCALING · ORS(t)"),
+            e('span', { style: { color: "#6b7280", transform: showORS ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
           ),
-          showORS && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "10px" } },
-            e('div', { style: { color: "#4a5568", fontSize: "9px", lineHeight: 1.6, marginBottom: "10px" } }, "ORS(t) = DTVSS(t) × F(N). Does not modify base score."),
+          showORS && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
+            e('div', { style: { color: "#6b7280", fontSize: "11px", lineHeight: 1.6, marginBottom: "10px" } }, "ORS(t) = DTVSS(t) × F(N). Does not modify base score."),
             e('div', { style: { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "10px" } },
-              e('span', { style: { color: "#4a5568", fontSize: "9px" } }, "N ="),
+              e('span', { style: { color: "#6b7280", fontSize: "11px" } }, "N ="),
               e('input', {
                 type: "number", value: deviceCount, min: 1, max: 100000,
                 onChange: ev => setDeviceCount(Math.max(1, parseInt(ev.target.value) || 1)),
-                style: { width: "80px", background: "#06080c", border: "1px solid #1a2030", borderRadius: "4px", padding: "4px 8px", color: "#e8ecf5", fontFamily: mono, fontSize: "11px", outline: "none" }
+                style: { width: "80px", background: "#080a0f", border: "1px solid #1e2433", borderRadius: "4px", padding: "4px 8px", color: "#e2e6f0", fontFamily: mono, fontSize: "11px", outline: "none" }
               }),
               e('div', { style: { display: "flex", gap: "4px" } },
                 ...[{ id: "log", l: "Log" }, { id: "saturating", l: "Sat" }, { id: "exponential", l: "Exp" }, { id: "tiered", l: "Tier" }].map(fn =>
                   e('button', {
                     key: fn.id, onClick: () => setScalingFn(fn.id),
-                    style: { fontFamily: mono, fontSize: "8px", fontWeight: 600, padding: "3px 6px", borderRadius: "3px", cursor: "pointer", border: `1px solid ${scalingFn === fn.id ? "#c9b428" : "#1a2030"}`, background: scalingFn === fn.id ? "rgba(201,180,40,0.15)" : "transparent", color: scalingFn === fn.id ? "#c9b428" : "#4a5568" }
+                    style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "3px 6px", borderRadius: "3px", cursor: "pointer", border: `1px solid ${scalingFn === fn.id ? "#d4b832" : "#1e2433"}`, background: scalingFn === fn.id ? "rgba(201,180,40,0.15)" : "transparent", color: scalingFn === fn.id ? "#d4b832" : "#6b7280" }
                   }, fn.l)
                 )
               )
             ),
-            e('div', { style: { padding: "10px", background: "#06080c", borderRadius: "6px", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" } },
-              e('div', null, e('div', { style: { color: "#4a5568", fontSize: "9px" } }, `F(${deviceCount})`), e('div', { style: { color: "#c9b428", fontSize: "16px", fontWeight: 700 } }, F_N.toFixed(2))),
-              e('div', { style: { color: "#4a5568", fontSize: "16px" } }, "×"),
-              e('div', null, e('div', { style: { color: "#4a5568", fontSize: "9px" } }, "DTVSS"), e('div', { style: { color: tier.color, fontSize: "16px", fontWeight: 700 } }, result.score.toFixed(2))),
-              e('div', { style: { color: "#4a5568", fontSize: "16px" } }, "="),
-              e('div', null, e('div', { style: { color: "#4a5568", fontSize: "9px" } }, "ORS(t)"), e('div', { style: { color: "#c9b428", fontSize: "20px", fontWeight: 900 } }, ORS.toFixed(2)))
+            e('div', { style: { padding: "10px", background: "#080a0f", borderRadius: "6px", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" } },
+              e('div', null, e('div', { style: { color: "#6b7280", fontSize: "11px" } }, `F(${deviceCount})`), e('div', { style: { color: "#d4b832", fontSize: "16px", fontWeight: 700 } }, F_N.toFixed(2))),
+              e('div', { style: { color: "#6b7280", fontSize: "16px" } }, "×"),
+              e('div', null, e('div', { style: { color: "#6b7280", fontSize: "11px" } }, "DTVSS"), e('div', { style: { color: tier.color, fontSize: "16px", fontWeight: 700 } }, result.score.toFixed(2))),
+              e('div', { style: { color: "#6b7280", fontSize: "16px" } }, "="),
+              e('div', null, e('div', { style: { color: "#6b7280", fontSize: "11px" } }, "ORS(t)"), e('div', { style: { color: "#d4b832", fontSize: "20px", fontWeight: 900 } }, ORS.toFixed(2)))
             )
           )
         ),
 
         // Footer
-        e('div', { style: { textAlign: "center", padding: "12px 0", fontFamily: mono, fontSize: "9px", color: "#4a5568", borderTop: "1px solid #1a2030", lineHeight: 1.8 } },
+        e('div', { style: { textAlign: "center", padding: "12px 0", fontFamily: mono, fontSize: "11px", color: "#6b7280", borderTop: "1px solid #1e2433", lineHeight: 1.8 } },
           e('div', null, "DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10 · k=15 calibrated against 96 medical device CVEs"),
           e('div', { style: { marginTop: "4px" } }, "© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia"),
-          e('div', { style: { marginTop: "2px", fontSize: "10px", color: "#c8cdd8" } }, "Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use"),
+          e('div', { style: { marginTop: "2px", fontSize: "11px", color: "#b8bcc8" } }, "Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use"),
           e('div', { style: { marginTop: "8px" } },
-            e('a', { href: "/", style: { color: "#4f8ef7", textDecoration: "none" } }, "Search"),
+            e('a', { href: "/", style: { color: "#5b93f5", textDecoration: "none" } }, "Search"),
             " · ",
-            e('a', { href: "/calculator", style: { color: "#4f8ef7", textDecoration: "none" } }, "Calculator"),
+            e('a', { href: "/calculator", style: { color: "#5b93f5", textDecoration: "none" } }, "Calculator"),
             " · ",
-            e('a', { href: "/about", style: { color: "#4f8ef7", textDecoration: "none" } }, "About")
+            e('a', { href: "/about", style: { color: "#5b93f5", textDecoration: "none" } }, "About")
           ),
           e('div', { style: { marginTop: "4px" } },
-            e('a', { href: "https://www.linkedin.com/in/andr3wbr0", target: "_blank", rel: "noopener noreferrer", style: { color: "#4f8ef7", textDecoration: "none", fontWeight: 600 } },
+            e('a', { href: "https://www.linkedin.com/in/andr3wbr0", target: "_blank", rel: "noopener noreferrer", style: { color: "#5b93f5", textDecoration: "none", fontWeight: 600 } },
               "Reach out for information about Tier 2–4 offerings → LinkedIn"
             )
           )
         ),
 
         // Disclaimer
-        e('div', { style: { padding: "12px 16px", border: "1px solid rgba(217,79,79,0.3)", borderRadius: "8px", background: "rgba(217,79,79,0.06)", fontFamily: mono, fontSize: "10px", color: "#c8cdd8", lineHeight: 1.8, textAlign: "center" } },
-          e('span', { style: { color: "#d94f4f", fontWeight: 600 } }, "RESEARCH PREVIEW"),
-          " - This is a non-commercial research demonstration of the DTVSS scoring methodology. It is not a certified medical device risk management tool. Scores are derived from public data sources (NVD, EPSS, CISA KEV) which may be incomplete, delayed, or inaccurate. Do not use this system as the sole basis for clinical, procurement, or remediation decisions. The author accepts no liability for decisions made using this tool."
+        e('div', { style: { padding: "14px 18px", border: "1px solid rgba(224,82,82,0.25)", borderRadius: "8px", background: "rgba(224,82,82,0.05)", fontFamily: mono, fontSize: "11px", color: "#b8bcc8", lineHeight: 1.8, textAlign: "center" } },
+          e('span', { style: { color: "#e05252", fontWeight: 600 } }, "RESEARCH PREVIEW"),
+          " - Non-commercial research demonstration. Not a certified medical device risk management tool. Commercial licence required for production use."
         )
       )
     );
