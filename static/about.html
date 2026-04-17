@@ -183,10 +183,31 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.1em;c
       For medical device cybersecurity, this creates a critical blind spot. Most medical device CVEs are not in the KEV catalog and do not affect federal software. An unenriched CVE for a networked infusion pump or implantable cardiac device will have no severity score, no product list, and no actionable metadata from NVD. Clinical engineering teams relying solely on NVD for vulnerability prioritisation will not see these risks until it is too late.
     </p>
     <p style="margin-top:10px">
-      This is the exact gap DTVSS was designed to address. The DTVSS data pipeline does not depend on any single source. The manufacturer and CVE index is built exclusively from CISA ICS Medical Advisories - CSAF JSON for the full historical archive and the ICSMA RSS feed for hourly ingestion. NVD is used only for CVSS enrichment when CISA's structured data lacks a severity score, with fallback to the MITRE CVE.org API and CISA Vulnrichment ADP container. EPSS provides temporal exploitation likelihood regardless of NVD status. The KEV catalog provides confirmed exploitation data independently.
+      This is the exact gap DTVSS was designed to address. The DTVSS data pipeline does not depend on any single source.
     </p>
+    <div style="margin-top:12px;padding:14px;background:var(--s1);border-radius:6px;border:1px solid var(--bd)">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-bottom:8px">CVE discovery</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:10px">
+        <span style="padding:4px 10px;border-radius:4px;background:rgba(217,124,42,0.08);color:var(--high);border:1px solid rgba(217,124,42,0.3);font-weight:600">CISA CSAF JSON</span>
+        <span style="color:var(--dim)">+</span>
+        <span style="padding:4px 10px;border-radius:4px;background:rgba(217,124,42,0.08);color:var(--high);border:1px solid rgba(217,124,42,0.3);font-weight:600">ICSMA RSS</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:10px;margin-bottom:8px">Scoring (per CVE, live)</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:10px">
+        <span style="padding:4px 10px;border-radius:4px;background:rgba(79,142,247,0.1);color:var(--acc);border:1px solid rgba(79,142,247,0.25)">NVD API v2</span>
+        <span style="color:var(--dim)">-></span>
+        <span style="padding:4px 10px;border-radius:4px;background:var(--s2);color:var(--dim);border:1px solid var(--bd)">MITRE CVE.org</span>
+        <span style="color:var(--dim)">-></span>
+        <span style="padding:4px 10px;border-radius:4px;background:var(--s2);color:var(--dim);border:1px solid var(--bd)">CISA Vulnrichment</span>
+        <span style="color:var(--dim)">-></span>
+        <span style="padding:4px 10px;border-radius:4px;background:rgba(46,160,67,0.1);color:#2ea043;border:1px solid rgba(46,160,67,0.25);font-weight:600">DTVSS score</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:8px">
+        Discovery is ICSMA-only (zero false positives). Each scoring source is a fallback - if NVD has not enriched a CVE, the pipeline continues.
+      </div>
+    </div>
     <p style="margin-top:10px">
-      The multiplicative architecture - coupling exploitability, patient harm, and exploitation likelihood - was designed precisely because static, centralised scoring cannot scale. DTVSS computes risk continuously from distributed public sources, with no dependency on any single enrichment pipeline.
+      EPSS provides temporal exploitation likelihood regardless of NVD status. The KEV catalog provides confirmed exploitation data independently. The multiplicative architecture - coupling exploitability, patient harm, and exploitation likelihood - was designed precisely because static, centralised scoring cannot scale. DTVSS computes risk continuously from distributed public sources, with no dependency on any single enrichment pipeline.
     </p>
     <div style="margin-top:14px;padding:12px;background:var(--s1);border-radius:6px;font-family:var(--mono);font-size:9px;line-height:2;color:var(--dim)">
       <div style="color:var(--hd);font-weight:600;font-size:10px;margin-bottom:4px">References</div>

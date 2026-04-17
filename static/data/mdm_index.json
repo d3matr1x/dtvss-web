@@ -41,7 +41,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439309+00:00",
+      "last_checked": "2026-04-17T12:30:21.899042+00:00",
       "source": "cisa_icsma"
     },
     "smiths medical": {
@@ -153,7 +153,7 @@
       "cve_count": 10,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439387+00:00",
+      "last_checked": "2026-04-17T12:30:21.899079+00:00",
       "source": "cisa_icsma"
     },
     "st. jude medical": {
@@ -179,7 +179,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439398+00:00",
+      "last_checked": "2026-04-17T12:30:21.899089+00:00",
       "source": "cisa_icsma"
     },
     "bd (becton dickinson)": {
@@ -634,7 +634,7 @@
       "cve_count": 37,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439417+00:00",
+      "last_checked": "2026-04-17T12:30:21.899116+00:00",
       "source": "cisa_icsma"
     },
     "b. braun": {
@@ -860,7 +860,7 @@
       "cve_count": 21,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439427+00:00",
+      "last_checked": "2026-04-17T12:30:21.899140+00:00",
       "source": "cisa_icsma"
     },
     "siemens healthineers": {
@@ -936,7 +936,7 @@
       "cve_count": 6,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439433+00:00",
+      "last_checked": "2026-04-17T12:30:21.899174+00:00",
       "source": "cisa_icsma"
     },
     "bmc medical": {
@@ -962,7 +962,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439438+00:00",
+      "last_checked": "2026-04-17T12:30:21.899192+00:00",
       "source": "cisa_icsma"
     },
     "philips": {
@@ -1027,6 +1027,11 @@
           "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-233-01",
           "title": "Philips IntelliVue Information Center iX (Update B)",
           "icsma_id": "ICSMA-18-233-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-312-01",
+          "title": "Philips iSite and IntelliSpace PACS",
+          "icsma_id": "ICSMA-18-312-01"
         },
         {
           "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-340-01",
@@ -1692,6 +1697,15 @@
           "source": "csaf"
         },
         {
+          "cve_id": "CVE-2018-17906",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2018-11-08",
+          "source": "csaf"
+        },
+        {
           "cve_id": "CVE-2019-18241",
           "description": "",
           "cvss_version": "3.0",
@@ -2205,10 +2219,10 @@
           "source": "csaf"
         }
       ],
-      "cve_count": 116,
+      "cve_count": 117,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439477+00:00",
+      "last_checked": "2026-04-17T12:30:21.899249+00:00",
       "source": "cisa_icsma"
     },
     "abbott": {
@@ -2257,7 +2271,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439482+00:00",
+      "last_checked": "2026-04-17T12:30:21.899257+00:00",
       "source": "cisa_icsma"
     },
     "i-sens inc": {
@@ -2283,7 +2297,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439486+00:00",
+      "last_checked": "2026-04-17T12:30:21.899263+00:00",
       "source": "cisa_icsma"
     },
     "boston scientific": {
@@ -2368,7 +2382,7 @@
       "cve_count": 7,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439493+00:00",
+      "last_checked": "2026-04-17T12:30:21.899271+00:00",
       "source": "cisa_icsma"
     },
     "johnson & johnson": {
@@ -2394,7 +2408,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439498+00:00",
+      "last_checked": "2026-04-17T12:30:21.899278+00:00",
       "source": "cisa_icsma"
     },
     "vyaire medical": {
@@ -2420,7 +2434,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439502+00:00",
+      "last_checked": "2026-04-17T12:30:21.899284+00:00",
       "source": "cisa_icsma"
     },
     "ge healthcare": {
@@ -2786,7 +2800,7 @@
       "cve_count": 36,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439515+00:00",
+      "last_checked": "2026-04-17T12:30:21.899300+00:00",
       "source": "cisa_icsma"
     },
     "medtronic": {
@@ -3134,7 +3148,7 @@
       "cve_count": 29,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439527+00:00",
+      "last_checked": "2026-04-17T12:30:21.899316+00:00",
       "source": "cisa_icsma"
     },
     "beaconmedaes": {
@@ -3169,7 +3183,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439531+00:00",
+      "last_checked": "2026-04-17T12:30:21.899322+00:00",
       "source": "cisa_icsma"
     },
     "natus medical": {
@@ -3258,7 +3272,7 @@
       "cve_count": 8,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439537+00:00",
+      "last_checked": "2026-04-17T12:30:21.899331+00:00",
       "source": "cisa_icsma"
     },
     "qualcomm life": {
@@ -3284,7 +3298,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439541+00:00",
+      "last_checked": "2026-04-17T12:30:21.899337+00:00",
       "source": "cisa_icsma"
     },
     "carestream": {
@@ -3310,7 +3324,109 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439546+00:00",
+      "last_checked": "2026-04-17T12:30:21.899343+00:00",
+      "source": "cisa_icsma"
+    },
+    "change healthcare": {
+      "display_name": "Change Healthcare",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-277-02",
+          "title": "Change Healthcare PeerVue Web Server",
+          "icsma_id": "ICSMA-18-277-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-241-01",
+          "title": "Change Healthcare McKesson and Horizon Cardiology",
+          "icsma_id": "ICSMA-19-241-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2018-18630",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2019-08-29",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10624",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2018-10-04",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 2,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T12:30:21.899350+00:00",
+      "source": "cisa_icsma"
+    },
+    "roche": {
+      "display_name": "Roche",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-310-01",
+          "title": "Roche Diagnostics Point of Care Handheld Medical Devices (Update A)",
+          "icsma_id": "ICSMA-18-310-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2018-18564",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.3,
+          "severity": "HIGH",
+          "published": "2018-11-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-18565",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.2,
+          "severity": "HIGH",
+          "published": "2018-11-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-18562",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.0,
+          "severity": "HIGH",
+          "published": "2018-11-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-18563",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.0,
+          "severity": "HIGH",
+          "published": "2018-11-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-18561",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2018-11-06",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 5,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T12:30:21.899358+00:00",
       "source": "cisa_icsma"
     },
     "dr\u00e4ger": {
@@ -3354,7 +3470,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439550+00:00",
+      "last_checked": "2026-04-17T12:30:21.899364+00:00",
       "source": "cisa_icsma"
     },
     "stryker": {
@@ -3380,7 +3496,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439554+00:00",
+      "last_checked": "2026-04-17T12:30:21.899371+00:00",
       "source": "cisa_icsma"
     },
     "fujifilm": {
@@ -3429,33 +3545,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439558+00:00",
-      "source": "cisa_icsma"
-    },
-    "change healthcare": {
-      "display_name": "Change Healthcare",
-      "advisory_urls": [
-        {
-          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-241-01",
-          "title": "Change Healthcare McKesson and Horizon Cardiology",
-          "icsma_id": "ICSMA-19-241-01"
-        }
-      ],
-      "cves": [
-        {
-          "cve_id": "CVE-2018-18630",
-          "description": "",
-          "cvss_version": "3.0",
-          "base_score": 7.8,
-          "severity": "HIGH",
-          "published": "2019-08-29",
-          "source": "csaf"
-        }
-      ],
-      "cve_count": 1,
-      "icsma_checked": true,
-      "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439563+00:00",
+      "last_checked": "2026-04-17T12:30:21.899378+00:00",
       "source": "cisa_icsma"
     },
     "spacelabs": {
@@ -3481,7 +3571,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439567+00:00",
+      "last_checked": "2026-04-17T12:30:21.899384+00:00",
       "source": "cisa_icsma"
     },
     "insulet": {
@@ -3507,7 +3597,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439571+00:00",
+      "last_checked": "2026-04-17T12:30:21.899390+00:00",
       "source": "cisa_icsma"
     },
     "baxter": {
@@ -3870,7 +3960,7 @@
       "cve_count": 34,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439584+00:00",
+      "last_checked": "2026-04-17T12:30:21.899409+00:00",
       "source": "cisa_icsma"
     },
     "biotronik": {
@@ -3932,7 +4022,7 @@
       "cve_count": 5,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439589+00:00",
+      "last_checked": "2026-04-17T12:30:21.899416+00:00",
       "source": "cisa_icsma"
     },
     "capsule technologies": {
@@ -3958,7 +4048,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439592+00:00",
+      "last_checked": "2026-04-17T12:30:21.899422+00:00",
       "source": "cisa_icsma"
     },
     "innokas": {
@@ -3993,7 +4083,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439597+00:00",
+      "last_checked": "2026-04-17T12:30:21.899428+00:00",
       "source": "cisa_icsma"
     },
     "sooil": {
@@ -4091,7 +4181,7 @@
       "cve_count": 9,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439603+00:00",
+      "last_checked": "2026-04-17T12:30:21.899437+00:00",
       "source": "cisa_icsma"
     },
     "hamilton medical": {
@@ -4135,7 +4225,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439607+00:00",
+      "last_checked": "2026-04-17T12:30:21.899443+00:00",
       "source": "cisa_icsma"
     },
     "hillrom": {
@@ -4207,7 +4297,7 @@
       "cve_count": 5,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439612+00:00",
+      "last_checked": "2026-04-17T12:30:21.899450+00:00",
       "source": "cisa_icsma"
     },
     "zoll": {
@@ -4292,7 +4382,7 @@
       "cve_count": 7,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439617+00:00",
+      "last_checked": "2026-04-17T12:30:21.899458+00:00",
       "source": "cisa_icsma"
     },
     "ypsomed": {
@@ -4345,7 +4435,7 @@
       "cve_count": 4,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439622+00:00",
+      "last_checked": "2026-04-17T12:30:21.899465+00:00",
       "source": "cisa_icsma"
     },
     "swisslog healthcare": {
@@ -4434,7 +4524,7 @@
       "cve_count": 8,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439627+00:00",
+      "last_checked": "2026-04-17T12:30:21.899473+00:00",
       "source": "cisa_icsma"
     },
     "fresenius kabi": {
@@ -4568,7 +4658,7 @@
       "cve_count": 13,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439635+00:00",
+      "last_checked": "2026-04-17T12:30:21.899482+00:00",
       "source": "cisa_icsma"
     },
     "lifepoint informatics": {
@@ -4594,7 +4684,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439639+00:00",
+      "last_checked": "2026-04-17T12:30:21.899488+00:00",
       "source": "cisa_icsma"
     },
     "contec health": {
@@ -4697,7 +4787,7 @@
       "cve_count": 9,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439644+00:00",
+      "last_checked": "2026-04-17T12:30:21.899496+00:00",
       "source": "cisa_icsma"
     },
     "alivecor": {
@@ -4732,7 +4822,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439649+00:00",
+      "last_checked": "2026-04-17T12:30:21.899502+00:00",
       "source": "cisa_icsma"
     },
     "illumina": {
@@ -4767,7 +4857,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439653+00:00",
+      "last_checked": "2026-04-17T12:30:21.899508+00:00",
       "source": "cisa_icsma"
     },
     "softneta": {
@@ -4802,7 +4892,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439657+00:00",
+      "last_checked": "2026-04-17T12:30:21.899514+00:00",
       "source": "cisa_icsma"
     },
     "santesoft": {
@@ -4957,7 +5047,7 @@
       "cve_count": 12,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439663+00:00",
+      "last_checked": "2026-04-17T12:30:21.899524+00:00",
       "source": "cisa_icsma"
     },
     "microdicom": {
@@ -5066,7 +5156,7 @@
       "cve_count": 8,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439669+00:00",
+      "last_checked": "2026-04-17T12:30:21.899534+00:00",
       "source": "cisa_icsma"
     },
     "bpl medical technologies": {
@@ -5092,7 +5182,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439675+00:00",
+      "last_checked": "2026-04-17T12:30:21.899540+00:00",
       "source": "cisa_icsma"
     },
     "ossur": {
@@ -5136,7 +5226,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439680+00:00",
+      "last_checked": "2026-04-17T12:30:21.899547+00:00",
       "source": "cisa_icsma"
     },
     "qardio": {
@@ -5180,7 +5270,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439684+00:00",
+      "last_checked": "2026-04-17T12:30:21.899554+00:00",
       "source": "cisa_icsma"
     },
     "medixant": {
@@ -5206,7 +5296,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439688+00:00",
+      "last_checked": "2026-04-17T12:30:21.899561+00:00",
       "source": "cisa_icsma"
     },
     "dario health": {
@@ -5286,7 +5376,7 @@
       "cve_count": 7,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439693+00:00",
+      "last_checked": "2026-04-17T12:30:21.899569+00:00",
       "source": "cisa_icsma"
     },
     "infinitt healthcare": {
@@ -5330,7 +5420,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439698+00:00",
+      "last_checked": "2026-04-17T12:30:21.899576+00:00",
       "source": "cisa_icsma"
     },
     "pixmeo": {
@@ -5374,7 +5464,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439702+00:00",
+      "last_checked": "2026-04-17T12:30:21.899582+00:00",
       "source": "cisa_icsma"
     },
     "panoramic corporation": {
@@ -5400,7 +5490,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439706+00:00",
+      "last_checked": "2026-04-17T12:30:21.899588+00:00",
       "source": "cisa_icsma"
     },
     "oxford nanopore technologies": {
@@ -5444,7 +5534,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439710+00:00",
+      "last_checked": "2026-04-17T12:30:21.899595+00:00",
       "source": "cisa_icsma"
     },
     "nihon kohden": {
@@ -5470,7 +5560,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439714+00:00",
+      "last_checked": "2026-04-17T12:30:21.899601+00:00",
       "source": "cisa_icsma"
     },
     "vertikal systems": {
@@ -5505,7 +5595,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439718+00:00",
+      "last_checked": "2026-04-17T12:30:21.899608+00:00",
       "source": "cisa_icsma"
     },
     "mirion medical": {
@@ -5567,7 +5657,7 @@
       "cve_count": 5,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439723+00:00",
+      "last_checked": "2026-04-17T12:30:21.899615+00:00",
       "source": "cisa_icsma"
     },
     "varex imaging": {
@@ -5593,13 +5683,13 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:02:25.439727+00:00",
+      "last_checked": "2026-04-17T12:30:21.899621+00:00",
       "source": "cisa_icsma"
     }
   },
-  "built_at": "2026-04-17T12:02:25.439731+00:00",
+  "built_at": "2026-04-17T12:30:21.899627+00:00",
   "source": "CISA CSAF JSON + ICSMA RSS (NVD for CVSS enrichment only)",
-  "total_manufacturers": 56,
-  "manufacturers_with_cves": 56,
-  "total_cves": 456
+  "total_manufacturers": 57,
+  "manufacturers_with_cves": 57,
+  "total_cves": 463
 }

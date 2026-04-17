@@ -169,6 +169,78 @@ def search():
     if not query:
         return jsonify({"error": "Missing 'q' parameter"}), 400
 
+    # Check pre-built ICSMA index first - instant results for known manufacturers
+    indexed_cves = search_manufacturer_cves(query)
+    if indexed_cves:
+        # Score each CVE from the index using live EPSS + KEV data
+        from api_clients import fetch_epss, check_kev_status
+        from dtvss_engine import compute_dtvss, classify_device, get_threshold
+
+        scored = []
+        for ic in indexed_cves:
+            cve_id = ic.get("cve_id", "")
+            if not cve_id:
+                continue
+
+            B = ic.get("exploitability", 0) or ic.get("base_score", 0)
+            desc = ic.get("description", "")
+
+            # Live EPSS
+            try:
+                epss_data = fetch_epss(cve_id)
+                L = float(epss_data.get("epss", 0))
+            except Exception:
+                L = 0.0
+
+            # Live KEV
+            try:
+                kev = check_kev_status(cve_id)
+            except Exception:
+                kev = False
+
+            # Device class
+            tga_class = tga_override if tga_override in ("IIb", "III") else None
+            if not tga_class:
+                tga_class, _ = classify_device(desc + " " + query)
+            if not tga_class:
+                tga_class = "IIb"
+
+            H = 10.0 if tga_class == "III" else 7.5
+            score = compute_dtvss(B, H, L, kev)
+            tier, guidance = get_threshold(score)
+
+            # Get advisory URLs for this manufacturer
+            adv_urls = get_advisory_urls(query)
+            ics_urls = [a["url"] for a in adv_urls if a.get("url")]
+
+            scored.append({
+                "cve_id": cve_id,
+                "description": desc,
+                "score": score,
+                "risk_level": tier,
+                "guidance": guidance,
+                "B": B, "H": H, "L": L,
+                "tga_class": tga_class,
+                "kev_override": kev,
+                "cvss_version": ic.get("cvss_version", ""),
+                "base_score": ic.get("base_score", 0),
+                "published": ic.get("published", ""),
+                "ics_advisory": bool(ics_urls),
+                "ics_urls": ics_urls[:3],
+                "source": ic.get("source", "icsma"),
+            })
+
+        scored.sort(key=lambda x: -x["score"])
+        return jsonify({
+            "results": scored[:max_results],
+            "count": len(scored),
+            "query": query,
+            "source": "CISA ICSMA index",
+        })
+
+    # Not in index - fall back to live NVD keyword search
+    # (for manual CVE-like queries or unknown device names)
+
     # Always run the baseline query first (most reliable)
     nvd_results_map = {}
     baseline = nvd_search_keyword(query, api_key=NVD_API_KEY, max_results=max_results)
