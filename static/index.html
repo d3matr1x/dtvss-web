@@ -521,12 +521,20 @@ function showSingleResult(r) {
   document.getElementById('detail').classList.add('visible');
 }
 
-function showSearchResults(data) {
-  lastSearchData = data;  // store for back button
-  const list = document.getElementById('resultsList');
-  let html = `<div class="results-header">${data.count} CVEs · "${data.query}" · sorted by DTVSS score${data.cached ? ' · <span style="color:var(--low)">cached</span>' : ''}</div>`;
+function showSearchResults(data, page) {
+  lastSearchData = data;
+  const PAGE_SIZE = 30;
+  const currentPage = page || 1;
+  const totalResults = data.results.length;
+  const totalPages = Math.ceil(totalResults / PAGE_SIZE);
+  const startIdx = (currentPage - 1) * PAGE_SIZE;
+  const endIdx = Math.min(startIdx + PAGE_SIZE, totalResults);
+  const pageResults = data.results.slice(startIdx, endIdx);
 
-  data.results.forEach((r, i) => {
+  const list = document.getElementById('resultsList');
+  let html = `<div class="results-header">${totalResults} CVEs · "${data.query}" · sorted by DTVSS score · showing ${startIdx+1}–${endIdx}${data.cached ? ' · <span style="color:var(--low)">cached</span>' : ''}</div>`;
+
+  pageResults.forEach((r, i) => {
     const color = TIER_COLOR[r.risk_level] || 'var(--tx)';
     const tierBg = TIER_BG[r.risk_level];
     const flags = [
@@ -536,7 +544,7 @@ function showSearchResults(data) {
 
     html += `
       <div class="result-row" onclick="lookupCVE('${r.cve_id}')">
-        <div class="result-rank">${i+1}</div>
+        <div class="result-rank">${startIdx+i+1}</div>
         <div class="result-cve">${r.cve_id}</div>
         <div class="result-desc">${r.description || '—'}</div>
         <div class="result-year">${(r.published||'').slice(0,4)||'—'}</div>
@@ -545,6 +553,22 @@ function showSearchResults(data) {
         <div class="result-tier"><span class="tier-sm" style="background:${tierBg};color:${color}">${r.risk_level}${flags ? ' '+flags : ''}</span></div>
       </div>`;
   });
+
+  // Pagination bar
+  if (totalPages > 1) {
+    html += '<div style="display:flex;gap:6px;justify-content:center;align-items:center;padding:12px 0;font-family:var(--mono);font-size:10px">';
+    if (currentPage > 1) {
+      html += `<button onclick="showSearchResults(lastSearchData,${currentPage-1})" style="padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1);color:var(--acc);cursor:pointer;font-family:var(--mono);font-size:10px">← Prev</button>`;
+    }
+    for (let p = 1; p <= totalPages; p++) {
+      const active = p === currentPage;
+      html += `<button onclick="showSearchResults(lastSearchData,${p})" style="padding:4px 8px;border-radius:4px;border:1px solid ${active?'var(--acc)':'var(--bd)'};background:${active?'rgba(79,142,247,0.15)':'var(--s1)'};color:${active?'var(--acc)':'var(--dim)'};cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:${active?'600':'400'}">${p}</button>`;
+    }
+    if (currentPage < totalPages) {
+      html += `<button onclick="showSearchResults(lastSearchData,${currentPage+1})" style="padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1);color:var(--acc);cursor:pointer;font-family:var(--mono);font-size:10px">Next →</button>`;
+    }
+    html += '</div>';
+  }
 
   list.innerHTML = html;
   list.classList.add('visible');
@@ -560,7 +584,7 @@ function backToResults() {
   document.getElementById('scoreCard').classList.remove('visible');
   document.getElementById('detail').classList.remove('visible');
   document.getElementById('searchInput').value = lastSearchData.query;
-  showSearchResults(lastSearchData);
+  showSearchResults(lastSearchData, 1);
 }
 
 function toggleFormula() {

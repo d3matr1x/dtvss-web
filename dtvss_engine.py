@@ -22,10 +22,10 @@ TGA_CLASSES = {
 }
 
 THRESHOLDS = [
-    (3.0, "Low", "Standard patch cycle. Monitor L(t) for changes."),
-    (6.0, "Medium", "Remediation within 30 days."),
-    (8.0, "High", "Remediation within 7 days. Escalate to clinical risk team."),
-    (10.1, "Critical", "Immediate action. Isolate device. Treat as incident response."),
+    (3.0, "Low", "Monitor. Maintain routine patch cycle."),
+    (6.0, "Medium", "Remediate within 30 days. Prioritise based on asset criticality."),
+    (8.0, "High", "Remediate within 7 days. Escalate to clinical risk team."),
+    (10.1, "Critical", "Immediate action. Isolate device. Initiate incident response."),
 ]
 
 # Device keyword → TGA class mapping for auto-classification
@@ -68,7 +68,7 @@ DEVICE_KEYWORDS = {
     # CGMs — IIb
     "freestyle libre": "IIb", "dexcom": "IIb", "guardian": "IIb",
     # Implantable cardiac — III
-    "pacemaker": "III", "icd": "III", "defibrillator": "III",
+    "pacemaker": "III", "implantable cardioverter": "III", "defibrillator": "III",
     "medtronic pacemaker": "III", "medtronic icd": "III", "medtronic crt": "III",
     "abbott pacemaker": "III", "abbott defibrillator": "III",
     "boston scientific": "III",

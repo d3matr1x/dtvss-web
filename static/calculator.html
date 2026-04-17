@@ -111,7 +111,7 @@ window.addEventListener('error', function(e) {
     const [kev, setKev] = useState(false);
     const [showFormula, setShowFormula] = useState(false);
     const [animScore, setAnimScore] = useState(0);
-    const [cveId, setCveId] = useState("");
+    const [cveId, setCveId] = useState("CVE-2017-12725");
     const [showORS, setShowORS] = useState(false);
     const [showDecay, setShowDecay] = useState(false);
     const [showEnvAdj, setShowEnvAdj] = useState(false);
@@ -220,21 +220,6 @@ window.addEventListener('error', function(e) {
 
       e('div', { style: { padding: "20px 24px", display: "flex", flexDirection: "column", gap: "20px", maxWidth: "720px", margin: "0 auto", width: "100%" } },
 
-        // Examples
-        e('div', { style: { display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "center" } },
-          e('span', { style: { fontFamily: mono, fontSize: "9px", color: "#4a5568", alignSelf: "center" } }, "Examples:"),
-          ...[
-            { l: "Medfusion", B: 9.8, L: 0.0089, c: "IIb", v: "CVE-2017-12725" },
-            { l: "Ripple20",  B: 3.9, L: 0.4263, c: "IIb", v: "CVE-2020-11896" },
-            { l: "Plum 360",  B: 2.2, L: 0.2577, c: "IIb", v: "CVE-2017-12718" },
-            { l: "Hospira",   B: 3.9, L: 0.0012, c: "IIb", v: "CVE-2015-3459"  },
-          ].map((ex, i) => e('button', {
-            key: i,
-            onClick: () => loadExample(ex.B, ex.L, ex.c, ex.v),
-            style: { fontFamily: mono, fontSize: "8px", padding: "4px 8px", borderRadius: "4px", border: "1px solid #1a2030", background: "#0d1017", color: "#4a5568", cursor: "pointer" }
-          }, ex.l))
-        ),
-
         // Score Display
         e('div', {
           style: {
@@ -292,7 +277,7 @@ window.addEventListener('error', function(e) {
                 disabled: lookupLoading || !cveId.match(/^CVE-\d{4}-\d+$/i),
                 style: { background: "#4f8ef7", border: "none", borderRadius: "6px", padding: "8px 16px", color: "#fff", fontFamily: mono, fontSize: "10px", fontWeight: 600, cursor: "pointer", opacity: (lookupLoading || !cveId.match(/^CVE-\d{4}-\d+$/i)) ? .4 : 1, whiteSpace: "nowrap" }
               }, lookupLoading ? "Loading..." : "Lookup"),
-              cveYear && e('span', { style: { fontFamily: mono, fontSize: "9px", color: "#4a5568" } }, `Year: ${cveYear} · Age: ${cveAge}yr`)
+              cveYear && e('span', { style: { fontFamily: mono, fontSize: "9px", color: "#4a5568" } }, `Year: ${cveYear} · Age: ${Math.round(cveAge)}yr`)
             ),
             lookupMsg && e('div', { style: { fontFamily: mono, fontSize: "9px", color: lookupMsg.startsWith("Loaded") ? "#4caf7a" : "#d94f4f", marginTop: "6px" } }, lookupMsg)
           ),
@@ -383,7 +368,7 @@ window.addEventListener('error', function(e) {
               onClick: () => setDecayEnabled(!decayEnabled),
               style: { fontFamily: mono, fontSize: "10px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${decayEnabled ? "#a855f7" : "#1a2030"}`, background: decayEnabled ? "rgba(168,85,247,0.15)" : "transparent", color: decayEnabled ? "#a855f7" : "#4a5568" }
             }, decayEnabled ? "Decay: ON" : "Decay: OFF"),
-            decayEnabled && cveAge > 0 && e('span', { style: { color: "#a855f7", fontSize: "10px", marginLeft: "10px" } }, `Age:${cveAge}yr · L_eff=${L_eff.toFixed(6)}`)
+            decayEnabled && cveAge > 0 && e('span', { style: { color: "#a855f7", fontSize: "10px", marginLeft: "10px" } }, `Age:${Math.round(cveAge)}yr · L_eff=${L_eff.toFixed(6)}`)
           )
         ),
 

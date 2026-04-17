@@ -10,9 +10,9 @@ Flask backend with:
   - /api/lookup?cve=CVE-2017-12725    → single CVE lookup, auto-scored
   - /api/search?q=Medfusion           → device name search, all results scored
   - /api/score                         → manual scoring (POST with B, L, H, kev)
-  - /                                  → serves the React frontend
+  - /                                  → serves the frontend
 
-All data from NVD API v2 + EPSS API. No Anthropic API. No operator config required.
+All data from NVD API v2 + EPSS API + CISA KEV + openFDA. No proprietary data.
 """
 
 import os
@@ -119,7 +119,7 @@ def lookup():
 
     # Score
     result = compute_dtvss(
-        B=nvd["B"],
+        B=nvd.get("B", 0),
         L=epss_data["epss"],
         H=H,
         kev=kev_status,
@@ -160,7 +160,10 @@ def search():
     """
     query = request.args.get("q", "").strip()
     tga_override = request.args.get("tga_class", "").strip()
-    max_results = min(int(request.args.get("max", 20)), 50)
+    try:
+        max_results = min(int(request.args.get("max", 50)), 100)
+    except (ValueError, TypeError):
+        max_results = 50
 
     if not query:
         return jsonify({"error": "Missing 'q' parameter"}), 400
@@ -176,13 +179,21 @@ def search():
             nvd_results_map[cve_id] = r
 
     # Then try manufacturer expansion (additive — adds more results, can't reduce)
+    # Time-budgeted: stop expanding after 15 seconds to avoid Railway timeout
+    import time as _search_time
     expanded_queries = []
+    expansion_start = _search_time.time()
+    EXPANSION_BUDGET = 15.0  # seconds
+
     try:
         expanded_queries = build_manufacturer_search_queries(query)
-        # Skip the baseline query (already done) to avoid duplicate API calls
         for q in expanded_queries:
             if q == query:
                 continue
+            # Check time budget before each query
+            if (_search_time.time() - expansion_start) > EXPANSION_BUDGET:
+                print(f"Manufacturer expansion time budget exceeded for '{query}' after {len(nvd_results_map)} results")
+                break
             batch = nvd_search_keyword(q, api_key=NVD_API_KEY, max_results=max_results)
             for r in batch:
                 if "error" in r:
@@ -193,29 +204,11 @@ def search():
     except Exception as e:
         print(f"Manufacturer expansion failed for '{query}': {e}")
 
-    # Post-filter: if this was a manufacturer search (expanded_queries has >1 entry),
-    # only keep CVEs whose description mentions at least one of the search terms.
-    # This prevents "Smiths Medical" returning "St. Jude Medical" results
-    # (NVD treats multi-word searches as separate keywords and matches broadly).
+    # Post-filter: if this was a manufacturer search, only keep CVEs whose
+    # description mentions at least one of the complete search terms.
+    # Uses full terms only (no word splitting) to avoid false exclusions.
     if len(expanded_queries) > 1:
-        # Build filter terms: each query term that's 3+ chars, lowercased
-        # For compound queries like "Medtronic pacemaker", split into individual terms
-        # but only keep manufacturer-specific terms (skip generic device words)
-        generic_words = {"infusion", "pump", "pacemaker", "defibrillator", "icd",
-                         "ventilator", "monitor", "patient", "cardiac", "glucose",
-                         "cgm", "ecg", "telemetry", "cpap", "aed", "crt", "syringe",
-                         "enteral", "feeding", "medical", "healthcare", "device"}
-        valid_terms = set()
-        for q in expanded_queries:
-            ql = q.lower().strip()
-            # Add full query as a match term
-            if len(ql) >= 3:
-                valid_terms.add(ql)
-            # Also add individual words that aren't generic
-            for word in ql.split():
-                if len(word) >= 3 and word not in generic_words:
-                    valid_terms.add(word)
-
+        valid_terms = [q.lower().strip() for q in expanded_queries if len(q.strip()) >= 3]
         filtered_map = {}
         for cve_id, r in nvd_results_map.items():
             desc = r.get("description", "").lower()
@@ -319,22 +312,23 @@ def manufacturers():
     return jsonify({"manufacturers": mdm_list, "count": len(mdm_list), "source": "openFDA Registration & Listing API"})
 
 
+# Pre-load caches at import time (runs under both gunicorn and __main__)
+try:
+    from api_clients import refresh_device_keywords
+    _keywords = refresh_device_keywords()
+    print(f"  Device keywords loaded: {len(_keywords)} from openFDA")
+except Exception as _e:
+    print(f"  Device keyword refresh skipped: {_e}")
+
+try:
+    _mdm = get_manufacturer_list()
+    print(f"  Manufacturers loaded: {len(_mdm)} from FDA registry")
+except Exception as _e:
+    print(f"  Manufacturer registry refresh skipped: {_e}")
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-
-    # Pre-load caches on startup
-    try:
-        from api_clients import refresh_device_keywords
-        keywords = refresh_device_keywords()
-        print(f"  Device keywords loaded: {len(keywords)} from openFDA")
-    except Exception as e:
-        print(f"  Device keyword refresh skipped: {e}")
-
-    try:
-        mdm = get_manufacturer_list()
-        print(f"  Manufacturers loaded: {len(mdm)} from FDA registry")
-    except Exception as e:
-        print(f"  Manufacturer registry refresh skipped: {e}")
 
     print(f"\n{'=' * 60}")
     print(f"  DTVSS Web v1.0.0")
