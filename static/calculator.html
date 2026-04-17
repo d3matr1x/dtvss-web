@@ -412,7 +412,8 @@ window.addEventListener('error', function(e) {
         // Footer
         e('div', { style: { textAlign: "center", padding: "12px 0", fontFamily: mono, fontSize: "9px", color: "#4a5568", borderTop: "1px solid #1a2030", lineHeight: 1.8 } },
           e('div', null, "DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10 · k=15 calibrated against 96 medical device CVEs"),
-          e('div', { style: { marginTop: "4px" } }, "© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia · BSL 1.1"),
+          e('div', { style: { marginTop: "4px" } }, "© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia"),
+          e('div', { style: { marginTop: "2px", fontSize: "10px", color: "#c8cdd8" } }, "Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use"),
           e('div', { style: { marginTop: "8px" } },
             e('a', { href: "/", style: { color: "#4f8ef7", textDecoration: "none" } }, "Search"),
             " · ",
@@ -428,7 +429,7 @@ window.addEventListener('error', function(e) {
         ),
 
         // Disclaimer
-        e('div', { style: { padding: "12px 16px", border: "1px solid rgba(217,79,79,0.2)", borderRadius: "8px", background: "rgba(217,79,79,0.04)", fontFamily: mono, fontSize: "8px", color: "#4a5568", lineHeight: 1.8, textAlign: "center" } },
+        e('div', { style: { padding: "12px 16px", border: "1px solid rgba(217,79,79,0.3)", borderRadius: "8px", background: "rgba(217,79,79,0.06)", fontFamily: mono, fontSize: "10px", color: "#c8cdd8", lineHeight: 1.8, textAlign: "center" } },
           e('span', { style: { color: "#d94f4f", fontWeight: 600 } }, "RESEARCH PREVIEW"),
           " - This is a non-commercial research demonstration of the DTVSS scoring methodology. It is not a certified medical device risk management tool. Scores are derived from public data sources (NVD, EPSS, CISA KEV) which may be incomplete, delayed, or inaccurate. Do not use this system as the sole basis for clinical, procurement, or remediation decisions. The author accepts no liability for decisions made using this tool."
         )
