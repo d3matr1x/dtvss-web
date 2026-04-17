@@ -45,6 +45,18 @@ EXCLUDED_DEVICES = [
     "fitness", "wearable", "smart watch",
 ]
 
+# Vendors to exclude - software libraries and platforms, not medical devices.
+# These have ICSMA advisories because their code runs in healthcare settings,
+# but they are not medical device manufacturers.
+EXCLUDED_VENDORS = {
+    "enea (rtos)",
+    "enea, green hills software, itron, ip infusion, and wind river",
+    "openclinic ga",
+    "grassroots",
+    "offis",
+    "orthanc",
+}
+
 # Vendor name normalisation - map CSAF variants to canonical names.
 VENDOR_ALIASES = {
     "phillips": "Philips",
@@ -70,6 +82,11 @@ VENDOR_ALIASES = {
     "hamilton medical ag": "Hamilton Medical",
     "bmc medical, 3b medical": "BMC Medical",
     "enea, green hills software, itron, ip infusion, and wind river": "ENEA (RTOS)",
+    "innokas yhtym\u00e4 oy": "Innokas",
+    "innokas yhtymã¤ oy": "Innokas",
+    "siemens": "Siemens Healthineers",
+    "johnson & johnson": "Johnson & Johnson",
+    "ossur": "Ossur",
 }
 
 
@@ -196,6 +213,9 @@ def source1_csaf():
 
         vendor_name = normalise_vendor(vendor_name)
 
+        if vendor_name.lower().strip() in EXCLUDED_VENDORS:
+            continue
+
         # Extract CVEs and CVSS from vulnerabilities
         cves = []
         for vuln in csaf.get("vulnerabilities", []):
@@ -312,6 +332,9 @@ def source2_rss(existing_vendors):
             continue
 
         vendor_name = normalise_vendor(vendor_name)
+
+        if vendor_name.lower().strip() in EXCLUDED_VENDORS:
+            continue
 
         time.sleep(0.3)
         page = api_get(link, timeout=15)
