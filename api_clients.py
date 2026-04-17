@@ -862,92 +862,135 @@ PRODUCT_CODE_TO_DEVICE_TERMS = {
 
 def build_manufacturer_search_queries(manufacturer_name: str) -> list[str]:
     """
-    Build NVD search queries entirely from the FDA-cached manufacturer data.
-
-    Uses:
-    1. The original FDA firm names (as registered) — these match how CVE descriptions
-       reference manufacturers (e.g. "Smiths Medical Inc" not "Smiths Medical")
-    2. The product codes → device term mapping to create scoped searches
-       (e.g. "Medtronic pacemaker", "Medtronic insulin pump")
-
-    Also includes known product line names that appear in CVE descriptions
-    but not in FDA registration data.
-
-    Returns list of NVD queries, capped at 8.
+    Build NVD search queries from CPE product data cached daily.
+    Flow: FDA registry → manufacturer list → NVD CPE API → product names.
+    This is the single source of truth for what to search per manufacturer.
     """
-    lookup = _manufacturer_cache.get("lookup", {})
-    entry = lookup.get(manufacturer_name.lower())
+    key = manufacturer_name.lower().strip()
+    products = refresh_cpe_product_map(manufacturer_name)
+    product_list = products.get(key, [])
 
-    if not entry:
-        # Not in FDA cache — just search the name
-        return [manufacturer_name]
+    queries = []
 
-    # Known product line names that appear in CVE descriptions
-    # These supplement the FDA data which only has regulatory names
-    PRODUCT_LINES = {
-        "medtronic": ["MiniMed", "MyCareLink", "CareLink"],
-        "abbott": ["FreeStyle Libre", "St. Jude Medical"],
-        "bd (becton dickinson)": ["Alaris", "Pyxis"],
-        "smiths medical": ["Medfusion", "CADD"],
-        "icu medical": ["Plum", "LifeCare"],
-        "philips": ["IntelliVue", "Respironics"],
-        "baxter": ["Sigma Spectrum"],
-        "dräger": ["Evita"],
-        "insulet": ["OmniPod"],
-        "dexcom": ["Dexcom G6", "Dexcom G7"],
-        "boston scientific": [],
-        "biotronik": [],
-        "fresenius kabi": ["Agilia", "Ivenix"],
-        "mindray": ["BeneVision"],
-        "ge healthcare": ["CARESCAPE"],
-        "resmed": ["AirSense"],
-        "tandem diabetes": ["t:slim"],
-        "b. braun": ["Infusomat", "Perfusor"],
-        "hamilton medical": [],
-        "nihon kohden": [],
-        "zoll": [],
-        "hospira": ["LifeCare", "Symbiq"],
-        "getinge": ["Servo"],
-    }
+    # 1. Manufacturer NVD name (from CPE vendor field or canonical name)
+    queries.append(manufacturer_name)
 
-    queries = set()
+    # 2. Each CPE product name as a search term
+    for product in product_list:
+        if product not in queries:
+            queries.append(product)
 
-    # 1. Use FDA firm names (the actual registered names)
-    for firm in entry.get("firm_names", []):
-        # Clean the firm name to remove Inc/LLC etc for better NVD matching
-        import re as _re
-        clean = _re.sub(
-            r',?\s*(Inc\.?|LLC|Ltd\.?|GmbH|AG|Corp\.?|Corporation|Co\.?)$',
-            '', firm, flags=_re.IGNORECASE
-        ).strip()
-        if clean and len(clean) >= 3:
-            queries.add(clean)
+    # Cap at 10 to stay within NVD rate limits
+    return queries[:10]
 
-    # 2. Add the canonical name as fallback
-    queries.add(manufacturer_name)
 
-    # 3. Add product line names scoped to manufacturer
-    key = manufacturer_name.lower()
-    for product in PRODUCT_LINES.get(key, []):
-        queries.add(product)
+# ═══════════════════════════════════════════════════════════════════════
+# NVD CPE Product Map — Built from NVD CPE Dictionary API, cached daily
+# ═══════════════════════════════════════════════════════════════════════
 
-    # 4. Add manufacturer + device category from product codes
-    for pc in entry.get("product_codes", []):
-        for term in PRODUCT_CODE_TO_DEVICE_TERMS.get(pc, []):
-            # Use the shortest firm name for combinations
-            shortest_firm = min(
-                [manufacturer_name] + list(entry.get("firm_names", [])),
-                key=len
-            )
-            import re as _re2
-            shortest_clean = _re2.sub(
-                r',?\s*(Inc\.?|LLC|Ltd\.?|GmbH|AG|Corp\.?)$',
-                '', shortest_firm, flags=_re2.IGNORECASE
-            ).strip()
-            queries.add(f"{shortest_clean} {term}")
+NVD_CPE_URL = "https://services.nvd.nist.gov/rest/json/cpes/2.0"
 
-    # Cap at 8 to stay within NVD rate limits
-    return list(queries)[:8]
+_cpe_product_cache = {"by_manufacturer": {}, "per_mdm_fetched": {}}
+CPE_CACHE_TTL = 86400  # 24 hours
+
+# Map canonical dropdown names → NVD CPE vendor strings
+# CPE uses lowercase, no spaces: cpe:2.3:h:medtronic:minimed_670g
+CPE_VENDOR_MAP = {
+    "medtronic": ["medtronic"],
+    "abbott": ["abbott", "st._jude_medical", "abbott_laboratories"],
+    "biotronik": ["biotronik"],
+    "boston scientific": ["boston_scientific"],
+    "philips": ["philips"],
+    "baxter": ["baxter"],
+    "dräger": ["draeger", "draegerwerk"],
+    "icu medical": ["icu_medical", "hospira"],
+    "zoll": ["zoll"],
+    "bd (becton dickinson)": ["bd", "becton_dickinson"],
+    "dexcom": ["dexcom"],
+    "fresenius kabi": ["fresenius_kabi", "fresenius"],
+    "mindray": ["mindray"],
+    "nihon kohden": ["nihon_kohden", "nihonkohden"],
+    "resmed": ["resmed"],
+    "tandem diabetes": ["tandem_diabetes_care", "tandem"],
+    "smiths medical": ["smiths_medical"],
+    "hamilton medical": ["hamilton_medical"],
+    "ge healthcare": ["ge_healthcare"],
+    "b. braun": ["b._braun", "b.braun", "bbraun"],
+    "hospira": ["hospira"],
+    "insulet": ["insulet"],
+    "getinge": ["getinge"],
+    "st. jude medical": ["st._jude_medical"],
+    "carestream": ["carestream"],
+}
+
+
+def refresh_cpe_product_map(manufacturer_name: str) -> dict:
+    """
+    For a given manufacturer, query NVD CPE API to find all registered
+    vendor:product combinations. Extracts product names as NVD search terms.
+    Lazy-cached per manufacturer for 24 hours.
+    Returns {manufacturer_key: [product_names]}.
+    """
+    import time as _time
+    now = _time.time()
+
+    key = manufacturer_name.lower().strip()
+    cached = _cpe_product_cache["by_manufacturer"].get(key)
+    cached_at = _cpe_product_cache["per_mdm_fetched"].get(key, 0)
+
+    if cached is not None and (now - cached_at) < CPE_CACHE_TTL:
+        return {key: cached}
+
+    # Get CPE vendor strings for this manufacturer
+    vendors = CPE_VENDOR_MAP.get(key, [key.replace(" ", "_")])
+
+    products = set()
+
+    for vendor in vendors:
+        try:
+            params = urllib.parse.urlencode({
+                "cpeMatchString": f"cpe:2.3:*:{vendor}",
+                "resultsPerPage": 100,
+            })
+            url = f"{NVD_CPE_URL}?{params}"
+
+            headers = {"Accept": "application/json", "User-Agent": "DTVSS/6.0"}
+            api_key = os.environ.get("NVD_API_KEY", "")
+            if api_key:
+                headers["apiKey"] = api_key
+
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+
+            for entry in data.get("products", []):
+                cpe_name = entry.get("cpe", {}).get("cpeName", "")
+                # Parse product from CPE: cpe:2.3:TYPE:VENDOR:PRODUCT:VERSION...
+                parts = cpe_name.split(":")
+                if len(parts) >= 5:
+                    product_raw = parts[4]
+                    # Convert CPE format to readable: minimed_670g → MiniMed 670G
+                    product_clean = product_raw.replace("_", " ").strip()
+                    if product_clean and len(product_clean) >= 3 and product_clean != "*":
+                        # Also store the vendor+product combo for scoped search
+                        vendor_clean = parts[3].replace("_", " ").strip()
+                        products.add(product_clean)
+                        if vendor_clean.lower() != product_clean.lower():
+                            products.add(f"{vendor_clean} {product_clean}")
+
+        except Exception:
+            continue
+
+        # NVD rate limit: 5 req/30s without key, 50 with key
+        _time.sleep(0.5)
+
+    # Deduplicate and sort by length (longer = more specific = better search)
+    product_list = sorted(list(products), key=len, reverse=True)
+
+    _cpe_product_cache["by_manufacturer"][key] = product_list
+    _cpe_product_cache["per_mdm_fetched"][key] = now
+
+    return {key: product_list}
 
 
 # ═══════════════════════════════════════════════════════════════════════
