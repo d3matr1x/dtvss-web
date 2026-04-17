@@ -172,9 +172,19 @@ def search():
     # Check pre-built ICSMA index first - instant results for known manufacturers
     indexed_cves = search_manufacturer_cves(query)
     if indexed_cves:
-        # Score each CVE from the index using live EPSS + KEV data
         from api_clients import epss_lookup, cisa_kev_check
-        from dtvss_engine import compute_dtvss, classify_device, get_threshold
+        from dtvss_engine import compute_dtvss, classify_device
+
+        # Get advisory URLs once (same for all CVEs from this manufacturer)
+        adv_urls = get_advisory_urls(query)
+        ics_urls = [a["url"] for a in adv_urls if a.get("url")]
+
+        # Batch EPSS lookup for all CVE IDs
+        all_cve_ids = [ic.get("cve_id", "") for ic in indexed_cves if ic.get("cve_id")]
+        try:
+            epss_map = epss_lookup(all_cve_ids)
+        except Exception:
+            epss_map = {}
 
         scored = []
         for ic in indexed_cves:
@@ -182,20 +192,19 @@ def search():
             if not cve_id:
                 continue
 
+            # B = exploitability sub-score if available, otherwise base_score
+            # Note: base_score is the full CVSS score, not exploitability.
+            # The live lookup route computes B from the CVSS vector.
+            # For indexed CVEs, we use base_score as an approximation.
             B = ic.get("exploitability", 0) or ic.get("base_score", 0)
             desc = ic.get("description", "")
 
-            # Live EPSS
-            try:
-                epss_data = epss_lookup([cve_id])
-                L = float(epss_data.get(cve_id, {}).get("epss", 0))
-            except Exception:
-                L = 0.0
+            # EPSS from batch lookup
+            L = float(epss_map.get(cve_id, {}).get("epss", 0))
 
-            # Live KEV
+            # KEV check
             try:
-                kev_result = cisa_kev_check(cve_id)
-                kev = bool(kev_result)
+                kev = bool(cisa_kev_check(cve_id))
             except Exception:
                 kev = False
 
@@ -207,22 +216,17 @@ def search():
                 tga_class = "IIb"
 
             H = 10.0 if tga_class == "III" else 7.5
-            score = compute_dtvss(B, H, L, kev)
-            tier, guidance = get_threshold(score)
-
-            # Get advisory URLs for this manufacturer
-            adv_urls = get_advisory_urls(query)
-            ics_urls = [a["url"] for a in adv_urls if a.get("url")]
+            result = compute_dtvss(B, L, H, kev)
 
             scored.append({
                 "cve_id": cve_id,
                 "description": desc,
-                "score": score,
-                "risk_level": tier,
-                "guidance": guidance,
-                "B": B, "H": H, "L": L,
+                "score": result["score"],
+                "risk_level": result["risk_level"],
+                "guidance": result["guidance"],
+                "B": result["B"], "H": result["H"], "L": result["L"],
                 "tga_class": tga_class,
-                "kev_override": kev,
+                "kev_override": result["kev_override"],
                 "cvss_version": ic.get("cvss_version", ""),
                 "base_score": ic.get("base_score", 0),
                 "published": ic.get("published", ""),
