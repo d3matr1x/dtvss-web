@@ -105,13 +105,13 @@ window.addEventListener('error', function(e) {
   }
 
   function App() {
-    const [B, setB] = useState(3.9);
-    const [L, setL] = useState(0.0089);
+    const [B, setB] = useState(0);
+    const [L, setL] = useState(0);
     const [tgaClass, setTgaClass] = useState("IIb");
     const [kev, setKev] = useState(false);
     const [showFormula, setShowFormula] = useState(false);
     const [animScore, setAnimScore] = useState(0);
-    const [cveId, setCveId] = useState("CVE-2017-12725");
+    const [cveId, setCveId] = useState("");
     const [showORS, setShowORS] = useState(false);
     const [showDecay, setShowDecay] = useState(false);
     const [showEnvAdj, setShowEnvAdj] = useState(false);

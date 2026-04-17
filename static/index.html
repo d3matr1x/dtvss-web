@@ -210,24 +210,6 @@ a{color:var(--acc);text-decoration:none}
     <div style="margin-top:10px;font-family:var(--mono);font-size:8px;color:var(--dim);opacity:.7">
       Calibrated against 96 real medical device CVEs · All public data sources · <a href="/about" style="color:var(--acc);text-decoration:none">Learn more →</a>
     </div>
-
-    <!-- Example Score -->
-    <div style="margin-top:16px;padding:14px;background:linear-gradient(135deg,rgba(217,124,42,0.08),var(--s2));border:1px solid rgba(217,124,42,0.25);border-radius:8px">
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <div style="font-family:var(--display);font-size:32px;font-weight:900;color:var(--high);line-height:1">7.35</div>
-        <div style="flex:1;min-width:150px">
-          <div style="font-family:var(--mono);font-size:10px;color:var(--hd);font-weight:600">CVE-2017-12725 · Smiths Medical Medfusion 4000</div>
-          <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">Hard-coded credentials in wireless syringe infusion pump</div>
-        </div>
-        <div style="font-family:var(--mono);font-size:9px;font-weight:600;padding:3px 8px;border-radius:3px;background:rgba(217,124,42,0.15);color:var(--high);border:1px solid rgba(217,124,42,0.3)">HIGH</div>
-      </div>
-      <div style="display:flex;gap:16px;margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--dim)">
-        <span><span style="color:var(--acc)">B</span> 3.9</span>
-        <span><span style="color:var(--purple)">L(t)</span> 0.0089</span>
-        <span><span style="color:var(--high)">H</span> 7.5 · IIb</span>
-        <span style="margin-left:auto;color:var(--dim);font-size:8px">Try it → type the CVE ID above</span>
-      </div>
-    </div>
   </div>
 
   <!-- Search -->
@@ -254,6 +236,24 @@ a{color:var(--acc);text-decoration:none}
       ">
         <option value="">— Loading from FDA... —</option>
       </select>
+    </div>
+  </div>
+
+  <!-- Example Score (hidden when results are showing) -->
+  <div id="exampleCard" style="padding:14px;background:linear-gradient(135deg,rgba(217,124,42,0.08),var(--s2));border:1px solid rgba(217,124,42,0.25);border-radius:8px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="font-family:var(--display);font-size:32px;font-weight:900;color:var(--high);line-height:1">7.35</div>
+      <div style="flex:1;min-width:150px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--hd);font-weight:600">CVE-2017-12725 · Smiths Medical Medfusion 4000</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">Hard-coded credentials in wireless syringe infusion pump</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:9px;font-weight:600;padding:3px 8px;border-radius:3px;background:rgba(217,124,42,0.15);color:var(--high);border:1px solid rgba(217,124,42,0.3)">HIGH</div>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--dim)">
+      <span><span style="color:var(--acc)">B</span> 3.9</span>
+      <span><span style="color:var(--purple)">L(t)</span> 0.0089</span>
+      <span><span style="color:var(--high)">H</span> 7.5 · IIb</span>
+      <span style="margin-left:auto;color:var(--dim);font-size:8px">Example · Try it above ↑</span>
     </div>
   </div>
 
@@ -444,9 +444,11 @@ async function doSearch() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return;
 
-  // Hide landing and previous results
+  // Hide landing, example, and previous results
   const landing = document.getElementById('landing');
   if (landing) landing.style.display = 'none';
+  const example = document.getElementById('exampleCard');
+  if (example) example.style.display = 'none';
   document.getElementById('scoreCard').classList.remove('visible');
   document.getElementById('detail').classList.remove('visible');
   document.getElementById('resultsList').classList.remove('visible');
@@ -628,22 +630,45 @@ function showSearchResults(data, page) {
   pageResults.forEach((r, i) => {
     const color = TIER_COLOR[r.risk_level] || 'var(--tx)';
     const tierBg = TIER_BG[r.risk_level];
+    const globalIdx = startIdx + i;
     const flags = [
       r.kev_override ? '<span class="flag flag-kev">KEV</span>' : '',
       r.ics_advisory ? '<span class="flag flag-ics">ICS</span>' : '',
     ].filter(Boolean).join('');
 
-    html += `
-      <div class="result-row" onclick="lookupCVE('${r.cve_id}')">
-        <div class="result-strip" style="background:${color}"></div>
-        <div class="result-rank">${startIdx+i+1}</div>
-        <div class="result-cve">${r.cve_id}</div>
-        <div class="result-desc">${r.description || '—'}</div>
-        <div class="result-year">${(r.published||'').slice(0,4)||'—'}</div>
-        <div class="result-b" style="color:var(--acc)">${r.B.toFixed(2)}</div>
-        <div class="result-score" style="color:${color}">${r.score.toFixed(2)}</div>
-        <div class="result-tier"><span class="tier-sm" style="background:${tierBg};color:${color}">${r.risk_level}${flags ? ' '+flags : ''}</span></div>
-      </div>`;
+    if (globalIdx < 10) {
+      // Expanded preview card for top 10
+      html += `
+        <div onclick="lookupCVE('${r.cve_id}')" style="padding:12px 14px;background:linear-gradient(135deg,${tierBg},var(--s2));border:1px solid ${TIER_BD[r.risk_level]};border-radius:8px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='${TIER_BD[r.risk_level]}'">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="font-family:var(--display);font-size:28px;font-weight:900;color:${color};line-height:1">${r.score.toFixed(2)}</div>
+            <div style="flex:1;min-width:140px">
+              <div style="font-family:var(--mono);font-size:10px;color:var(--hd);font-weight:600">${r.cve_id}</div>
+              <div style="font-family:var(--body);font-size:10px;color:var(--dim);margin-top:2px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${r.description || '—'}</div>
+            </div>
+            <div style="font-family:var(--mono);font-size:9px;font-weight:600;padding:3px 8px;border-radius:3px;background:${tierBg};color:${color};border:1px solid ${TIER_BD[r.risk_level]}">${r.risk_level}${flags ? ' '+flags : ''}</div>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:8px;font-family:var(--mono);font-size:9px;color:var(--dim)">
+            <span><span style="color:var(--acc)">B</span> ${r.B.toFixed(2)}</span>
+            <span><span style="color:var(--purple)">L</span> ${r.L.toFixed(4)}</span>
+            <span><span style="color:var(--high)">H</span> ${r.H.toFixed(1)} · ${r.tga_class}</span>
+            <span style="margin-left:auto">${(r.published||'').slice(0,4)||''}</span>
+          </div>
+        </div>`;
+    } else {
+      // Compact row for remaining results
+      html += `
+        <div class="result-row" onclick="lookupCVE('${r.cve_id}')">
+          <div class="result-strip" style="background:${color}"></div>
+          <div class="result-rank">${globalIdx+1}</div>
+          <div class="result-cve">${r.cve_id}</div>
+          <div class="result-desc">${r.description || '—'}</div>
+          <div class="result-year">${(r.published||'').slice(0,4)||'—'}</div>
+          <div class="result-b" style="color:var(--acc)">${r.B.toFixed(2)}</div>
+          <div class="result-score" style="color:${color}">${r.score.toFixed(2)}</div>
+          <div class="result-tier"><span class="tier-sm" style="background:${tierBg};color:${color}">${r.risk_level}${flags ? ' '+flags : ''}</span></div>
+        </div>`;
+    }
   });
 
   // Pagination bar

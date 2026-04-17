@@ -205,7 +205,6 @@ def search():
 
     # Post-filter: if this was a manufacturer search, only keep CVEs whose
     # description mentions at least one of the complete search terms.
-    # Uses full terms only (no word splitting) to avoid false exclusions.
     if len(expanded_queries) > 1:
         valid_terms = [q.lower().strip() for q in expanded_queries if len(q.strip()) >= 3]
         filtered_map = {}
@@ -214,6 +213,41 @@ def search():
             if any(term in desc for term in valid_terms):
                 filtered_map[cve_id] = r
         nvd_results_map = filtered_map
+
+    # Medical device relevance filter: for manufacturer searches, only keep
+    # CVEs that are plausibly about medical devices. This prevents companies
+    # that make both medical and consumer electronics (e.g. Shenzhen Zhibotong)
+    # from showing router/switch CVEs.
+    #
+    # Strategy: keep CVE if description contains ANY medical/clinical term,
+    # OR if it contains the manufacturer's CPE product names.
+    # This is an allowlist, not a blocklist — safer for edge cases.
+    if len(expanded_queries) > 1:
+        MEDICAL_TERMS = {
+            "infusion pump", "insulin pump", "syringe pump", "pacemaker",
+            "defibrillator", "ventilator", "patient monitor", "glucose monitor",
+            "cgm", "continuous glucose", "implantable", "cardiac", "medical device",
+            "clinical", "hospital", "healthcare", "patient", "therapeutic",
+            "drug delivery", "physiological", "telemetry", "ecg", "ekg",
+            "vital sign", "blood pressure", "oxygen", "pulse oximeter",
+            "anesthesia", "dialysis", "x-ray", "imaging", "ultrasound",
+            "endoscop", "surgical", "respirator", "cpap", "bipap",
+            "hl7", "dicom", "fhir", "hipaa", "phi ",
+            "medfusion", "carelink", "intellivue", "alaris", "omnipod",
+            "t:slim", "freestyle libre", "carescape", "pyxis",
+            "ics-cert", "icsma", "medical advisory",
+        }
+        # Also include the search terms themselves as valid
+        valid_terms = {q.lower().strip() for q in expanded_queries if len(q.strip()) >= 3}
+
+        medical_filtered = {}
+        for cve_id, r in nvd_results_map.items():
+            desc = r.get("description", "").lower()
+            has_medical = any(term in desc for term in MEDICAL_TERMS)
+            has_search_term = any(term in desc for term in valid_terms)
+            if has_medical or has_search_term:
+                medical_filtered[cve_id] = r
+        nvd_results_map = medical_filtered
 
     nvd_results = list(nvd_results_map.values())
 
