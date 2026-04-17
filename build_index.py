@@ -226,23 +226,33 @@ def source1_csaf():
             base_score = 0
             severity = ""
             cvss_ver = ""
+            cvss_vector = ""
             for score in vuln.get("scores", []):
                 if score.get("cvss_v3"):
                     base_score = score["cvss_v3"].get("baseScore", 0)
                     severity = score["cvss_v3"].get("baseSeverity", "")
                     cvss_ver = score["cvss_v3"].get("version", "3.1")
+                    cvss_vector = score["cvss_v3"].get("vectorString", "")
                     break
 
             desc = ""
+            # Try per-vulnerability notes first
             for note in vuln.get("notes", []):
                 if note.get("category") == "description":
                     desc = note.get("text", "")[:300]
                     break
+            # Try vulnerability title
+            if not desc:
+                desc = vuln.get("title", "")[:300]
+            # Fall back to advisory title as context
+            if not desc and title:
+                desc = title[:300]
 
             cves.append({
                 "cve_id": cve_id,
                 "description": desc,
                 "cvss_version": cvss_ver,
+                "cvss_vector": cvss_vector,
                 "base_score": base_score,
                 "severity": severity,
                 "published": csaf.get("document", {}).get("tracking", {}).get("initial_release_date", "")[:10],
@@ -360,6 +370,7 @@ def source2_rss(existing_vendors):
                     "cve_id": cve_id,
                     "description": "",
                     "cvss_version": "",
+                    "cvss_vector": "",
                     "base_score": 0,
                     "severity": "",
                     "published": "",
@@ -399,18 +410,33 @@ def _extract_vendor_from_title(title):
 # ================================================================
 
 def enrich_missing_cvss(existing_vendors):
-    """For CVEs without CVSS scores (from RSS or CSAF without scores), query NVD."""
-    print("\n  Enrichment: Fetching NVD CVSS for unscored CVEs...")
+    """For CVEs without descriptions or CVSS scores, query NVD."""
+    # Count how many need enrichment
+    total_missing = 0
+    for key, vdata in existing_vendors.items():
+        for cve_id, cve in vdata.get("cves", {}).items():
+            needs_desc = not cve.get("description", "").strip()
+            needs_score = cve.get("base_score", 0) == 0
+            if needs_desc or needs_score:
+                total_missing += 1
+
+    if total_missing == 0:
+        print("\n  Enrichment: All CVEs have descriptions and scores")
+        return
+
+    print(f"\n  Enrichment: {total_missing} CVEs need NVD data (descriptions or scores)...")
 
     enriched = 0
-    total_missing = 0
+    processed = 0
 
     for key, vdata in existing_vendors.items():
         for cve_id, cve in vdata.get("cves", {}).items():
-            if cve.get("base_score", 0) > 0:
+            needs_desc = not cve.get("description", "").strip()
+            needs_score = cve.get("base_score", 0) == 0
+            if not needs_desc and not needs_score:
                 continue
 
-            total_missing += 1
+            processed += 1
             time.sleep(NVD_DELAY)
             params = urllib.parse.urlencode({"cveId": cve_id})
             data = nvd_get(f"{NVD_CVE_URL}?{params}")
@@ -429,6 +455,7 @@ def enrich_missing_cvss(existing_vendors):
                         cve["base_score"] = entry.get("cvssData", {}).get("baseScore", 0)
                         cve["severity"] = entry.get("cvssData", {}).get("baseSeverity", "")
                         cve["cvss_version"] = vl
+                        cve["cvss_vector"] = entry.get("cvssData", {}).get("vectorString", "")
                         cve["exploitability"] = entry.get("exploitabilityScore", 0)
                         break
                 cve["description"] = desc[:300] if desc else cve.get("description", "")
@@ -437,10 +464,10 @@ def enrich_missing_cvss(existing_vendors):
                 if cve.get("base_score", 0) > 0:
                     enriched += 1
 
-            if enriched > 0 and enriched % 20 == 0:
-                print(f"    Enriched {enriched}/{total_missing}...", flush=True)
+            if processed > 0 and processed % 20 == 0:
+                print(f"    Enriched {enriched}/{processed} of {total_missing}...", flush=True)
 
-    print(f"    Enriched {enriched} of {total_missing} unscored CVEs")
+    print(f"    Enriched {enriched} of {total_missing} CVEs needing NVD data")
 
 
 # ================================================================

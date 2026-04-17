@@ -12,8 +12,9 @@
       "cves": [
         {
           "cve_id": "CVE-2016-5084",
-          "description": "",
+          "description": "Animas OneTouch Ping Insulin Pump Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2016-07-09",
@@ -21,8 +22,9 @@
         },
         {
           "cve_id": "CVE-2016-5086",
-          "description": "",
+          "description": "Animas OneTouch Ping Insulin Pump Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:L/I:H/A:L",
           "base_score": 6.4,
           "severity": "MEDIUM",
           "published": "2016-07-09",
@@ -30,8 +32,9 @@
         },
         {
           "cve_id": "CVE-2016-5085",
-          "description": "",
+          "description": "Animas OneTouch Ping Insulin Pump Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N",
           "base_score": 4.2,
           "severity": "MEDIUM",
           "published": "2016-07-09",
@@ -41,7 +44,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899042+00:00",
+      "last_checked": "2026-04-17T14:06:18.411949+00:00",
       "source": "cisa_icsma"
     },
     "smiths medical": {
@@ -61,8 +64,9 @@
       "cves": [
         {
           "cve_id": "CVE-2016-8355",
-          "description": "",
+          "description": "Smiths Medical CADD-Solis Medication Safety Software Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.9,
           "severity": "CRITICAL",
           "published": "2016-08-05",
@@ -70,8 +74,9 @@
         },
         {
           "cve_id": "CVE-2016-8358",
-          "description": "",
+          "description": "Smiths Medical CADD-Solis Medication Safety Software Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 8.5,
           "severity": "HIGH",
           "published": "2016-08-05",
@@ -79,8 +84,9 @@
         },
         {
           "cve_id": "CVE-2017-12718",
-          "description": "",
+          "description": "Smiths Medical Medfusion 4000 Wireless Syringe Infusion Pump Vulnerabilities (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2017-09-07",
@@ -88,8 +94,9 @@
         },
         {
           "cve_id": "CVE-2017-12722",
-          "description": "",
+          "description": "Smiths Medical Medfusion 4000 Wireless Syringe Infusion Pump Vulnerabilities (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2017-09-07",
@@ -97,8 +104,9 @@
         },
         {
           "cve_id": "CVE-2017-12725",
-          "description": "",
+          "description": "Smiths Medical Medfusion 4000 Wireless Syringe Infusion Pump Vulnerabilities (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2017-09-07",
@@ -106,8 +114,9 @@
         },
         {
           "cve_id": "CVE-2017-12720",
-          "description": "",
+          "description": "Smiths Medical Medfusion 4000 Wireless Syringe Infusion Pump Vulnerabilities (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2017-09-07",
@@ -115,8 +124,9 @@
         },
         {
           "cve_id": "CVE-2017-12724",
-          "description": "",
+          "description": "Smiths Medical Medfusion 4000 Wireless Syringe Infusion Pump Vulnerabilities (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2017-09-07",
@@ -124,8 +134,9 @@
         },
         {
           "cve_id": "CVE-2017-12726",
-          "description": "",
+          "description": "Smiths Medical Medfusion 4000 Wireless Syringe Infusion Pump Vulnerabilities (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2017-09-07",
@@ -133,8 +144,9 @@
         },
         {
           "cve_id": "CVE-2017-12721",
-          "description": "",
+          "description": "Smiths Medical Medfusion 4000 Wireless Syringe Infusion Pump Vulnerabilities (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2017-09-07",
@@ -142,8 +154,9 @@
         },
         {
           "cve_id": "CVE-2017-12723",
-          "description": "",
+          "description": "Smiths Medical Medfusion 4000 Wireless Syringe Infusion Pump Vulnerabilities (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2017-09-07",
@@ -153,7 +166,7 @@
       "cve_count": 10,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899079+00:00",
+      "last_checked": "2026-04-17T14:06:18.411981+00:00",
       "source": "cisa_icsma"
     },
     "st. jude medical": {
@@ -168,8 +181,9 @@
       "cves": [
         {
           "cve_id": "CVE-2017-5149",
-          "description": "",
+          "description": "ICSMA-17-009-01A_St. Jude Merlin@home Transmitter Vulnerability (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:H/A:H",
           "base_score": 8.9,
           "severity": "HIGH",
           "published": "2017-01-09",
@@ -179,7 +193,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899089+00:00",
+      "last_checked": "2026-04-17T14:06:18.411989+00:00",
       "source": "cisa_icsma"
     },
     "bd (becton dickinson)": {
@@ -299,8 +313,9 @@
       "cves": [
         {
           "cve_id": "CVE-2019-10959",
-          "description": "",
+          "description": "BD Alaris Gateway Workstation",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2019-06-13",
@@ -308,8 +323,9 @@
         },
         {
           "cve_id": "CVE-2018-14786",
-          "description": "",
+          "description": "BD Alaris Plus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:H",
           "base_score": 9.4,
           "severity": "CRITICAL",
           "published": "2018-08-23",
@@ -317,8 +333,9 @@
         },
         {
           "cve_id": "CVE-2022-22767",
-          "description": "",
+          "description": "BD Pyxis",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2022-05-31",
@@ -326,8 +343,9 @@
         },
         {
           "cve_id": "CVE-2023-30563",
-          "description": "",
+          "description": "BD Alaris System with Guardrails Suite MX",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N",
           "base_score": 8.2,
           "severity": "HIGH",
           "published": "2023-07-13",
@@ -335,8 +353,9 @@
         },
         {
           "cve_id": "CVE-2022-22765",
-          "description": "",
+          "description": "BD Viper LT",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:L",
           "base_score": 8.0,
           "severity": "HIGH",
           "published": "2022-03-03",
@@ -344,8 +363,9 @@
         },
         {
           "cve_id": "CVE-2024-10476",
-          "description": "",
+          "description": "BD Diagnostic Solutions Products (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.0,
           "severity": "HIGH",
           "published": "2024-12-17",
@@ -353,8 +373,9 @@
         },
         {
           "cve_id": "CVE-2019-13517",
-          "description": "",
+          "description": "BD Pyxis (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:L",
           "base_score": 7.6,
           "severity": "HIGH",
           "published": "2019-09-05",
@@ -362,8 +383,9 @@
         },
         {
           "cve_id": "CVE-2017-6022",
-          "description": "",
+          "description": "CVE-2017-6022",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2017-03-23",
@@ -371,8 +393,9 @@
         },
         {
           "cve_id": "CVE-2019-10962",
-          "description": "",
+          "description": "BD Alaris Gateway Workstation",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2019-06-13",
@@ -380,8 +403,9 @@
         },
         {
           "cve_id": "CVE-2022-47376",
-          "description": "",
+          "description": "BD Alaris Infusion Central",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2023-02-16",
@@ -389,8 +413,9 @@
         },
         {
           "cve_id": "CVE-2022-22766",
-          "description": "",
+          "description": "BD Pyxis",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.0,
           "severity": "HIGH",
           "published": "2022-03-03",
@@ -398,8 +423,9 @@
         },
         {
           "cve_id": "CVE-2023-30564",
-          "description": "",
+          "description": "BD Alaris System with Guardrails Suite MX",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N",
           "base_score": 6.9,
           "severity": "MEDIUM",
           "published": "2023-07-13",
@@ -407,8 +433,9 @@
         },
         {
           "cve_id": "CVE-2016-9355",
-          "description": "",
+          "description": "BD Alaris 8015 PC Unit (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2017-01-17",
@@ -416,8 +443,9 @@
         },
         {
           "cve_id": "CVE-2017-13077",
-          "description": "",
+          "description": "BD Pyxis",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2018-04-24",
@@ -425,8 +453,9 @@
         },
         {
           "cve_id": "CVE-2019-6517",
-          "description": "",
+          "description": "BD FACSLyric (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2019-01-29",
@@ -434,8 +463,9 @@
         },
         {
           "cve_id": "CVE-2020-10598",
-          "description": "",
+          "description": "BD Pyxis MedStation and Pyxis Anesthesia (PAS) ES System",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2020-03-31",
@@ -443,8 +473,9 @@
         },
         {
           "cve_id": "CVE-2023-30560",
-          "description": "",
+          "description": "BD Alaris System with Guardrails Suite MX",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2023-07-13",
@@ -452,8 +483,9 @@
         },
         {
           "cve_id": "CVE-2023-30562",
-          "description": "",
+          "description": "BD Alaris System with Guardrails Suite MX",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:L/UI:R/S:U/C:N/I:H/A:H",
           "base_score": 6.7,
           "severity": "MEDIUM",
           "published": "2023-07-13",
@@ -461,8 +493,9 @@
         },
         {
           "cve_id": "CVE-2022-40263",
-          "description": "",
+          "description": "BD Totalys MultiProcessor",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:L",
           "base_score": 6.6,
           "severity": "MEDIUM",
           "published": "2022-10-04",
@@ -470,8 +503,9 @@
         },
         {
           "cve_id": "CVE-2020-25165",
-          "description": "",
+          "description": "BD Alaris 8015 PC Unit and BD Alaris Systems Manager",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:L",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2020-11-12",
@@ -479,8 +513,9 @@
         },
         {
           "cve_id": "CVE-2018-10595",
-          "description": "",
+          "description": "BD Kiestra and InoquIA Systems (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:H/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 6.3,
           "severity": "MEDIUM",
           "published": "2018-05-22",
@@ -488,8 +523,9 @@
         },
         {
           "cve_id": "CVE-2023-30561",
-          "description": "",
+          "description": "BD Alaris System with Guardrails Suite MX",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:H",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2023-07-13",
@@ -497,8 +533,9 @@
         },
         {
           "cve_id": "CVE-2022-30277",
-          "description": "",
+          "description": "BD Synapsys",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:N",
           "base_score": 5.7,
           "severity": "MEDIUM",
           "published": "2022-05-31",
@@ -506,8 +543,9 @@
         },
         {
           "cve_id": "CVE-2018-10593",
-          "description": "",
+          "description": "BD Kiestra and InoquIA Systems (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:H/UI:R/S:U/C:N/I:H/A:H",
           "base_score": 5.6,
           "severity": "MEDIUM",
           "published": "2018-05-22",
@@ -515,8 +553,9 @@
         },
         {
           "cve_id": "CVE-2023-29060",
-          "description": "",
+          "description": "BD FACSChorus",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:H",
           "base_score": 5.4,
           "severity": "MEDIUM",
           "published": "2023-11-28",
@@ -524,8 +563,9 @@
         },
         {
           "cve_id": "CVE-2019-11479",
-          "description": "",
+          "description": "BD Alaris PCU (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -533,8 +573,9 @@
         },
         {
           "cve_id": "CVE-2022-43557",
-          "description": "",
+          "description": "BD BodyGuard Pumps",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:H",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2022-12-01",
@@ -542,8 +583,9 @@
         },
         {
           "cve_id": "CVE-2023-30559",
-          "description": "",
+          "description": "BD Alaris System with Guardrails Suite MX",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:H",
           "base_score": 5.2,
           "severity": "MEDIUM",
           "published": "2023-07-13",
@@ -551,8 +593,9 @@
         },
         {
           "cve_id": "CVE-2023-29061",
-          "description": "",
+          "description": "BD FACSChorus",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:H",
           "base_score": 5.2,
           "severity": "MEDIUM",
           "published": "2023-11-28",
@@ -560,8 +603,9 @@
         },
         {
           "cve_id": "CVE-2016-8375",
-          "description": "",
+          "description": "BD Alaris 8015 PC Unit (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:N/S:C/C:H/I:N/A:N",
           "base_score": 4.9,
           "severity": "MEDIUM",
           "published": "2017-01-17",
@@ -569,8 +613,9 @@
         },
         {
           "cve_id": "CVE-2023-29064",
-          "description": "",
+          "description": "BD FACSChorus",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 4.1,
           "severity": "MEDIUM",
           "published": "2023-11-28",
@@ -578,8 +623,9 @@
         },
         {
           "cve_id": "CVE-2023-29065",
-          "description": "",
+          "description": "BD FACSChorus",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 4.1,
           "severity": "MEDIUM",
           "published": "2023-11-28",
@@ -587,8 +633,9 @@
         },
         {
           "cve_id": "CVE-2023-29062",
-          "description": "",
+          "description": "BD FACSChorus",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:R/S:C/C:L/I:N/A:N",
           "base_score": 3.8,
           "severity": "LOW",
           "published": "2023-11-28",
@@ -596,8 +643,9 @@
         },
         {
           "cve_id": "CVE-2023-30565",
-          "description": "",
+          "description": "BD Alaris System with Guardrails Suite MX",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.5,
           "severity": "LOW",
           "published": "2023-07-13",
@@ -605,8 +653,9 @@
         },
         {
           "cve_id": "CVE-2023-29066",
-          "description": "",
+          "description": "BD FACSChorus",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:L",
           "base_score": 3.2,
           "severity": "LOW",
           "published": "2023-11-28",
@@ -614,8 +663,9 @@
         },
         {
           "cve_id": "CVE-2018-1285",
-          "description": "",
+          "description": "BD Alaris System with Guardrails Suite MX",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:H/PR:H/UI:N/S:U/C:N/I:L/A:L",
           "base_score": 3.0,
           "severity": "LOW",
           "published": "2023-07-13",
@@ -623,8 +673,9 @@
         },
         {
           "cve_id": "CVE-2023-29063",
-          "description": "",
+          "description": "BD FACSChorus",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 2.4,
           "severity": "LOW",
           "published": "2023-11-28",
@@ -634,7 +685,7 @@
       "cve_count": 37,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899116+00:00",
+      "last_checked": "2026-04-17T14:06:18.412006+00:00",
       "source": "cisa_icsma"
     },
     "b. braun": {
@@ -669,8 +720,9 @@
       "cves": [
         {
           "cve_id": "CVE-2021-33885",
-          "description": "",
+          "description": "B. Braun Infusomat Space Large Volume Pump",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.0,
           "severity": "CRITICAL",
           "published": "2021-10-21",
@@ -678,8 +730,9 @@
         },
         {
           "cve_id": "CVE-2020-25172",
-          "description": "",
+          "description": "B. Braun OnlineSuite",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:L",
           "base_score": 8.6,
           "severity": "HIGH",
           "published": "2020-10-22",
@@ -687,8 +740,9 @@
         },
         {
           "cve_id": "CVE-2020-25174",
-          "description": "",
+          "description": "B. Braun OnlineSuite",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.4,
           "severity": "HIGH",
           "published": "2020-10-22",
@@ -696,8 +750,9 @@
         },
         {
           "cve_id": "CVE-2020-25158",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:L/A:L",
           "base_score": 7.6,
           "severity": "HIGH",
           "published": "2020-10-22",
@@ -705,8 +760,9 @@
         },
         {
           "cve_id": "CVE-2020-25150",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:H/A:L",
           "base_score": 7.6,
           "severity": "HIGH",
           "published": "2020-10-22",
@@ -714,8 +770,9 @@
         },
         {
           "cve_id": "CVE-2020-25162",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2020-10-22",
@@ -723,8 +780,9 @@
         },
         {
           "cve_id": "CVE-2020-25156",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.2,
           "severity": "HIGH",
           "published": "2020-10-22",
@@ -732,8 +790,9 @@
         },
         {
           "cve_id": "CVE-2020-25170",
-          "description": "",
+          "description": "B. Braun OnlineSuite",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:H/UI:R/S:C/C:L/I:H/A:N",
           "base_score": 6.9,
           "severity": "MEDIUM",
           "published": "2020-10-22",
@@ -741,8 +800,9 @@
         },
         {
           "cve_id": "CVE-2020-25166",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:N/S:C/C:N/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2020-10-22",
@@ -750,8 +810,9 @@
         },
         {
           "cve_id": "CVE-2020-25160",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:L",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2020-10-22",
@@ -759,8 +820,9 @@
         },
         {
           "cve_id": "CVE-2021-33886",
-          "description": "",
+          "description": "B. Braun Infusomat Space Large Volume Pump",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2021-10-21",
@@ -768,8 +830,9 @@
         },
         {
           "cve_id": "CVE-2021-33882",
-          "description": "",
+          "description": "B. Braun Infusomat Space Large Volume Pump",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:N/I:H/A:N",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2021-10-21",
@@ -777,8 +840,9 @@
         },
         {
           "cve_id": "CVE-2020-16238",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.7,
           "severity": "MEDIUM",
           "published": "2020-10-22",
@@ -786,8 +850,9 @@
         },
         {
           "cve_id": "CVE-2020-25152",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2020-10-22",
@@ -795,8 +860,9 @@
         },
         {
           "cve_id": "CVE-2021-33884",
-          "description": "",
+          "description": "B. Braun Infusomat Space Large Volume Pump",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-10-21",
@@ -804,8 +870,9 @@
         },
         {
           "cve_id": "CVE-2021-33883",
-          "description": "",
+          "description": "B. Braun Infusomat Space Large Volume Pump",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:H/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2021-10-21",
@@ -813,8 +880,9 @@
         },
         {
           "cve_id": "CVE-2023-0888",
-          "description": "",
+          "description": "B. Braun Battery Pack SP with Wi-Fi",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:H/UI:N/S:U/C:N/I:H/A:L",
           "base_score": 5.5,
           "severity": "MEDIUM",
           "published": "2023-04-18",
@@ -822,8 +890,9 @@
         },
         {
           "cve_id": "CVE-2017-6018",
-          "description": "",
+          "description": "CVE-2017-6018",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
           "base_score": 5.4,
           "severity": "MEDIUM",
           "published": "2017-03-23",
@@ -831,8 +900,9 @@
         },
         {
           "cve_id": "CVE-2020-25154",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
           "base_score": 5.4,
           "severity": "MEDIUM",
           "published": "2020-10-22",
@@ -840,8 +910,9 @@
         },
         {
           "cve_id": "CVE-2020-25164",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.1,
           "severity": "MEDIUM",
           "published": "2020-10-22",
@@ -849,8 +920,9 @@
         },
         {
           "cve_id": "CVE-2020-25168",
-          "description": "",
+          "description": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.3,
           "severity": "LOW",
           "published": "2020-10-22",
@@ -860,7 +932,7 @@
       "cve_count": 21,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899140+00:00",
+      "last_checked": "2026-04-17T14:06:18.412016+00:00",
       "source": "cisa_icsma"
     },
     "siemens healthineers": {
@@ -880,8 +952,9 @@
       "cves": [
         {
           "cve_id": "CVE-2008-4250",
-          "description": "",
+          "description": "CVE-2008-4250",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2017-08-03",
@@ -889,8 +962,9 @@
         },
         {
           "cve_id": "CVE-2017-7269",
-          "description": "",
+          "description": "CVE-2017-7269",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2017-08-03",
@@ -898,8 +972,9 @@
         },
         {
           "cve_id": "CVE-2015-1635",
-          "description": "",
+          "description": "CVE-2015-1635",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2017-08-03",
@@ -907,8 +982,9 @@
         },
         {
           "cve_id": "CVE-2015-1497",
-          "description": "",
+          "description": "CVE-2015-1497",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2017-08-03",
@@ -916,8 +992,9 @@
         },
         {
           "cve_id": "CVE-2015-7861",
-          "description": "",
+          "description": "CVE-2015-7861",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2017-08-03",
@@ -925,8 +1002,9 @@
         },
         {
           "cve_id": "CVE-2015-7860",
-          "description": "",
+          "description": "CVE-2015-7860",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2017-08-03",
@@ -936,7 +1014,7 @@
       "cve_count": 6,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899174+00:00",
+      "last_checked": "2026-04-17T14:06:18.412022+00:00",
       "source": "cisa_icsma"
     },
     "bmc medical": {
@@ -951,8 +1029,9 @@
       "cves": [
         {
           "cve_id": "CVE-2017-12701",
-          "description": "",
+          "description": "CVE-2017-12701",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:L",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2017-08-15",
@@ -962,7 +1041,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899192+00:00",
+      "last_checked": "2026-04-17T14:06:18.412027+00:00",
       "source": "cisa_icsma"
     },
     "philips": {
@@ -1167,8 +1246,9 @@
       "cves": [
         {
           "cve_id": "CVE-2018-5474",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-27",
@@ -1176,8 +1256,9 @@
         },
         {
           "cve_id": "CVE-2018-5472",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-27",
@@ -1185,8 +1266,9 @@
         },
         {
           "cve_id": "CVE-2018-5468",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-27",
@@ -1194,8 +1276,9 @@
         },
         {
           "cve_id": "CVE-2020-1938",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2021-07-06",
@@ -1203,8 +1286,9 @@
         },
         {
           "cve_id": "CVE-2018-12326",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2021-07-06",
@@ -1212,8 +1296,9 @@
         },
         {
           "cve_id": "CVE-2018-11218",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2021-07-06",
@@ -1221,8 +1306,9 @@
         },
         {
           "cve_id": "CVE-2020-4670",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2021-07-06",
@@ -1230,8 +1316,9 @@
         },
         {
           "cve_id": "CVE-2017-9656",
-          "description": "",
+          "description": "CVE-2017-9656",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:H/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.1,
           "severity": "CRITICAL",
           "published": "2017-08-17",
@@ -1239,8 +1326,9 @@
         },
         {
           "cve_id": "CVE-2021-39375",
-          "description": "",
+          "description": "Philips Tasy EMR",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2021-11-04",
@@ -1248,8 +1336,9 @@
         },
         {
           "cve_id": "CVE-2021-39376",
-          "description": "",
+          "description": "Philips Tasy EMR",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2021-11-04",
@@ -1257,8 +1346,9 @@
         },
         {
           "cve_id": "CVE-2018-8857",
-          "description": "",
+          "description": "Philips Brilliance Computed Tomography (CT) System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.4,
           "severity": "HIGH",
           "published": "2018-05-03",
@@ -1266,8 +1356,9 @@
         },
         {
           "cve_id": "CVE-2018-10597",
-          "description": "",
+          "description": "Philips' IntelliVue Patient and Avalon Fetal Monitors",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 8.3,
           "severity": "HIGH",
           "published": "2018-06-05",
@@ -1275,8 +1366,9 @@
         },
         {
           "cve_id": "CVE-2018-10601",
-          "description": "",
+          "description": "Philips' IntelliVue Patient and Avalon Fetal Monitors",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:C/C:H/I:L/A:H",
           "base_score": 8.2,
           "severity": "HIGH",
           "published": "2018-06-05",
@@ -1284,8 +1376,9 @@
         },
         {
           "cve_id": "CVE-2018-8014",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:N",
           "base_score": 8.2,
           "severity": "HIGH",
           "published": "2021-07-06",
@@ -1293,8 +1386,9 @@
         },
         {
           "cve_id": "CVE-2017-0143",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1302,8 +1396,9 @@
         },
         {
           "cve_id": "CVE-2017-0144",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1311,8 +1406,9 @@
         },
         {
           "cve_id": "CVE-2017-0145",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1320,8 +1416,9 @@
         },
         {
           "cve_id": "CVE-2017-0146",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1329,8 +1426,9 @@
         },
         {
           "cve_id": "CVE-2017-0148",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1338,8 +1436,9 @@
         },
         {
           "cve_id": "CVE-2017-0272",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1347,8 +1446,9 @@
         },
         {
           "cve_id": "CVE-2021-32993",
-          "description": "",
+          "description": "Philips IntelliBridge EC 40 and EC 80 Hub",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2021-11-18",
@@ -1356,8 +1456,9 @@
         },
         {
           "cve_id": "CVE-2021-33017",
-          "description": "",
+          "description": "Philips IntelliBridge EC 40 and EC 80 Hub",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2021-11-18",
@@ -1365,8 +1466,9 @@
         },
         {
           "cve_id": "CVE-2017-0199",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1374,8 +1476,9 @@
         },
         {
           "cve_id": "CVE-2018-5470",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1383,8 +1486,9 @@
         },
         {
           "cve_id": "CVE-2021-33020",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2021-07-06",
@@ -1392,8 +1496,9 @@
         },
         {
           "cve_id": "CVE-2025-2230",
-          "description": "",
+          "description": "Philips Intellispace Cardiovascular (ISCV)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 7.7,
           "severity": "HIGH",
           "published": "2025-03-13",
@@ -1401,8 +1506,9 @@
         },
         {
           "cve_id": "CVE-2025-2229",
-          "description": "",
+          "description": "Philips Intellispace Cardiovascular (ISCV)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 7.7,
           "severity": "HIGH",
           "published": "2025-03-13",
@@ -1410,8 +1516,9 @@
         },
         {
           "cve_id": "CVE-2018-5458",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1419,8 +1526,9 @@
         },
         {
           "cve_id": "CVE-2018-5462",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1428,8 +1536,9 @@
         },
         {
           "cve_id": "CVE-2018-5464",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1437,8 +1546,9 @@
         },
         {
           "cve_id": "CVE-2018-5466",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1446,8 +1556,9 @@
         },
         {
           "cve_id": "CVE-2016-2183",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1455,8 +1566,9 @@
         },
         {
           "cve_id": "CVE-2018-10115",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2021-07-06",
@@ -1464,8 +1576,9 @@
         },
         {
           "cve_id": "CVE-2021-33024",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2021-07-06",
@@ -1473,8 +1586,9 @@
         },
         {
           "cve_id": "CVE-2017-14111",
-          "description": "",
+          "description": "Philips IntelliSpace Cardiovascular System and Xcelera System Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.2,
           "severity": "HIGH",
           "published": "2017-11-14",
@@ -1482,8 +1596,9 @@
         },
         {
           "cve_id": "CVE-2017-0277",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:L",
           "base_score": 7.0,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1491,8 +1606,9 @@
         },
         {
           "cve_id": "CVE-2017-0278",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:L",
           "base_score": 7.0,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1500,8 +1616,9 @@
         },
         {
           "cve_id": "CVE-2017-0279",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:L",
           "base_score": 7.0,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -1509,8 +1626,9 @@
         },
         {
           "cve_id": "CVE-2020-16212",
-          "description": "",
+          "description": "Philips Patient Monitoring Devices (Update C)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2020-09-10",
@@ -1518,8 +1636,9 @@
         },
         {
           "cve_id": "CVE-2020-16247",
-          "description": "",
+          "description": "CVE-2020-16247",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2020-09-17",
@@ -1527,8 +1646,9 @@
         },
         {
           "cve_id": "CVE-2023-40704",
-          "description": "",
+          "description": "Philips Vue PACS (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2024-07-18",
@@ -1536,8 +1656,9 @@
         },
         {
           "cve_id": "CVE-2018-5438",
-          "description": "",
+          "description": "Philips IntelliSpace Cardiovascular System Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N",
           "base_score": 6.7,
           "severity": "MEDIUM",
           "published": "2018-01-25",
@@ -1545,8 +1666,9 @@
         },
         {
           "cve_id": "CVE-2017-9654",
-          "description": "",
+          "description": "CVE-2017-9654",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2017-08-17",
@@ -1554,8 +1676,9 @@
         },
         {
           "cve_id": "CVE-2017-9657",
-          "description": "",
+          "description": "ICSMA-17-255-01_Philips' IntelliView MX40 Patient Worn Monitor (WLAN) Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2017-09-12",
@@ -1563,8 +1686,9 @@
         },
         {
           "cve_id": "CVE-2017-9658",
-          "description": "",
+          "description": "ICSMA-17-255-01_Philips' IntelliView MX40 Patient Worn Monitor (WLAN) Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2017-09-12",
@@ -1572,8 +1696,9 @@
         },
         {
           "cve_id": "CVE-2005-1794",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1581,8 +1706,9 @@
         },
         {
           "cve_id": "CVE-2020-16224",
-          "description": "",
+          "description": "Philips Patient Monitoring Devices (Update C)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2020-09-10",
@@ -1590,8 +1716,9 @@
         },
         {
           "cve_id": "CVE-2020-16216",
-          "description": "",
+          "description": "Philips Patient Monitoring Devices (Update C)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2020-09-10",
@@ -1599,8 +1726,9 @@
         },
         {
           "cve_id": "CVE-2020-16200",
-          "description": "",
+          "description": "CVE-2020-16200",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2020-09-17",
@@ -1608,8 +1736,9 @@
         },
         {
           "cve_id": "CVE-2020-27298",
-          "description": "",
+          "description": "Philips Interventional Workstations",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-01-19",
@@ -1617,8 +1746,9 @@
         },
         {
           "cve_id": "CVE-2021-27501",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-07-06",
@@ -1626,8 +1756,9 @@
         },
         {
           "cve_id": "CVE-2021-33018",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-07-06",
@@ -1635,8 +1766,9 @@
         },
         {
           "cve_id": "CVE-2021-27497",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-07-06",
@@ -1644,8 +1776,9 @@
         },
         {
           "cve_id": "CVE-2021-43548",
-          "description": "",
+          "description": "Philips Patient Information Center iX (PIC iX) and Efficia CM Series",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-11-18",
@@ -1653,8 +1786,9 @@
         },
         {
           "cve_id": "CVE-2022-0922",
-          "description": "",
+          "description": "Philips e-Alert",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2022-03-29",
@@ -1662,8 +1796,9 @@
         },
         {
           "cve_id": "CVE-2021-28165",
-          "description": "",
+          "description": "Philips Vue PACS (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2024-07-18",
@@ -1671,8 +1806,9 @@
         },
         {
           "cve_id": "CVE-2018-10599",
-          "description": "",
+          "description": "Philips' IntelliVue Patient and Avalon Fetal Monitors",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:L",
           "base_score": 6.4,
           "severity": "MEDIUM",
           "published": "2018-06-05",
@@ -1680,8 +1816,9 @@
         },
         {
           "cve_id": "CVE-2019-13530",
-          "description": "",
+          "description": "Philips IntelliVue WLAN",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.4,
           "severity": "MEDIUM",
           "published": "2019-09-12",
@@ -1689,8 +1826,9 @@
         },
         {
           "cve_id": "CVE-2019-13534",
-          "description": "",
+          "description": "Philips IntelliVue WLAN",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.4,
           "severity": "MEDIUM",
           "published": "2019-09-12",
@@ -1698,8 +1836,9 @@
         },
         {
           "cve_id": "CVE-2018-17906",
-          "description": "",
+          "description": "Philips iSite and IntelliSpace PACS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 6.3,
           "severity": "MEDIUM",
           "published": "2018-11-08",
@@ -1707,8 +1846,9 @@
         },
         {
           "cve_id": "CVE-2019-18241",
-          "description": "",
+          "description": "Philips IntelliBridge EC40/80 (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 6.3,
           "severity": "MEDIUM",
           "published": "2019-11-14",
@@ -1716,8 +1856,9 @@
         },
         {
           "cve_id": "CVE-2021-26262",
-          "description": "",
+          "description": "Philips MRI 1.5T and 3T (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.2,
           "severity": "MEDIUM",
           "published": "2021-11-24",
@@ -1725,8 +1866,9 @@
         },
         {
           "cve_id": "CVE-2021-26248",
-          "description": "",
+          "description": "Philips MRI 1.5T and 3T (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.2,
           "severity": "MEDIUM",
           "published": "2021-11-24",
@@ -1734,8 +1876,9 @@
         },
         {
           "cve_id": "CVE-2021-42744",
-          "description": "",
+          "description": "Philips MRI 1.5T and 3T (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.2,
           "severity": "MEDIUM",
           "published": "2021-11-24",
@@ -1743,8 +1886,9 @@
         },
         {
           "cve_id": "CVE-2018-8853",
-          "description": "",
+          "description": "Philips Brilliance Computed Tomography (CT) System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:L",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2018-05-03",
@@ -1752,8 +1896,9 @@
         },
         {
           "cve_id": "CVE-2018-8861",
-          "description": "",
+          "description": "Philips Brilliance Computed Tomography (CT) System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:L",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2018-05-03",
@@ -1761,8 +1906,9 @@
         },
         {
           "cve_id": "CVE-2018-14801",
-          "description": "",
+          "description": "Philips PageWriter TC10, TC20, TC30, TC50, and TC70 Cardiographs (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:H/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2018-08-16",
@@ -1770,8 +1916,9 @@
         },
         {
           "cve_id": "CVE-2019-13546",
-          "description": "",
+          "description": "Philips IntelliSpace Perinatal",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:N",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2019-10-24",
@@ -1779,8 +1926,9 @@
         },
         {
           "cve_id": "CVE-2012-1708",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2021-07-06",
@@ -1788,8 +1936,9 @@
         },
         {
           "cve_id": "CVE-2015-9251",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2021-07-06",
@@ -1797,8 +1946,9 @@
         },
         {
           "cve_id": "CVE-2021-43552",
-          "description": "",
+          "description": "Philips Patient Information Center iX (PIC iX) and Efficia CM Series",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:N",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2021-11-18",
@@ -1806,8 +1956,9 @@
         },
         {
           "cve_id": "CVE-2020-16228",
-          "description": "",
+          "description": "Philips Patient Monitoring Devices (Update C)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:L",
           "base_score": 6.0,
           "severity": "MEDIUM",
           "published": "2020-09-10",
@@ -1815,8 +1966,9 @@
         },
         {
           "cve_id": "CVE-2017-0269",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1824,8 +1976,9 @@
         },
         {
           "cve_id": "CVE-2017-0273",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1833,8 +1986,9 @@
         },
         {
           "cve_id": "CVE-2017-0280",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1842,8 +1996,9 @@
         },
         {
           "cve_id": "CVE-2017-0147",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1851,8 +2006,9 @@
         },
         {
           "cve_id": "CVE-2017-0267",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1860,8 +2016,9 @@
         },
         {
           "cve_id": "CVE-2017-0268",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1869,8 +2026,9 @@
         },
         {
           "cve_id": "CVE-2017-0270",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1878,8 +2036,9 @@
         },
         {
           "cve_id": "CVE-2017-0271",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1887,8 +2046,9 @@
         },
         {
           "cve_id": "CVE-2017-0274",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1896,8 +2056,9 @@
         },
         {
           "cve_id": "CVE-2017-0275",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1905,8 +2066,9 @@
         },
         {
           "cve_id": "CVE-2017-0276",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1914,8 +2076,9 @@
         },
         {
           "cve_id": "CVE-2018-8863",
-          "description": "",
+          "description": "Philips EncoreAnywhere",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-05-17",
@@ -1923,8 +2086,9 @@
         },
         {
           "cve_id": "CVE-2018-14799",
-          "description": "",
+          "description": "Philips PageWriter TC10, TC20, TC30, TC50, and TC70 Cardiographs (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2018-08-16",
@@ -1932,8 +2096,9 @@
         },
         {
           "cve_id": "CVE-2021-43550",
-          "description": "",
+          "description": "Philips Patient Information Center iX (PIC iX) and Efficia CM Series",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2021-11-18",
@@ -1941,8 +2106,9 @@
         },
         {
           "cve_id": "CVE-1999-0103",
-          "description": "",
+          "description": "Philips IntelliVue Information Center iX (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 5.7,
           "severity": "MEDIUM",
           "published": "2018-08-21",
@@ -1950,8 +2116,9 @@
         },
         {
           "cve_id": "CVE-2018-5454",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -1959,8 +2126,9 @@
         },
         {
           "cve_id": "CVE-2018-5451",
-          "description": "",
+          "description": "Philips Alice 6 Vulnerabilities (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2018-03-27",
@@ -1968,8 +2136,9 @@
         },
         {
           "cve_id": "CVE-2018-7498",
-          "description": "",
+          "description": "Philips Alice 6 Vulnerabilities (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2018-03-27",
@@ -1977,8 +2146,9 @@
         },
         {
           "cve_id": "CVE-2019-18263",
-          "description": "",
+          "description": "Philips Veradius Unity, Pulsera, and Endura Dual WAN Routers",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2019-12-19",
@@ -1986,8 +2156,9 @@
         },
         {
           "cve_id": "CVE-2020-14518",
-          "description": "",
+          "description": "Philips DreamMapper",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2020-07-30",
@@ -1995,8 +2166,9 @@
         },
         {
           "cve_id": "CVE-2021-27493",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2021-07-06",
@@ -2004,8 +2176,9 @@
         },
         {
           "cve_id": "CVE-2020-16222",
-          "description": "",
+          "description": "Philips Patient Monitoring Devices (Update C)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 5.0,
           "severity": "MEDIUM",
           "published": "2020-09-10",
@@ -2013,8 +2186,9 @@
         },
         {
           "cve_id": "CVE-2020-16198",
-          "description": "",
+          "description": "CVE-2020-16198",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 5.0,
           "severity": "MEDIUM",
           "published": "2020-09-17",
@@ -2022,8 +2196,9 @@
         },
         {
           "cve_id": "CVE-2019-13557",
-          "description": "",
+          "description": "Philips Tasy EMR (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2019-04-30",
@@ -2031,8 +2206,9 @@
         },
         {
           "cve_id": "CVE-2018-14789",
-          "description": "",
+          "description": "Philips IntelliSpace Cardiovascular Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:H/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 4.2,
           "severity": "MEDIUM",
           "published": "2018-08-14",
@@ -2040,8 +2216,9 @@
         },
         {
           "cve_id": "CVE-2020-16214",
-          "description": "",
+          "description": "Philips Patient Monitoring Devices (Update C)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:C/C:L/I:L/A:N",
           "base_score": 4.2,
           "severity": "MEDIUM",
           "published": "2020-09-10",
@@ -2049,8 +2226,9 @@
         },
         {
           "cve_id": "CVE-2019-6562",
-          "description": "",
+          "description": "Philips Tasy EMR (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:L/UI:R/S:U/C:L/I:L/A:N",
           "base_score": 4.1,
           "severity": "MEDIUM",
           "published": "2019-04-30",
@@ -2058,8 +2236,9 @@
         },
         {
           "cve_id": "CVE-2011-3389",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2018-02-27",
@@ -2067,8 +2246,9 @@
         },
         {
           "cve_id": "CVE-2004-2761",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2018-02-27",
@@ -2076,8 +2256,9 @@
         },
         {
           "cve_id": "CVE-2021-32966",
-          "description": "",
+          "description": "Philips Interoperability Solution XDS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2021-06-24",
@@ -2085,8 +2266,9 @@
         },
         {
           "cve_id": "CVE-2019-9636",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2021-07-06",
@@ -2094,8 +2276,9 @@
         },
         {
           "cve_id": "CVE-2020-14477",
-          "description": "",
+          "description": "Philips Ultrasound Systems",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:H/PR:L/UI:N/S:U/C:L/I:L/A:N",
           "base_score": 3.6,
           "severity": "LOW",
           "published": "2020-06-25",
@@ -2103,8 +2286,9 @@
         },
         {
           "cve_id": "CVE-2018-19001",
-          "description": "",
+          "description": "Philips HealthSuite Health Android App",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
           "base_score": 3.5,
           "severity": "LOW",
           "published": "2018-12-06",
@@ -2112,8 +2296,9 @@
         },
         {
           "cve_id": "CVE-2020-16218",
-          "description": "",
+          "description": "Philips Patient Monitoring Devices (Update C)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.5,
           "severity": "LOW",
           "published": "2020-09-10",
@@ -2121,8 +2306,9 @@
         },
         {
           "cve_id": "CVE-2020-16220",
-          "description": "",
+          "description": "Philips Patient Monitoring Devices (Update C)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:L",
           "base_score": 3.5,
           "severity": "LOW",
           "published": "2020-09-10",
@@ -2130,8 +2316,9 @@
         },
         {
           "cve_id": "CVE-2020-14525",
-          "description": "",
+          "description": "CVE-2020-14525",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.5,
           "severity": "LOW",
           "published": "2020-09-17",
@@ -2139,8 +2326,9 @@
         },
         {
           "cve_id": "CVE-2014-3566",
-          "description": "",
+          "description": "Philips Intellispace Portal ISP Vulnerabilities",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:L/I:N/A:N",
           "base_score": 3.4,
           "severity": "LOW",
           "published": "2018-02-27",
@@ -2148,8 +2336,9 @@
         },
         {
           "cve_id": "CVE-2020-14506",
-          "description": "",
+          "description": "CVE-2020-14506",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:H/UI:N/S:U/C:L/I:L/A:N",
           "base_score": 3.4,
           "severity": "LOW",
           "published": "2020-09-17",
@@ -2157,8 +2346,9 @@
         },
         {
           "cve_id": "CVE-2019-10988",
-          "description": "",
+          "description": "Philips HDI 4000 Ultrasound",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:H/PR:H/UI:N/S:U/C:L/I:L/A:N",
           "base_score": 3.0,
           "severity": "LOW",
           "published": "2019-08-29",
@@ -2166,8 +2356,9 @@
         },
         {
           "cve_id": "CVE-2021-33022",
-          "description": "",
+          "description": "Philips Vue PACS (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 2.7,
           "severity": "LOW",
           "published": "2021-07-06",
@@ -2175,8 +2366,9 @@
         },
         {
           "cve_id": "CVE-2021-23173",
-          "description": "",
+          "description": "Philips Engage Software",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:N/A:N",
           "base_score": 2.6,
           "severity": "LOW",
           "published": "2022-01-06",
@@ -2184,8 +2376,9 @@
         },
         {
           "cve_id": "CVE-2021-27456",
-          "description": "",
+          "description": "Philips Gemini PET/CT Family",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 2.4,
           "severity": "LOW",
           "published": "2021-03-25",
@@ -2193,8 +2386,9 @@
         },
         {
           "cve_id": "CVE-2020-16237",
-          "description": "",
+          "description": "Philips SureSigns VS4",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L",
           "base_score": 2.1,
           "severity": "LOW",
           "published": "2020-08-20",
@@ -2202,8 +2396,9 @@
         },
         {
           "cve_id": "CVE-2020-12023",
-          "description": "",
+          "description": "Philips IntelliBridge Enterprise IBE",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 2.0,
           "severity": "LOW",
           "published": "2020-06-11",
@@ -2211,8 +2406,9 @@
         },
         {
           "cve_id": "CVE-2019-10968",
-          "description": "",
+          "description": "Philips Holter 2010 Plus",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:H/PR:H/UI:N/S:U/C:N/I:L/A:N",
           "base_score": 1.9,
           "severity": "LOW",
           "published": "2019-07-11",
@@ -2222,7 +2418,7 @@
       "cve_count": 117,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899249+00:00",
+      "last_checked": "2026-04-17T14:06:18.412066+00:00",
       "source": "cisa_icsma"
     },
     "abbott": {
@@ -2242,8 +2438,9 @@
       "cves": [
         {
           "cve_id": "CVE-2017-12712",
-          "description": "",
+          "description": "Abbott Laboratories Defibrillator",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-04-17",
@@ -2251,8 +2448,9 @@
         },
         {
           "cve_id": "CVE-2017-12714",
-          "description": "",
+          "description": "Abbott Laboratories Defibrillator",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2018-04-17",
@@ -2260,8 +2458,9 @@
         },
         {
           "cve_id": "CVE-2017-12716",
-          "description": "",
+          "description": "CVE-2017-12716",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.1,
           "severity": "LOW",
           "published": "2017-08-29",
@@ -2271,7 +2470,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899257+00:00",
+      "last_checked": "2026-04-17T14:06:18.412071+00:00",
       "source": "cisa_icsma"
     },
     "i-sens inc": {
@@ -2286,8 +2485,9 @@
       "cves": [
         {
           "cve_id": "CVE-2017-13993",
-          "description": "",
+          "description": "i-SENS, Inc. SmartLog Diabetes Management Software",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2017-09-07",
@@ -2297,7 +2497,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899263+00:00",
+      "last_checked": "2026-04-17T14:06:18.412075+00:00",
       "source": "cisa_icsma"
     },
     "boston scientific": {
@@ -2317,8 +2517,9 @@
       "cves": [
         {
           "cve_id": "CVE-2021-38400",
-          "description": "",
+          "description": "Boston Scientific Zoom Latitude",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:R/S:C/C:H/I:H/A:L",
           "base_score": 6.9,
           "severity": "MEDIUM",
           "published": "2021-09-30",
@@ -2326,8 +2527,9 @@
         },
         {
           "cve_id": "CVE-2021-38392",
-          "description": "",
+          "description": "Boston Scientific Zoom Latitude",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:R/S:C/C:L/I:H/A:L",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-09-30",
@@ -2335,8 +2537,9 @@
         },
         {
           "cve_id": "CVE-2021-38396",
-          "description": "",
+          "description": "Boston Scientific Zoom Latitude",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:R/S:C/C:L/I:H/A:L",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-09-30",
@@ -2344,8 +2547,9 @@
         },
         {
           "cve_id": "CVE-2021-38398",
-          "description": "",
+          "description": "Boston Scientific Zoom Latitude",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:R/S:C/C:L/I:H/A:L",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-09-30",
@@ -2353,8 +2557,9 @@
         },
         {
           "cve_id": "CVE-2021-38394",
-          "description": "",
+          "description": "Boston Scientific Zoom Latitude",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:R/S:C/C:L/I:H/A:L",
           "base_score": 6.2,
           "severity": "MEDIUM",
           "published": "2021-09-30",
@@ -2362,8 +2567,9 @@
         },
         {
           "cve_id": "CVE-2017-14014",
-          "description": "",
+          "description": "CVE-2017-14014",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2017-10-19",
@@ -2371,8 +2577,9 @@
         },
         {
           "cve_id": "CVE-2017-14012",
-          "description": "",
+          "description": "CVE-2017-14012",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2017-10-19",
@@ -2382,7 +2589,7 @@
       "cve_count": 7,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899271+00:00",
+      "last_checked": "2026-04-17T14:06:18.412081+00:00",
       "source": "cisa_icsma"
     },
     "johnson & johnson": {
@@ -2397,8 +2604,9 @@
       "cves": [
         {
           "cve_id": "CVE-2017-14018",
-          "description": "",
+          "description": "Ethicon Endo-Surgery Generator G11 Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:N/S:U/C:N/I:H/A:L",
           "base_score": 4.8,
           "severity": "MEDIUM",
           "published": "2017-11-28",
@@ -2408,7 +2616,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899278+00:00",
+      "last_checked": "2026-04-17T14:06:18.412085+00:00",
       "source": "cisa_icsma"
     },
     "vyaire medical": {
@@ -2423,8 +2631,9 @@
       "cves": [
         {
           "cve_id": "CVE-2018-5457",
-          "description": "",
+          "description": "Vyaire Medical CareFusion Upgrade Utility Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:H/PR:L/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 6.7,
           "severity": "MEDIUM",
           "published": "2018-02-06",
@@ -2434,7 +2643,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899284+00:00",
+      "last_checked": "2026-04-17T14:06:18.412089+00:00",
       "source": "cisa_icsma"
     },
     "ge healthcare": {
@@ -2474,8 +2683,9 @@
       "cves": [
         {
           "cve_id": "CVE-2020-6961",
-          "description": "",
+          "description": "GE CARESCAPE, ApexPro, and Clinical Information Center systems",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2020-01-23",
@@ -2483,8 +2693,9 @@
         },
         {
           "cve_id": "CVE-2020-6962",
-          "description": "",
+          "description": "GE CARESCAPE, ApexPro, and Clinical Information Center systems",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2020-01-23",
@@ -2492,8 +2703,9 @@
         },
         {
           "cve_id": "CVE-2020-6963",
-          "description": "",
+          "description": "GE CARESCAPE, ApexPro, and Clinical Information Center systems",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2020-01-23",
@@ -2501,8 +2713,9 @@
         },
         {
           "cve_id": "CVE-2020-6964",
-          "description": "",
+          "description": "GE CARESCAPE, ApexPro, and Clinical Information Center systems",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2020-01-23",
@@ -2510,8 +2723,9 @@
         },
         {
           "cve_id": "CVE-2020-6966",
-          "description": "",
+          "description": "GE CARESCAPE, ApexPro, and Clinical Information Center systems",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2020-01-23",
@@ -2519,8 +2733,9 @@
         },
         {
           "cve_id": "CVE-2010-5306",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2528,8 +2743,9 @@
         },
         {
           "cve_id": "CVE-2009-5143",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2537,8 +2753,9 @@
         },
         {
           "cve_id": "CVE-2013-7404",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2546,8 +2763,9 @@
         },
         {
           "cve_id": "CVE-2014-7232",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2555,8 +2773,9 @@
         },
         {
           "cve_id": "CVE-2010-5310",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2564,8 +2783,9 @@
         },
         {
           "cve_id": "CVE-2014-7233",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2573,8 +2793,9 @@
         },
         {
           "cve_id": "CVE-2012-6693",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2582,8 +2803,9 @@
         },
         {
           "cve_id": "CVE-2012-6694",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2591,8 +2813,9 @@
         },
         {
           "cve_id": "CVE-2012-6695",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2600,8 +2823,9 @@
         },
         {
           "cve_id": "CVE-2013-7442",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2609,8 +2833,9 @@
         },
         {
           "cve_id": "CVE-2017-14008",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2618,8 +2843,9 @@
         },
         {
           "cve_id": "CVE-2011-5322",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2627,8 +2853,9 @@
         },
         {
           "cve_id": "CVE-2007-6757",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2636,8 +2863,9 @@
         },
         {
           "cve_id": "CVE-2003-1603",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2645,8 +2873,9 @@
         },
         {
           "cve_id": "CVE-2001-1594",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2654,8 +2883,9 @@
         },
         {
           "cve_id": "CVE-2010-5309",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2663,8 +2893,9 @@
         },
         {
           "cve_id": "CVE-2010-5307",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2672,8 +2903,9 @@
         },
         {
           "cve_id": "CVE-2017-14004",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2681,8 +2913,9 @@
         },
         {
           "cve_id": "CVE-2004-2777",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2690,8 +2923,9 @@
         },
         {
           "cve_id": "CVE-2017-14002",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2699,8 +2933,9 @@
         },
         {
           "cve_id": "CVE-2002-2446",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2708,8 +2943,9 @@
         },
         {
           "cve_id": "CVE-2012-6660",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2717,8 +2953,9 @@
         },
         {
           "cve_id": "CVE-2017-14006",
-          "description": "",
+          "description": "GE Medical Devices Vulnerability",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-02-06",
@@ -2726,8 +2963,9 @@
         },
         {
           "cve_id": "CVE-2020-25175",
-          "description": "",
+          "description": "GE Healthcare Imaging and Ultrasound Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2020-12-08",
@@ -2735,8 +2973,9 @@
         },
         {
           "cve_id": "CVE-2020-25179",
-          "description": "",
+          "description": "GE Healthcare Imaging and Ultrasound Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2020-12-08",
@@ -2744,8 +2983,9 @@
         },
         {
           "cve_id": "CVE-2020-6965",
-          "description": "",
+          "description": "GE CARESCAPE, ApexPro, and Clinical Information Center systems",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 8.5,
           "severity": "HIGH",
           "published": "2020-01-23",
@@ -2753,8 +2993,9 @@
         },
         {
           "cve_id": "CVE-2020-6977",
-          "description": "",
+          "description": "GE Healthcare Ultrasound products (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.4,
           "severity": "HIGH",
           "published": "2020-02-18",
@@ -2762,8 +3003,9 @@
         },
         {
           "cve_id": "CVE-2018-6021",
-          "description": "",
+          "description": "Silex Technology SX-500/SD-320AN or GE Healthcare MobileLink (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:C/C:L/I:L/A:L",
           "base_score": 7.4,
           "severity": "HIGH",
           "published": "2018-05-08",
@@ -2771,8 +3013,9 @@
         },
         {
           "cve_id": "CVE-2024-1486",
-          "description": "",
+          "description": "GE Healthcare Ultrasound products (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.4,
           "severity": "HIGH",
           "published": "2020-02-18",
@@ -2780,8 +3023,9 @@
         },
         {
           "cve_id": "CVE-2018-6020",
-          "description": "",
+          "description": "Silex Technology SX-500/SD-320AN or GE Healthcare MobileLink (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:L",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2018-05-08",
@@ -2789,8 +3033,9 @@
         },
         {
           "cve_id": "CVE-2019-10966",
-          "description": "",
+          "description": "GE Aestiva and Aespire Anesthesia (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2019-07-09",
@@ -2800,7 +3045,7 @@
       "cve_count": 36,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899300+00:00",
+      "last_checked": "2026-04-17T14:06:18.412101+00:00",
       "source": "cisa_icsma"
     },
     "medtronic": {
@@ -2885,8 +3130,9 @@
       "cves": [
         {
           "cve_id": "CVE-2019-3464",
-          "description": "",
+          "description": "Medtronic Valleylab FT10 and FX8",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2019-11-07",
@@ -2894,8 +3140,9 @@
         },
         {
           "cve_id": "CVE-2023-31222",
-          "description": "",
+          "description": "Medtronic Paceart Optima System",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2023-06-29",
@@ -2903,8 +3150,9 @@
         },
         {
           "cve_id": "CVE-2019-6538",
-          "description": "",
+          "description": "Medtronic Conexus Radio Frequency Telemetry Protocol (Update C)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:C/C:N/I:H/A:H",
           "base_score": 9.3,
           "severity": "CRITICAL",
           "published": "2019-03-21",
@@ -2912,8 +3160,9 @@
         },
         {
           "cve_id": "CVE-2020-25187",
-          "description": "",
+          "description": "Medtronic MyCareLink Smart",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2020-12-08",
@@ -2921,8 +3170,9 @@
         },
         {
           "cve_id": "CVE-2020-27252",
-          "description": "",
+          "description": "Medtronic MyCareLink Smart",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2020-12-08",
@@ -2930,8 +3180,9 @@
         },
         {
           "cve_id": "CVE-2020-25183",
-          "description": "",
+          "description": "Medtronic MyCareLink Smart",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 8.0,
           "severity": "HIGH",
           "published": "2020-12-08",
@@ -2939,8 +3190,9 @@
         },
         {
           "cve_id": "CVE-2018-10596",
-          "description": "",
+          "description": "Medtronic 2090 Carelink Programmer Vulnerabilities (Update C)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.1,
           "severity": "HIGH",
           "published": "2018-02-27",
@@ -2948,8 +3200,9 @@
         },
         {
           "cve_id": "CVE-2019-10964",
-          "description": "",
+          "description": "Medtronic MiniMed 508 and Paradigm Series Insulin Pumps",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:L/I:H/A:H",
           "base_score": 7.1,
           "severity": "HIGH",
           "published": "2019-06-27",
@@ -2957,8 +3210,9 @@
         },
         {
           "cve_id": "CVE-2019-13539",
-          "description": "",
+          "description": "Medtronic Valleylab FT10 and FX8",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.0,
           "severity": "HIGH",
           "published": "2019-11-07",
@@ -2966,8 +3220,9 @@
         },
         {
           "cve_id": "CVE-2025-4394",
-          "description": "",
+          "description": "Medtronic MyCareLink Patient Monitor",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2025-07-24",
@@ -2975,8 +3230,9 @@
         },
         {
           "cve_id": "CVE-2025-4395",
-          "description": "",
+          "description": "Medtronic MyCareLink Patient Monitor",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2025-07-24",
@@ -2984,8 +3240,9 @@
         },
         {
           "cve_id": "CVE-2019-6540",
-          "description": "",
+          "description": "Medtronic Conexus Radio Frequency Telemetry Protocol (Update C)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2019-03-21",
@@ -2993,8 +3250,9 @@
         },
         {
           "cve_id": "CVE-2025-4393",
-          "description": "",
+          "description": "Medtronic MyCareLink Patient Monitor",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:L/I:H/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2025-07-24",
@@ -3002,8 +3260,9 @@
         },
         {
           "cve_id": "CVE-2018-8870",
-          "description": "",
+          "description": "Medtronic MyCareLink Patient Monitor",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.4,
           "severity": "MEDIUM",
           "published": "2018-06-28",
@@ -3011,8 +3270,9 @@
         },
         {
           "cve_id": "CVE-2023-25931",
-          "description": "",
+          "description": "Medtronic Micro Clinician and InterStim Apps",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:H",
           "base_score": 6.4,
           "severity": "MEDIUM",
           "published": "2023-03-06",
@@ -3020,8 +3280,9 @@
         },
         {
           "cve_id": "CVE-2018-10631",
-          "description": "",
+          "description": "Medtronic N'Vision Clinician Programmer (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 6.3,
           "severity": "MEDIUM",
           "published": "2018-05-17",
@@ -3029,8 +3290,9 @@
         },
         {
           "cve_id": "CVE-2018-8868",
-          "description": "",
+          "description": "Medtronic MyCareLink Patient Monitor",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:L/UI:N/S:C/C:H/I:L/A:L",
           "base_score": 6.2,
           "severity": "MEDIUM",
           "published": "2018-06-28",
@@ -3038,8 +3300,9 @@
         },
         {
           "cve_id": "CVE-2019-13543",
-          "description": "",
+          "description": "Medtronic Valleylab FT10 and FX8",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N",
           "base_score": 5.8,
           "severity": "MEDIUM",
           "published": "2019-11-07",
@@ -3047,8 +3310,9 @@
         },
         {
           "cve_id": "CVE-2018-14781",
-          "description": "",
+          "description": "Medtronic MiniMed MMT-500/MMT-503 Remote Controllers (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:N/I:H/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2018-08-07",
@@ -3056,8 +3320,9 @@
         },
         {
           "cve_id": "CVE-2018-5446",
-          "description": "",
+          "description": "Medtronic 2090 Carelink Programmer Vulnerabilities (Update C)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:N/S:C/C:H/I:N/A:N",
           "base_score": 4.9,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -3065,8 +3330,9 @@
         },
         {
           "cve_id": "CVE-2018-10622",
-          "description": "",
+          "description": "Medtronic MyCareLink 24950 Patient Monitor",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:N/S:C/C:H/I:N/A:N",
           "base_score": 4.9,
           "severity": "MEDIUM",
           "published": "2018-08-07",
@@ -3074,8 +3340,9 @@
         },
         {
           "cve_id": "CVE-2018-5448",
-          "description": "",
+          "description": "Medtronic 2090 Carelink Programmer Vulnerabilities (Update C)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 4.8,
           "severity": "MEDIUM",
           "published": "2018-02-27",
@@ -3083,8 +3350,9 @@
         },
         {
           "cve_id": "CVE-2018-10634",
-          "description": "",
+          "description": "Medtronic MiniMed MMT-500/MMT-503 Remote Controllers (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N",
           "base_score": 4.8,
           "severity": "MEDIUM",
           "published": "2018-08-07",
@@ -3092,8 +3360,9 @@
         },
         {
           "cve_id": "CVE-2019-13531",
-          "description": "",
+          "description": "Medtronic Valleylab FT10 and LS10",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:N/S:U/C:N/I:H/A:L",
           "base_score": 4.8,
           "severity": "MEDIUM",
           "published": "2019-11-07",
@@ -3101,8 +3370,9 @@
         },
         {
           "cve_id": "CVE-2022-32537",
-          "description": "",
+          "description": "Medtronic NGP 600 Series Insulin Pumps",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:L/UI:N/S:U/C:N/I:H/A:N",
           "base_score": 4.8,
           "severity": "MEDIUM",
           "published": "2022-09-20",
@@ -3110,8 +3380,9 @@
         },
         {
           "cve_id": "CVE-2018-8849",
-          "description": "",
+          "description": "Medtronic N'Vision Clinician Programmer (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2018-05-17",
@@ -3119,8 +3390,9 @@
         },
         {
           "cve_id": "CVE-2018-18984",
-          "description": "",
+          "description": "Medtronic 9790, 2090 CareLink, and 29901 Encore Programmers",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2018-12-13",
@@ -3128,8 +3400,9 @@
         },
         {
           "cve_id": "CVE-2019-13535",
-          "description": "",
+          "description": "Medtronic Valleylab FT10 and LS10",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2019-11-07",
@@ -3137,8 +3410,9 @@
         },
         {
           "cve_id": "CVE-2018-10626",
-          "description": "",
+          "description": "Medtronic MyCareLink 24950 Patient Monitor",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:L/UI:N/S:C/C:L/I:L/A:N",
           "base_score": 4.4,
           "severity": "MEDIUM",
           "published": "2018-08-07",
@@ -3148,7 +3422,7 @@
       "cve_count": 29,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899316+00:00",
+      "last_checked": "2026-04-17T14:06:18.412112+00:00",
       "source": "cisa_icsma"
     },
     "beaconmedaes": {
@@ -3163,8 +3437,9 @@
       "cves": [
         {
           "cve_id": "CVE-2018-7518",
-          "description": "",
+          "description": "BeaconMedaes TotalAlert Scroll Medical Air Systems",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-05-24",
@@ -3172,8 +3447,9 @@
         },
         {
           "cve_id": "CVE-2018-7510",
-          "description": "",
+          "description": "BeaconMedaes TotalAlert Scroll Medical Air Systems",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-05-24",
@@ -3183,7 +3459,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899322+00:00",
+      "last_checked": "2026-04-17T14:06:18.412123+00:00",
       "source": "cisa_icsma"
     },
     "natus medical": {
@@ -3198,8 +3474,9 @@
       "cves": [
         {
           "cve_id": "CVE-2017-2853",
-          "description": "",
+          "description": "Natus Xltek NeuroWorks",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2018-06-14",
@@ -3207,8 +3484,9 @@
         },
         {
           "cve_id": "CVE-2017-2868",
-          "description": "",
+          "description": "Natus Xltek NeuroWorks",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2018-06-14",
@@ -3216,8 +3494,9 @@
         },
         {
           "cve_id": "CVE-2017-2869",
-          "description": "",
+          "description": "Natus Xltek NeuroWorks",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2018-06-14",
@@ -3225,8 +3504,9 @@
         },
         {
           "cve_id": "CVE-2017-2867",
-          "description": "",
+          "description": "Natus Xltek NeuroWorks",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.0,
           "severity": "CRITICAL",
           "published": "2018-06-14",
@@ -3234,8 +3514,9 @@
         },
         {
           "cve_id": "CVE-2017-2852",
-          "description": "",
+          "description": "Natus Xltek NeuroWorks",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-06-14",
@@ -3243,8 +3524,9 @@
         },
         {
           "cve_id": "CVE-2017-2858",
-          "description": "",
+          "description": "Natus Xltek NeuroWorks",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-06-14",
@@ -3252,8 +3534,9 @@
         },
         {
           "cve_id": "CVE-2017-2860",
-          "description": "",
+          "description": "Natus Xltek NeuroWorks",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-06-14",
@@ -3261,8 +3544,9 @@
         },
         {
           "cve_id": "CVE-2017-2861",
-          "description": "",
+          "description": "Natus Xltek NeuroWorks",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2018-06-14",
@@ -3272,7 +3556,7 @@
       "cve_count": 8,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899331+00:00",
+      "last_checked": "2026-04-17T14:06:18.412130+00:00",
       "source": "cisa_icsma"
     },
     "qualcomm life": {
@@ -3287,8 +3571,9 @@
       "cves": [
         {
           "cve_id": "CVE-2014-9222",
-          "description": "",
+          "description": "CVE-2014-9222",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2018-08-28",
@@ -3298,7 +3583,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899337+00:00",
+      "last_checked": "2026-04-17T14:06:18.412134+00:00",
       "source": "cisa_icsma"
     },
     "carestream": {
@@ -3313,8 +3598,9 @@
       "cves": [
         {
           "cve_id": "CVE-2018-17891",
-          "description": "",
+          "description": "Carestream Vue RIS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.7,
           "severity": "LOW",
           "published": "2018-10-04",
@@ -3324,7 +3610,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899343+00:00",
+      "last_checked": "2026-04-17T14:06:18.412138+00:00",
       "source": "cisa_icsma"
     },
     "change healthcare": {
@@ -3344,8 +3630,9 @@
       "cves": [
         {
           "cve_id": "CVE-2018-18630",
-          "description": "",
+          "description": "Change Healthcare McKesson and Horizon Cardiology",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2019-08-29",
@@ -3353,8 +3640,9 @@
         },
         {
           "cve_id": "CVE-2018-10624",
-          "description": "",
+          "description": "Change Healthcare PeerVue Web Server",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2018-10-04",
@@ -3364,7 +3652,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899350+00:00",
+      "last_checked": "2026-04-17T14:06:18.412143+00:00",
       "source": "cisa_icsma"
     },
     "roche": {
@@ -3379,8 +3667,9 @@
       "cves": [
         {
           "cve_id": "CVE-2018-18564",
-          "description": "",
+          "description": "Roche Diagnostics Point of Care Handheld Medical Devices (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 8.3,
           "severity": "HIGH",
           "published": "2018-11-06",
@@ -3388,8 +3677,9 @@
         },
         {
           "cve_id": "CVE-2018-18565",
-          "description": "",
+          "description": "Roche Diagnostics Point of Care Handheld Medical Devices (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:C/C:H/I:L/A:H",
           "base_score": 8.2,
           "severity": "HIGH",
           "published": "2018-11-06",
@@ -3397,8 +3687,9 @@
         },
         {
           "cve_id": "CVE-2018-18562",
-          "description": "",
+          "description": "Roche Diagnostics Point of Care Handheld Medical Devices (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:C/C:N/I:H/A:H",
           "base_score": 8.0,
           "severity": "HIGH",
           "published": "2018-11-06",
@@ -3406,8 +3697,9 @@
         },
         {
           "cve_id": "CVE-2018-18563",
-          "description": "",
+          "description": "Roche Diagnostics Point of Care Handheld Medical Devices (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:C/C:N/I:H/A:H",
           "base_score": 8.0,
           "severity": "HIGH",
           "published": "2018-11-06",
@@ -3415,8 +3707,9 @@
         },
         {
           "cve_id": "CVE-2018-18561",
-          "description": "",
+          "description": "Roche Diagnostics Point of Care Handheld Medical Devices (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2018-11-06",
@@ -3426,7 +3719,7 @@
       "cve_count": 5,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899358+00:00",
+      "last_checked": "2026-04-17T14:06:18.412148+00:00",
       "source": "cisa_icsma"
     },
     "dr\u00e4ger": {
@@ -3441,8 +3734,9 @@
       "cves": [
         {
           "cve_id": "CVE-2018-19012",
-          "description": "",
+          "description": "Dr\u00e4ger Infinity Delta",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.4,
           "severity": "HIGH",
           "published": "2019-01-22",
@@ -3450,8 +3744,9 @@
         },
         {
           "cve_id": "CVE-2018-19010",
-          "description": "",
+          "description": "Dr\u00e4ger Infinity Delta",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2019-01-22",
@@ -3459,8 +3754,9 @@
         },
         {
           "cve_id": "CVE-2018-19014",
-          "description": "",
+          "description": "Dr\u00e4ger Infinity Delta",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2019-01-22",
@@ -3470,7 +3766,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899364+00:00",
+      "last_checked": "2026-04-17T14:06:18.412152+00:00",
       "source": "cisa_icsma"
     },
     "stryker": {
@@ -3485,8 +3781,9 @@
       "cves": [
         {
           "cve_id": "CVE-2017-13077",
-          "description": "",
+          "description": "Stryker Medical Beds",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2019-01-29",
@@ -3496,7 +3793,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899371+00:00",
+      "last_checked": "2026-04-17T14:06:18.412158+00:00",
       "source": "cisa_icsma"
     },
     "fujifilm": {
@@ -3516,8 +3813,9 @@
       "cves": [
         {
           "cve_id": "CVE-2019-10950",
-          "description": "",
+          "description": "Fujifilm FCR Capsula X/Carbon X",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2019-04-23",
@@ -3525,8 +3823,9 @@
         },
         {
           "cve_id": "CVE-2019-10948",
-          "description": "",
+          "description": "Fujifilm FCR Capsula X/Carbon X",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2019-04-23",
@@ -3534,8 +3833,9 @@
         },
         {
           "cve_id": "CVE-2025-54551",
-          "description": "",
+          "description": "FUJIFILM Healthcare Americas Synapse Mobility",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2025-08-21",
@@ -3545,7 +3845,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899378+00:00",
+      "last_checked": "2026-04-17T14:06:18.412163+00:00",
       "source": "cisa_icsma"
     },
     "spacelabs": {
@@ -3560,8 +3860,9 @@
       "cves": [
         {
           "cve_id": "CVE-2019-0708",
-          "description": "",
+          "description": "Spacelabs Xhibit Telemetry Receiver (XTR)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2020-02-18",
@@ -3571,7 +3872,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899384+00:00",
+      "last_checked": "2026-04-17T14:06:18.412168+00:00",
       "source": "cisa_icsma"
     },
     "insulet": {
@@ -3586,8 +3887,9 @@
       "cves": [
         {
           "cve_id": "CVE-2020-10627",
-          "description": "",
+          "description": "Insulet Omnipod",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2020-03-19",
@@ -3597,7 +3899,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899390+00:00",
+      "last_checked": "2026-04-17T14:06:18.412172+00:00",
       "source": "cisa_icsma"
     },
     "baxter": {
@@ -3652,8 +3954,9 @@
       "cves": [
         {
           "cve_id": "CVE-2024-6795",
-          "description": "",
+          "description": "Baxter Connex Health Portal",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2024-09-05",
@@ -3661,8 +3964,9 @@
         },
         {
           "cve_id": "CVE-2024-48966",
-          "description": "",
+          "description": "Baxter Life2000 Ventilation System",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2024-11-14",
@@ -3670,8 +3974,9 @@
         },
         {
           "cve_id": "CVE-2024-48967",
-          "description": "",
+          "description": "Baxter Life2000 Ventilation System",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2024-11-14",
@@ -3679,8 +3984,9 @@
         },
         {
           "cve_id": "CVE-2024-5176",
-          "description": "",
+          "description": "Baxter Welch Allyn Configuration Tool",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:L",
           "base_score": 9.6,
           "severity": "CRITICAL",
           "published": "2024-05-30",
@@ -3688,8 +3994,9 @@
         },
         {
           "cve_id": "CVE-2024-9834",
-          "description": "",
+          "description": "Baxter Life2000 Ventilation System",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.3,
           "severity": "CRITICAL",
           "published": "2024-11-14",
@@ -3697,8 +4004,9 @@
         },
         {
           "cve_id": "CVE-2024-9832",
-          "description": "",
+          "description": "Baxter Life2000 Ventilation System",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.3,
           "severity": "CRITICAL",
           "published": "2024-11-14",
@@ -3706,8 +4014,9 @@
         },
         {
           "cve_id": "CVE-2024-48971",
-          "description": "",
+          "description": "Baxter Life2000 Ventilation System",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.3,
           "severity": "CRITICAL",
           "published": "2024-11-14",
@@ -3715,8 +4024,9 @@
         },
         {
           "cve_id": "CVE-2024-48973",
-          "description": "",
+          "description": "Baxter Life2000 Ventilation System",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.3,
           "severity": "CRITICAL",
           "published": "2024-11-14",
@@ -3724,8 +4034,9 @@
         },
         {
           "cve_id": "CVE-2024-48974",
-          "description": "",
+          "description": "Baxter Life2000 Ventilation System",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.3,
           "severity": "CRITICAL",
           "published": "2024-11-14",
@@ -3733,8 +4044,9 @@
         },
         {
           "cve_id": "CVE-2024-48970",
-          "description": "",
+          "description": "Baxter Life2000 Ventilation System",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.3,
           "severity": "CRITICAL",
           "published": "2024-11-14",
@@ -3742,8 +4054,9 @@
         },
         {
           "cve_id": "CVE-2020-12045",
-          "description": "",
+          "description": "Baxter Sigma Spectrum Infusion Pumps (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:H",
           "base_score": 8.6,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3751,8 +4064,9 @@
         },
         {
           "cve_id": "CVE-2020-12041",
-          "description": "",
+          "description": "Baxter Sigma Spectrum Infusion Pumps (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:H",
           "base_score": 8.6,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3760,8 +4074,9 @@
         },
         {
           "cve_id": "CVE-2024-6796",
-          "description": "",
+          "description": "Baxter Connex Health Portal",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:N",
           "base_score": 8.2,
           "severity": "HIGH",
           "published": "2024-09-05",
@@ -3769,8 +4084,9 @@
         },
         {
           "cve_id": "CVE-2020-12016",
-          "description": "",
+          "description": "Baxter ExactaMix (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3778,8 +4094,9 @@
         },
         {
           "cve_id": "CVE-2020-12032",
-          "description": "",
+          "description": "Baxter ExactaMix (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3787,8 +4104,9 @@
         },
         {
           "cve_id": "CVE-2017-0143",
-          "description": "",
+          "description": "Baxter ExactaMix (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3796,8 +4114,9 @@
         },
         {
           "cve_id": "CVE-2020-12035",
-          "description": "",
+          "description": "Baxter PrismaFlex and PrisMax (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:L/A:L",
           "base_score": 7.6,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3805,8 +4124,9 @@
         },
         {
           "cve_id": "CVE-2020-12008",
-          "description": "",
+          "description": "Baxter ExactaMix (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3814,8 +4134,9 @@
         },
         {
           "cve_id": "CVE-2020-12048",
-          "description": "",
+          "description": "Baxter Phoenix Hemodialysis Delivery System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3823,8 +4144,9 @@
         },
         {
           "cve_id": "CVE-2022-26394",
-          "description": "",
+          "description": "Baxter Sigma Spectrum Infusion Pump (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:N/S:C/C:L/I:H/A:L",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2022-09-08",
@@ -3832,8 +4154,9 @@
         },
         {
           "cve_id": "CVE-2020-8004",
-          "description": "",
+          "description": "Baxter Life2000 Ventilation System",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2024-11-14",
@@ -3841,8 +4164,9 @@
         },
         {
           "cve_id": "CVE-2024-1275",
-          "description": "",
+          "description": "Baxter Welch Allyn Connex Spot Monitor",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 7.4,
           "severity": "HIGH",
           "published": "2024-05-30",
@@ -3850,8 +4174,9 @@
         },
         {
           "cve_id": "CVE-2020-12040",
-          "description": "",
+          "description": "Baxter Sigma Spectrum Infusion Pumps (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3859,8 +4184,9 @@
         },
         {
           "cve_id": "CVE-2020-12047",
-          "description": "",
+          "description": "Baxter Sigma Spectrum Infusion Pumps (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3868,8 +4194,9 @@
         },
         {
           "cve_id": "CVE-2020-12043",
-          "description": "",
+          "description": "Baxter Sigma Spectrum Infusion Pumps (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2020-06-18",
@@ -3877,8 +4204,9 @@
         },
         {
           "cve_id": "CVE-2020-12012",
-          "description": "",
+          "description": "Baxter ExactaMix (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -3886,8 +4214,9 @@
         },
         {
           "cve_id": "CVE-2020-12024",
-          "description": "",
+          "description": "Baxter ExactaMix (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -3895,8 +4224,9 @@
         },
         {
           "cve_id": "CVE-2020-12036",
-          "description": "",
+          "description": "Baxter PrismaFlex and PrisMax (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -3904,8 +4234,9 @@
         },
         {
           "cve_id": "CVE-2020-12020",
-          "description": "",
+          "description": "Baxter ExactaMix (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:H",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -3913,8 +4244,9 @@
         },
         {
           "cve_id": "CVE-2020-12037",
-          "description": "",
+          "description": "Baxter PrismaFlex and PrisMax (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:L",
           "base_score": 5.4,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -3922,8 +4254,9 @@
         },
         {
           "cve_id": "CVE-2022-26393",
-          "description": "",
+          "description": "Baxter Sigma Spectrum Infusion Pump (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:L/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 5.0,
           "severity": "MEDIUM",
           "published": "2022-09-08",
@@ -3931,8 +4264,9 @@
         },
         {
           "cve_id": "CVE-2020-12039",
-          "description": "",
+          "description": "Baxter Sigma Spectrum Infusion Pumps (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -3940,8 +4274,9 @@
         },
         {
           "cve_id": "CVE-2022-26390",
-          "description": "",
+          "description": "Baxter Sigma Spectrum Infusion Pump (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 4.2,
           "severity": "MEDIUM",
           "published": "2022-09-08",
@@ -3949,8 +4284,9 @@
         },
         {
           "cve_id": "CVE-2022-26392",
-          "description": "",
+          "description": "Baxter Sigma Spectrum Infusion Pump (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:L/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 3.1,
           "severity": "LOW",
           "published": "2022-09-08",
@@ -3960,7 +4296,7 @@
       "cve_count": 34,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899409+00:00",
+      "last_checked": "2026-04-17T14:06:18.412185+00:00",
       "source": "cisa_icsma"
     },
     "biotronik": {
@@ -3975,8 +4311,9 @@
       "cves": [
         {
           "cve_id": "CVE-2019-18254",
-          "description": "",
+          "description": "BIOTRONIK CardioMessenger II",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -3984,8 +4321,9 @@
         },
         {
           "cve_id": "CVE-2019-18256",
-          "description": "",
+          "description": "BIOTRONIK CardioMessenger II",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -3993,8 +4331,9 @@
         },
         {
           "cve_id": "CVE-2019-18246",
-          "description": "",
+          "description": "BIOTRONIK CardioMessenger II",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -4002,8 +4341,9 @@
         },
         {
           "cve_id": "CVE-2019-18248",
-          "description": "",
+          "description": "BIOTRONIK CardioMessenger II",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -4011,8 +4351,9 @@
         },
         {
           "cve_id": "CVE-2019-18252",
-          "description": "",
+          "description": "BIOTRONIK CardioMessenger II",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2020-06-18",
@@ -4022,7 +4363,7 @@
       "cve_count": 5,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899416+00:00",
+      "last_checked": "2026-04-17T14:06:18.412190+00:00",
       "source": "cisa_icsma"
     },
     "capsule technologies": {
@@ -4037,8 +4378,9 @@
       "cves": [
         {
           "cve_id": "CVE-2019-5024",
-          "description": "",
+          "description": "Capsule Technologies SmartLinx Neuron 2 (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 7.6,
           "severity": "HIGH",
           "published": "2020-07-14",
@@ -4048,7 +4390,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899422+00:00",
+      "last_checked": "2026-04-17T14:06:18.412194+00:00",
       "source": "cisa_icsma"
     },
     "innokas": {
@@ -4063,8 +4405,9 @@
       "cves": [
         {
           "cve_id": "CVE-2020-27260",
-          "description": "",
+          "description": "Innokas Yhtym\u00e4 Oy Vital Signs Monitor",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:C/C:N/I:H/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2021-01-07",
@@ -4072,8 +4415,9 @@
         },
         {
           "cve_id": "CVE-2020-27262",
-          "description": "",
+          "description": "Innokas Yhtym\u00e4 Oy Vital Signs Monitor",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:L/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2021-01-07",
@@ -4083,7 +4427,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899428+00:00",
+      "last_checked": "2026-04-17T14:06:18.412199+00:00",
       "source": "cisa_icsma"
     },
     "sooil": {
@@ -4098,8 +4442,9 @@
       "cves": [
         {
           "cve_id": "CVE-2020-27264",
-          "description": "",
+          "description": "SOOIL Dana Diabecare RS Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:L",
           "base_score": 7.6,
           "severity": "HIGH",
           "published": "2021-01-12",
@@ -4107,8 +4452,9 @@
         },
         {
           "cve_id": "CVE-2020-27258",
-          "description": "",
+          "description": "SOOIL Dana Diabecare RS Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-01-12",
@@ -4116,8 +4462,9 @@
         },
         {
           "cve_id": "CVE-2020-27266",
-          "description": "",
+          "description": "SOOIL Dana Diabecare RS Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-01-12",
@@ -4125,8 +4472,9 @@
         },
         {
           "cve_id": "CVE-2020-27268",
-          "description": "",
+          "description": "SOOIL Dana Diabecare RS Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-01-12",
@@ -4134,8 +4482,9 @@
         },
         {
           "cve_id": "CVE-2020-27270",
-          "description": "",
+          "description": "SOOIL Dana Diabecare RS Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
           "base_score": 5.7,
           "severity": "MEDIUM",
           "published": "2021-01-12",
@@ -4143,8 +4492,9 @@
         },
         {
           "cve_id": "CVE-2020-27272",
-          "description": "",
+          "description": "SOOIL Dana Diabecare RS Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
           "base_score": 5.7,
           "severity": "MEDIUM",
           "published": "2021-01-12",
@@ -4152,8 +4502,9 @@
         },
         {
           "cve_id": "CVE-2020-27276",
-          "description": "",
+          "description": "SOOIL Dana Diabecare RS Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
           "base_score": 5.7,
           "severity": "MEDIUM",
           "published": "2021-01-12",
@@ -4161,8 +4512,9 @@
         },
         {
           "cve_id": "CVE-2020-27269",
-          "description": "",
+          "description": "SOOIL Dana Diabecare RS Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:N/UI:R/S:U/C:L/I:H/A:N",
           "base_score": 5.4,
           "severity": "MEDIUM",
           "published": "2021-01-12",
@@ -4170,8 +4522,9 @@
         },
         {
           "cve_id": "CVE-2020-27256",
-          "description": "",
+          "description": "SOOIL Dana Diabecare RS Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2021-01-12",
@@ -4181,7 +4534,7 @@
       "cve_count": 9,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899437+00:00",
+      "last_checked": "2026-04-17T14:06:18.412205+00:00",
       "source": "cisa_icsma"
     },
     "hamilton medical": {
@@ -4196,8 +4549,9 @@
       "cves": [
         {
           "cve_id": "CVE-2020-27282",
-          "description": "",
+          "description": "Hamilton-T1",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2021-02-16",
@@ -4205,8 +4559,9 @@
         },
         {
           "cve_id": "CVE-2020-27278",
-          "description": "",
+          "description": "Hamilton-T1",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
           "base_score": 3.5,
           "severity": "LOW",
           "published": "2021-02-16",
@@ -4214,8 +4569,9 @@
         },
         {
           "cve_id": "CVE-2020-27290",
-          "description": "",
+          "description": "Hamilton-T1",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 2.1,
           "severity": "LOW",
           "published": "2021-02-16",
@@ -4225,7 +4581,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899443+00:00",
+      "last_checked": "2026-04-17T14:06:18.412210+00:00",
       "source": "cisa_icsma"
     },
     "hillrom": {
@@ -4250,8 +4606,9 @@
       "cves": [
         {
           "cve_id": "CVE-2021-43935",
-          "description": "",
+          "description": "Hillrom Welch Allyn Cardio Products",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.1,
           "severity": "HIGH",
           "published": "2021-12-09",
@@ -4259,8 +4616,9 @@
         },
         {
           "cve_id": "CVE-2022-26389",
-          "description": "",
+          "description": "Hillrom Medical Device Management",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:L/UI:N/S:C/C:L/I:L/A:H",
           "base_score": 7.7,
           "severity": "HIGH",
           "published": "2022-06-16",
@@ -4268,8 +4626,9 @@
         },
         {
           "cve_id": "CVE-2022-26388",
-          "description": "",
+          "description": "Hillrom Medical Device Management",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:L",
           "base_score": 6.4,
           "severity": "MEDIUM",
           "published": "2022-06-16",
@@ -4277,8 +4636,9 @@
         },
         {
           "cve_id": "CVE-2021-27410",
-          "description": "",
+          "description": "Hillrom Medical Device Management (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:L/UI:N/S:U/C:L/I:H/A:L",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2021-06-01",
@@ -4286,8 +4646,9 @@
         },
         {
           "cve_id": "CVE-2021-27408",
-          "description": "",
+          "description": "Hillrom Medical Device Management (Update B)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:A/AC:H/PR:L/UI:N/S:U/C:L/I:H/A:L",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2021-06-01",
@@ -4297,7 +4658,7 @@
       "cve_count": 5,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899450+00:00",
+      "last_checked": "2026-04-17T14:06:18.412215+00:00",
       "source": "cisa_icsma"
     },
     "zoll": {
@@ -4317,8 +4678,9 @@
       "cves": [
         {
           "cve_id": "CVE-2021-27489",
-          "description": "",
+          "description": "ZOLL Defibrillator Dashboard",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 9.9,
           "severity": "CRITICAL",
           "published": "2021-06-10",
@@ -4326,8 +4688,9 @@
         },
         {
           "cve_id": "CVE-2021-27481",
-          "description": "",
+          "description": "ZOLL Defibrillator Dashboard",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 7.1,
           "severity": "HIGH",
           "published": "2021-06-10",
@@ -4335,8 +4698,9 @@
         },
         {
           "cve_id": "CVE-2021-27487",
-          "description": "",
+          "description": "ZOLL Defibrillator Dashboard",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 7.1,
           "severity": "HIGH",
           "published": "2021-06-10",
@@ -4344,8 +4708,9 @@
         },
         {
           "cve_id": "CVE-2021-27485",
-          "description": "",
+          "description": "ZOLL Defibrillator Dashboard",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 7.1,
           "severity": "HIGH",
           "published": "2021-06-10",
@@ -4353,8 +4718,9 @@
         },
         {
           "cve_id": "CVE-2025-12699",
-          "description": "",
+          "description": "ZOLL ePCR IOS Mobile Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
           "base_score": 5.5,
           "severity": "MEDIUM",
           "published": "2026-02-10",
@@ -4362,8 +4728,9 @@
         },
         {
           "cve_id": "CVE-2021-27483",
-          "description": "",
+          "description": "ZOLL Defibrillator Dashboard",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2021-06-10",
@@ -4371,8 +4738,9 @@
         },
         {
           "cve_id": "CVE-2021-27479",
-          "description": "",
+          "description": "ZOLL Defibrillator Dashboard",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:L/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2021-06-10",
@@ -4382,7 +4750,7 @@
       "cve_count": 7,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899458+00:00",
+      "last_checked": "2026-04-17T14:06:18.412221+00:00",
       "source": "cisa_icsma"
     },
     "ypsomed": {
@@ -4397,8 +4765,9 @@
       "cves": [
         {
           "cve_id": "CVE-2021-27495",
-          "description": "",
+          "description": "CVE-2021-27495",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:N",
           "base_score": 6.3,
           "severity": "MEDIUM",
           "published": "2021-07-15",
@@ -4406,8 +4775,9 @@
         },
         {
           "cve_id": "CVE-2021-27491",
-          "description": "",
+          "description": "CVE-2021-27491",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N",
           "base_score": 5.8,
           "severity": "MEDIUM",
           "published": "2021-07-15",
@@ -4415,8 +4785,9 @@
         },
         {
           "cve_id": "CVE-2021-27499",
-          "description": "",
+          "description": "CVE-2021-27499",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
           "base_score": 5.4,
           "severity": "MEDIUM",
           "published": "2021-07-15",
@@ -4424,8 +4795,9 @@
         },
         {
           "cve_id": "CVE-2021-27503",
-          "description": "",
+          "description": "CVE-2021-27503",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
           "base_score": 5.4,
           "severity": "MEDIUM",
           "published": "2021-07-15",
@@ -4435,7 +4807,7 @@
       "cve_count": 4,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899465+00:00",
+      "last_checked": "2026-04-17T14:06:18.412226+00:00",
       "source": "cisa_icsma"
     },
     "swisslog healthcare": {
@@ -4450,8 +4822,9 @@
       "cves": [
         {
           "cve_id": "CVE-2021-37163",
-          "description": "",
+          "description": "Swisslog Healthcare Translogic PTS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2021-08-03",
@@ -4459,8 +4832,9 @@
         },
         {
           "cve_id": "CVE-2021-37161",
-          "description": "",
+          "description": "Swisslog Healthcare Translogic PTS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2021-08-03",
@@ -4468,8 +4842,9 @@
         },
         {
           "cve_id": "CVE-2021-37162",
-          "description": "",
+          "description": "Swisslog Healthcare Translogic PTS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2021-08-03",
@@ -4477,8 +4852,9 @@
         },
         {
           "cve_id": "CVE-2021-37165",
-          "description": "",
+          "description": "Swisslog Healthcare Translogic PTS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2021-08-03",
@@ -4486,8 +4862,9 @@
         },
         {
           "cve_id": "CVE-2021-37164",
-          "description": "",
+          "description": "Swisslog Healthcare Translogic PTS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2021-08-03",
@@ -4495,8 +4872,9 @@
         },
         {
           "cve_id": "CVE-2021-37166",
-          "description": "",
+          "description": "Swisslog Healthcare Translogic PTS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2021-08-03",
@@ -4504,8 +4882,9 @@
         },
         {
           "cve_id": "CVE-2021-37167",
-          "description": "",
+          "description": "Swisslog Healthcare Translogic PTS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2021-08-03",
@@ -4513,8 +4892,9 @@
         },
         {
           "cve_id": "CVE-2021-37160",
-          "description": "",
+          "description": "Swisslog Healthcare Translogic PTS",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2021-08-03",
@@ -4524,7 +4904,7 @@
       "cve_count": 8,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899473+00:00",
+      "last_checked": "2026-04-17T14:06:18.412232+00:00",
       "source": "cisa_icsma"
     },
     "fresenius kabi": {
@@ -4539,8 +4919,9 @@
       "cves": [
         {
           "cve_id": "CVE-2021-23236",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2021-12-21",
@@ -4548,8 +4929,9 @@
         },
         {
           "cve_id": "CVE-2020-35340",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2021-12-21",
@@ -4557,8 +4939,9 @@
         },
         {
           "cve_id": "CVE-2021-41835",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2021-12-21",
@@ -4566,8 +4949,9 @@
         },
         {
           "cve_id": "CVE-2021-23196",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2021-12-21",
@@ -4575,8 +4959,9 @@
         },
         {
           "cve_id": "CVE-2021-23233",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2021-12-21",
@@ -4584,8 +4969,9 @@
         },
         {
           "cve_id": "CVE-2021-43355",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2021-12-21",
@@ -4593,8 +4979,9 @@
         },
         {
           "cve_id": "CVE-2021-31562",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-12-21",
@@ -4602,8 +4989,9 @@
         },
         {
           "cve_id": "CVE-2021-23207",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:C/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2021-12-21",
@@ -4611,8 +4999,9 @@
         },
         {
           "cve_id": "CVE-2021-44464",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 6.3,
           "severity": "MEDIUM",
           "published": "2021-12-21",
@@ -4620,8 +5009,9 @@
         },
         {
           "cve_id": "CVE-2021-33846",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2021-12-21",
@@ -4629,8 +5019,9 @@
         },
         {
           "cve_id": "CVE-2021-33848",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
           "base_score": 5.4,
           "severity": "MEDIUM",
           "published": "2021-12-21",
@@ -4638,8 +5029,9 @@
         },
         {
           "cve_id": "CVE-2021-33843",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2021-12-21",
@@ -4647,8 +5039,9 @@
         },
         {
           "cve_id": "CVE-2021-23195",
-          "description": "",
+          "description": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2021-12-21",
@@ -4658,7 +5051,7 @@
       "cve_count": 13,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899482+00:00",
+      "last_checked": "2026-04-17T14:06:18.412239+00:00",
       "source": "cisa_icsma"
     },
     "lifepoint informatics": {
@@ -4673,8 +5066,9 @@
       "cves": [
         {
           "cve_id": "CVE-2022-1067",
-          "description": "",
+          "description": "LifePoint Informatics Patient Portal",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 6.5,
           "severity": "MEDIUM",
           "published": "2022-04-05",
@@ -4684,7 +5078,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899488+00:00",
+      "last_checked": "2026-04-17T14:06:18.412243+00:00",
       "source": "cisa_icsma"
     },
     "contec health": {
@@ -4704,8 +5098,9 @@
       "cves": [
         {
           "cve_id": "CVE-2024-12248",
-          "description": "",
+          "description": "Contec Health CMS8000 Patient Monitor (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2025-01-30",
@@ -4713,8 +5108,9 @@
         },
         {
           "cve_id": "CVE-2022-38100",
-          "description": "",
+          "description": "Contec Health CMS8000 Patient Monitor (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2022-09-01",
@@ -4722,8 +5118,9 @@
         },
         {
           "cve_id": "CVE-2025-0626",
-          "description": "",
+          "description": "Contec Health CMS8000 Patient Monitor (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2025-01-30",
@@ -4731,8 +5128,9 @@
         },
         {
           "cve_id": "CVE-2025-1204",
-          "description": "",
+          "description": "Contec Health CMS8000 Patient Monitor (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2025-01-30",
@@ -4740,8 +5138,9 @@
         },
         {
           "cve_id": "CVE-2022-36385",
-          "description": "",
+          "description": "Contec Health CMS8000 Patient Monitor (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2022-09-01",
@@ -4749,8 +5148,9 @@
         },
         {
           "cve_id": "CVE-2025-0683",
-          "description": "",
+          "description": "Contec Health CMS8000 Patient Monitor (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 5.9,
           "severity": "MEDIUM",
           "published": "2025-01-30",
@@ -4758,8 +5158,9 @@
         },
         {
           "cve_id": "CVE-2022-3027",
-          "description": "",
+          "description": "Contec Health CMS8000 Patient Monitor (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
           "base_score": 5.7,
           "severity": "MEDIUM",
           "published": "2022-09-01",
@@ -4767,8 +5168,9 @@
         },
         {
           "cve_id": "CVE-2022-38069",
-          "description": "",
+          "description": "Contec Health CMS8000 Patient Monitor (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2022-09-01",
@@ -4776,8 +5178,9 @@
         },
         {
           "cve_id": "CVE-2022-38453",
-          "description": "",
+          "description": "Contec Health CMS8000 Patient Monitor (Update A)",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:H/PR:H/UI:N/S:U/C:L/I:L/A:N",
           "base_score": 3.0,
           "severity": "LOW",
           "published": "2022-09-01",
@@ -4787,7 +5190,7 @@
       "cve_count": 9,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899496+00:00",
+      "last_checked": "2026-04-17T14:06:18.412249+00:00",
       "source": "cisa_icsma"
     },
     "alivecor": {
@@ -4802,8 +5205,9 @@
       "cves": [
         {
           "cve_id": "CVE-2022-40703",
-          "description": "",
+          "description": "AliveCor KardiaMobile",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:N",
           "base_score": 5.2,
           "severity": "MEDIUM",
           "published": "2022-10-25",
@@ -4811,8 +5215,9 @@
         },
         {
           "cve_id": "CVE-2022-41627",
-          "description": "",
+          "description": "AliveCor KardiaMobile",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:H",
           "base_score": 4.8,
           "severity": "MEDIUM",
           "published": "2022-10-25",
@@ -4822,7 +5227,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899502+00:00",
+      "last_checked": "2026-04-17T14:06:18.412254+00:00",
       "source": "cisa_icsma"
     },
     "illumina": {
@@ -4837,8 +5242,9 @@
       "cves": [
         {
           "cve_id": "CVE-2023-1968",
-          "description": "",
+          "description": "Illumina Universal Copy Service",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 10.0,
           "severity": "CRITICAL",
           "published": "2023-04-28",
@@ -4846,8 +5252,9 @@
         },
         {
           "cve_id": "CVE-2023-1966",
-          "description": "",
+          "description": "Illumina Universal Copy Service",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:P/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",
           "base_score": 7.4,
           "severity": "HIGH",
           "published": "2023-04-28",
@@ -4857,7 +5264,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899508+00:00",
+      "last_checked": "2026-04-17T14:06:18.412258+00:00",
       "source": "cisa_icsma"
     },
     "softneta": {
@@ -4872,8 +5279,9 @@
       "cves": [
         {
           "cve_id": "CVE-2023-40150",
-          "description": "",
+          "description": "Softneta MedDream PACS Premium",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 9.8,
           "severity": "CRITICAL",
           "published": "2023-09-05",
@@ -4881,8 +5289,9 @@
         },
         {
           "cve_id": "CVE-2023-39227",
-          "description": "",
+          "description": "Softneta MedDream PACS Premium",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:N",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2023-09-05",
@@ -4892,7 +5301,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899514+00:00",
+      "last_checked": "2026-04-17T14:06:18.412262+00:00",
       "source": "cisa_icsma"
     },
     "santesoft": {
@@ -4937,8 +5346,9 @@
       "cves": [
         {
           "cve_id": "CVE-2023-39431",
-          "description": "",
+          "description": "Santesoft Sante DICOM Viewer Pro",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2023-10-12",
@@ -4946,8 +5356,9 @@
         },
         {
           "cve_id": "CVE-2023-35986",
-          "description": "",
+          "description": "Santesoft Sante DICOM Viewer Pro",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2023-10-12",
@@ -4955,8 +5366,9 @@
         },
         {
           "cve_id": "CVE-2023-5059",
-          "description": "",
+          "description": "Santesoft Sante FFT Imaging",
           "cvss_version": "3.0",
+          "cvss_vector": "CVSS:3.0/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2023-10-12",
@@ -4964,8 +5376,9 @@
         },
         {
           "cve_id": "CVE-2024-1453",
-          "description": "",
+          "description": "Santesoft Sante DICOM Viewer Pro",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2024-02-27",
@@ -4973,8 +5386,9 @@
         },
         {
           "cve_id": "CVE-2024-1696",
-          "description": "",
+          "description": "Santesoft Sante FFT Imaging",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2024-03-05",
@@ -4982,8 +5396,9 @@
         },
         {
           "cve_id": "CVE-2025-2480",
-          "description": "",
+          "description": "Santesoft Sante DICOM Viewer Pro",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2025-03-20",
@@ -4991,8 +5406,9 @@
         },
         {
           "cve_id": "CVE-2025-5307",
-          "description": "",
+          "description": "Santesoft Sante DICOM Viewer Pro",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2025-05-29",
@@ -5000,8 +5416,9 @@
         },
         {
           "cve_id": "CVE-2025-53948",
-          "description": "",
+          "description": "Santesoft Sante PACS Server",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2025-08-12",
@@ -5009,8 +5426,9 @@
         },
         {
           "cve_id": "CVE-2025-54156",
-          "description": "",
+          "description": "Santesoft Sante PACS Server",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 7.4,
           "severity": "HIGH",
           "published": "2025-08-12",
@@ -5018,8 +5436,9 @@
         },
         {
           "cve_id": "CVE-2025-54759",
-          "description": "",
+          "description": "Santesoft Sante PACS Server",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
           "base_score": 6.1,
           "severity": "MEDIUM",
           "published": "2025-08-12",
@@ -5027,8 +5446,9 @@
         },
         {
           "cve_id": "CVE-2025-54862",
-          "description": "",
+          "description": "Santesoft Sante PACS Server",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N",
           "base_score": 5.4,
           "severity": "MEDIUM",
           "published": "2025-08-12",
@@ -5036,8 +5456,9 @@
         },
         {
           "cve_id": "CVE-2025-0572",
-          "description": "",
+          "description": "Santesoft Sante PACS Server",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:N",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2025-08-12",
@@ -5047,7 +5468,7 @@
       "cve_count": 12,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899524+00:00",
+      "last_checked": "2026-04-17T14:06:18.412269+00:00",
       "source": "cisa_icsma"
     },
     "microdicom": {
@@ -5082,8 +5503,9 @@
       "cves": [
         {
           "cve_id": "CVE-2024-33606",
-          "description": "",
+          "description": "MicroDicom DICOM Viewer",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2024-06-11",
@@ -5091,8 +5513,9 @@
         },
         {
           "cve_id": "CVE-2024-28877",
-          "description": "",
+          "description": "MicroDicom DICOM Viewer",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2024-06-11",
@@ -5100,8 +5523,9 @@
         },
         {
           "cve_id": "CVE-2025-35975",
-          "description": "",
+          "description": "MicroDicom DICOM Viewer",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2025-05-01",
@@ -5109,8 +5533,9 @@
         },
         {
           "cve_id": "CVE-2025-36521",
-          "description": "",
+          "description": "MicroDicom DICOM Viewer",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2025-05-01",
@@ -5118,8 +5543,9 @@
         },
         {
           "cve_id": "CVE-2025-5943",
-          "description": "",
+          "description": "MicroDicom DICOM Viewer",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 8.8,
           "severity": "HIGH",
           "published": "2025-06-10",
@@ -5127,8 +5553,9 @@
         },
         {
           "cve_id": "CVE-2024-22100",
-          "description": "",
+          "description": "MicroDicom DICOM Viewer",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2024-02-29",
@@ -5136,8 +5563,9 @@
         },
         {
           "cve_id": "CVE-2024-25578",
-          "description": "",
+          "description": "MicroDicom DICOM Viewer",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2024-02-29",
@@ -5145,8 +5573,9 @@
         },
         {
           "cve_id": "CVE-2025-1002",
-          "description": "",
+          "description": "MicroDicom DICOM Viewer",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:N",
           "base_score": 5.7,
           "severity": "MEDIUM",
           "published": "2025-02-06",
@@ -5156,7 +5585,7 @@
       "cve_count": 8,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899534+00:00",
+      "last_checked": "2026-04-17T14:06:18.412277+00:00",
       "source": "cisa_icsma"
     },
     "bpl medical technologies": {
@@ -5171,8 +5600,9 @@
       "cves": [
         {
           "cve_id": "CVE-2024-34463",
-          "description": "",
+          "description": "BPL Medical Technologies PWS-01-BT and BPL Be Well Android Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
           "base_score": 4.6,
           "severity": "MEDIUM",
           "published": "2024-09-10",
@@ -5182,7 +5612,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899540+00:00",
+      "last_checked": "2026-04-17T14:06:18.412281+00:00",
       "source": "cisa_icsma"
     },
     "ossur": {
@@ -5197,8 +5627,9 @@
       "cves": [
         {
           "cve_id": "CVE-2024-53683",
-          "description": "",
+          "description": "Ossur Mobile Logic Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:U/C:N/I:H/A:N",
           "base_score": 4.4,
           "severity": "MEDIUM",
           "published": "2024-12-19",
@@ -5206,8 +5637,9 @@
         },
         {
           "cve_id": "CVE-2024-45832",
-          "description": "",
+          "description": "Ossur Mobile Logic Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 4.3,
           "severity": "MEDIUM",
           "published": "2024-12-19",
@@ -5215,8 +5647,9 @@
         },
         {
           "cve_id": "CVE-2024-54681",
-          "description": "",
+          "description": "Ossur Mobile Logic Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:N/I:N/A:L",
           "base_score": 3.5,
           "severity": "LOW",
           "published": "2024-12-19",
@@ -5226,7 +5659,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899547+00:00",
+      "last_checked": "2026-04-17T14:06:18.412287+00:00",
       "source": "cisa_icsma"
     },
     "qardio": {
@@ -5241,8 +5674,9 @@
       "cves": [
         {
           "cve_id": "CVE-2025-24836",
-          "description": "",
+          "description": "Qardio Heart Health IOS and Android Application and QardioARM A100",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:H/PR:N/UI:N/S:U/C:L/I:H/A:H",
           "base_score": 7.1,
           "severity": "HIGH",
           "published": "2025-02-13",
@@ -5250,8 +5684,9 @@
         },
         {
           "cve_id": "CVE-2025-23421",
-          "description": "",
+          "description": "Qardio Heart Health IOS and Android Application and QardioARM A100",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:L",
           "base_score": 6.4,
           "severity": "MEDIUM",
           "published": "2025-02-13",
@@ -5259,8 +5694,9 @@
         },
         {
           "cve_id": "CVE-2025-20615",
-          "description": "",
+          "description": "Qardio Heart Health IOS and Android Application and QardioARM A100",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:P/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:L",
           "base_score": 6.2,
           "severity": "MEDIUM",
           "published": "2025-02-13",
@@ -5270,7 +5706,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899554+00:00",
+      "last_checked": "2026-04-17T14:06:18.412292+00:00",
       "source": "cisa_icsma"
     },
     "medixant": {
@@ -5285,8 +5721,9 @@
       "cves": [
         {
           "cve_id": "CVE-2025-1001",
-          "description": "",
+          "description": "Medixant RadiAnt DICOM Viewer",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:N",
           "base_score": 5.7,
           "severity": "MEDIUM",
           "published": "2025-02-20",
@@ -5296,7 +5733,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899561+00:00",
+      "last_checked": "2026-04-17T14:06:18.412296+00:00",
       "source": "cisa_icsma"
     },
     "dario health": {
@@ -5311,8 +5748,9 @@
       "cves": [
         {
           "cve_id": "CVE-2025-20060",
-          "description": "",
+          "description": "Dario Health USB-C Blood Glucose Monitoring System Starter Kit Android Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2025-02-27",
@@ -5320,8 +5758,9 @@
         },
         {
           "cve_id": "CVE-2025-24849",
-          "description": "",
+          "description": "Dario Health USB-C Blood Glucose Monitoring System Starter Kit Android Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:A/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H",
           "base_score": 7.1,
           "severity": "HIGH",
           "published": "2025-02-27",
@@ -5329,8 +5768,9 @@
         },
         {
           "cve_id": "CVE-2025-24318",
-          "description": "",
+          "description": "Dario Health USB-C Blood Glucose Monitoring System Starter Kit Android Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:N/A:N",
           "base_score": 6.8,
           "severity": "MEDIUM",
           "published": "2025-02-27",
@@ -5338,8 +5778,9 @@
         },
         {
           "cve_id": "CVE-2025-20049",
-          "description": "",
+          "description": "Dario Health USB-C Blood Glucose Monitoring System Starter Kit Android Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:C/C:H/I:N/A:N",
           "base_score": 5.8,
           "severity": "MEDIUM",
           "published": "2025-02-27",
@@ -5347,8 +5788,9 @@
         },
         {
           "cve_id": "CVE-2025-23405",
-          "description": "",
+          "description": "Dario Health USB-C Blood Glucose Monitoring System Starter Kit Android Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2025-02-27",
@@ -5356,8 +5798,9 @@
         },
         {
           "cve_id": "CVE-2025-24316",
-          "description": "",
+          "description": "Dario Health USB-C Blood Glucose Monitoring System Starter Kit Android Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2025-02-27",
@@ -5365,8 +5808,9 @@
         },
         {
           "cve_id": "CVE-2025-24843",
-          "description": "",
+          "description": "Dario Health USB-C Blood Glucose Monitoring System Starter Kit Android Application",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:L",
           "base_score": 5.1,
           "severity": "MEDIUM",
           "published": "2025-02-27",
@@ -5376,7 +5820,7 @@
       "cve_count": 7,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899569+00:00",
+      "last_checked": "2026-04-17T14:06:18.412302+00:00",
       "source": "cisa_icsma"
     },
     "infinitt healthcare": {
@@ -5391,8 +5835,9 @@
       "cves": [
         {
           "cve_id": "CVE-2025-27721",
-          "description": "",
+          "description": "INFINITT Healthcare INFINITT PACS",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2025-04-10",
@@ -5400,8 +5845,9 @@
         },
         {
           "cve_id": "CVE-2025-27714",
-          "description": "",
+          "description": "INFINITT Healthcare INFINITT PACS",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 6.3,
           "severity": "MEDIUM",
           "published": "2025-04-10",
@@ -5409,8 +5855,9 @@
         },
         {
           "cve_id": "CVE-2025-24489",
-          "description": "",
+          "description": "INFINITT Healthcare INFINITT PACS",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
           "base_score": 6.3,
           "severity": "MEDIUM",
           "published": "2025-04-10",
@@ -5420,7 +5867,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899576+00:00",
+      "last_checked": "2026-04-17T14:06:18.412306+00:00",
       "source": "cisa_icsma"
     },
     "pixmeo": {
@@ -5435,8 +5882,9 @@
       "cves": [
         {
           "cve_id": "CVE-2025-27578",
-          "description": "",
+          "description": "Pixmeo OsiriX MD",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2025-05-08",
@@ -5444,8 +5892,9 @@
         },
         {
           "cve_id": "CVE-2025-27720",
-          "description": "",
+          "description": "Pixmeo OsiriX MD",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
           "base_score": 7.4,
           "severity": "HIGH",
           "published": "2025-05-08",
@@ -5453,8 +5902,9 @@
         },
         {
           "cve_id": "CVE-2025-31946",
-          "description": "",
+          "description": "Pixmeo OsiriX MD",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 6.2,
           "severity": "MEDIUM",
           "published": "2025-05-08",
@@ -5464,7 +5914,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899582+00:00",
+      "last_checked": "2026-04-17T14:06:18.412311+00:00",
       "source": "cisa_icsma"
     },
     "panoramic corporation": {
@@ -5479,8 +5929,9 @@
       "cves": [
         {
           "cve_id": "CVE-2024-22774",
-          "description": "",
+          "description": "Panoramic Corporation Digital Imaging Software",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2025-07-17",
@@ -5490,7 +5941,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899588+00:00",
+      "last_checked": "2026-04-17T14:06:18.412315+00:00",
       "source": "cisa_icsma"
     },
     "oxford nanopore technologies": {
@@ -5505,8 +5956,9 @@
       "cves": [
         {
           "cve_id": "CVE-2024-35585",
-          "description": "",
+          "description": "Oxford Nanopore Technologies MinKNOW",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:L",
           "base_score": 8.6,
           "severity": "HIGH",
           "published": "2025-10-21",
@@ -5514,8 +5966,9 @@
         },
         {
           "cve_id": "CVE-2025-54808",
-          "description": "",
+          "description": "Oxford Nanopore Technologies MinKNOW",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2025-10-21",
@@ -5523,8 +5976,9 @@
         },
         {
           "cve_id": "CVE-2025-10937",
-          "description": "",
+          "description": "Oxford Nanopore Technologies MinKNOW",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 5.5,
           "severity": "MEDIUM",
           "published": "2025-10-21",
@@ -5534,7 +5988,7 @@
       "cve_count": 3,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899595+00:00",
+      "last_checked": "2026-04-17T14:06:18.412320+00:00",
       "source": "cisa_icsma"
     },
     "nihon kohden": {
@@ -5549,8 +6003,9 @@
       "cves": [
         {
           "cve_id": "CVE-2025-59668",
-          "description": "",
+          "description": "NIHON KOHDEN Central Monitor CNS-6201",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2025-10-23",
@@ -5560,7 +6015,7 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899601+00:00",
+      "last_checked": "2026-04-17T14:06:18.412324+00:00",
       "source": "cisa_icsma"
     },
     "vertikal systems": {
@@ -5575,8 +6030,9 @@
       "cves": [
         {
           "cve_id": "CVE-2025-54459",
-          "description": "",
+          "description": "Vertikal Systems Hospital Manager Backend Services",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
           "base_score": 7.5,
           "severity": "HIGH",
           "published": "2025-10-28",
@@ -5584,8 +6040,9 @@
         },
         {
           "cve_id": "CVE-2025-61959",
-          "description": "",
+          "description": "Vertikal Systems Hospital Manager Backend Services",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
           "base_score": 5.3,
           "severity": "MEDIUM",
           "published": "2025-10-28",
@@ -5595,7 +6052,7 @@
       "cve_count": 2,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899608+00:00",
+      "last_checked": "2026-04-17T14:06:18.412328+00:00",
       "source": "cisa_icsma"
     },
     "mirion medical": {
@@ -5610,8 +6067,9 @@
       "cves": [
         {
           "cve_id": "CVE-2025-64298",
-          "description": "",
+          "description": "Mirion Medical EC2 Software NMIS BioDose",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 8.4,
           "severity": "HIGH",
           "published": "2025-12-02",
@@ -5619,8 +6077,9 @@
         },
         {
           "cve_id": "CVE-2025-61940",
-          "description": "",
+          "description": "Mirion Medical EC2 Software NMIS BioDose",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:L",
           "base_score": 8.3,
           "severity": "HIGH",
           "published": "2025-12-02",
@@ -5628,8 +6087,9 @@
         },
         {
           "cve_id": "CVE-2025-62575",
-          "description": "",
+          "description": "Mirion Medical EC2 Software NMIS BioDose",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:L",
           "base_score": 8.3,
           "severity": "HIGH",
           "published": "2025-12-02",
@@ -5637,8 +6097,9 @@
         },
         {
           "cve_id": "CVE-2025-64642",
-          "description": "",
+          "description": "Mirion Medical EC2 Software NMIS BioDose",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:H",
           "base_score": 8.0,
           "severity": "HIGH",
           "published": "2025-12-02",
@@ -5646,8 +6107,9 @@
         },
         {
           "cve_id": "CVE-2025-64778",
-          "description": "",
+          "description": "Mirion Medical EC2 Software NMIS BioDose",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:L",
           "base_score": 7.3,
           "severity": "HIGH",
           "published": "2025-12-02",
@@ -5657,7 +6119,7 @@
       "cve_count": 5,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899615+00:00",
+      "last_checked": "2026-04-17T14:06:18.412333+00:00",
       "source": "cisa_icsma"
     },
     "varex imaging": {
@@ -5672,8 +6134,9 @@
       "cves": [
         {
           "cve_id": "CVE-2024-22774",
-          "description": "",
+          "description": "Varex Imaging Panoramic Dental Imaging Software",
           "cvss_version": "3.1",
+          "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
           "base_score": 7.8,
           "severity": "HIGH",
           "published": "2025-12-11",
@@ -5683,11 +6146,11 @@
       "cve_count": 1,
       "icsma_checked": true,
       "status": "has_cves",
-      "last_checked": "2026-04-17T12:30:21.899621+00:00",
+      "last_checked": "2026-04-17T14:06:18.412337+00:00",
       "source": "cisa_icsma"
     }
   },
-  "built_at": "2026-04-17T12:30:21.899627+00:00",
+  "built_at": "2026-04-17T14:06:18.412341+00:00",
   "source": "CISA CSAF JSON + ICSMA RSS (NVD for CVSS enrichment only)",
   "total_manufacturers": 57,
   "manufacturers_with_cves": 57,

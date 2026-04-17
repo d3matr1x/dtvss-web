@@ -172,19 +172,23 @@ def search():
     # Check pre-built ICSMA index first - instant results for known manufacturers
     indexed_cves = search_manufacturer_cves(query)
     if indexed_cves:
-        from api_clients import epss_lookup, cisa_kev_check
-        from dtvss_engine import compute_dtvss, classify_device
+        from api_clients import epss_lookup, cisa_kev_check, parse_cvss31_exploitability
+        from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
 
         # Get advisory URLs once (same for all CVEs from this manufacturer)
         adv_urls = get_advisory_urls(query)
         ics_urls = [a["url"] for a in adv_urls if a.get("url")]
 
-        # Batch EPSS lookup for all CVE IDs
+        # Batch EPSS lookup for all CVE IDs (in chunks of 100)
         all_cve_ids = [ic.get("cve_id", "") for ic in indexed_cves if ic.get("cve_id")]
+        epss_map = {}
         try:
-            epss_map = epss_lookup(all_cve_ids)
+            for i in range(0, len(all_cve_ids), 100):
+                chunk = all_cve_ids[i:i+100]
+                chunk_result = epss_lookup(chunk)
+                epss_map.update(chunk_result)
         except Exception:
-            epss_map = {}
+            pass
 
         scored = []
         for ic in indexed_cves:
@@ -192,11 +196,14 @@ def search():
             if not cve_id:
                 continue
 
-            # B = exploitability sub-score if available, otherwise base_score
-            # Note: base_score is the full CVSS score, not exploitability.
-            # The live lookup route computes B from the CVSS vector.
-            # For indexed CVEs, we use base_score as an approximation.
-            B = ic.get("exploitability", 0) or ic.get("base_score", 0)
+            # B = exploitability sub-score computed from CVSS vector
+            # If vector available, compute properly. Otherwise use base_score as fallback.
+            cvss_vector = ic.get("cvss_vector", "")
+            B = 0
+            if cvss_vector:
+                B = parse_cvss31_exploitability(cvss_vector) or 0
+            if not B:
+                B = ic.get("base_score", 0)
             desc = ic.get("description", "")
 
             # EPSS from batch lookup
@@ -225,11 +232,17 @@ def search():
                 "risk_level": result["risk_level"],
                 "guidance": result["guidance"],
                 "B": result["B"], "H": result["H"], "L": result["L"],
+                "static_baseline": result["static_baseline"],
                 "tga_class": tga_class,
+                "tga_label": TGA_CLASSES.get(tga_class, {}).get("label", tga_class),
+                "jurisdictions": TGA_CLASSES.get(tga_class, {}).get("jurisdictions", {}),
                 "kev_override": result["kev_override"],
                 "cvss_version": ic.get("cvss_version", ""),
+                "cvss_vector": cvss_vector,
                 "base_score": ic.get("base_score", 0),
+                "severity": ic.get("severity", ""),
                 "published": ic.get("published", ""),
+                "epss_percentile": epss_map.get(cve_id, {}).get("percentile", 0),
                 "ics_advisory": bool(ics_urls),
                 "ics_urls": ics_urls[:3],
                 "source": ic.get("source", "icsma"),
@@ -372,13 +385,18 @@ def search():
             "cve_id": nvd["cve_id"],
             "description": nvd.get("description", ""),
             "tga_class": tga_class,
+            "tga_label": TGA_CLASSES.get(tga_class, {}).get("label", tga_class),
+            "jurisdictions": TGA_CLASSES.get(tga_class, {}).get("jurisdictions", {}),
             "cvss_version": nvd.get("cvss_version", ""),
+            "cvss_vector": nvd.get("cvss_vector", ""),
+            "base_score": nvd.get("B", 0),
             "severity": nvd.get("severity", ""),
             "published": nvd.get("published", ""),
             "epss_percentile": epss_data["percentile"],
             "epss_date": epss_data["date"],
             "kev_added": nvd.get("kev_added", ""),
             "ics_advisory": nvd.get("ics_advisory", False),
+            "ics_urls": nvd.get("ics_urls", []),
             "impact_score": nvd.get("impact_score", 0.0),
         })
         scored.append(result)
@@ -422,7 +440,7 @@ def manufacturers():
     return jsonify({
         "manufacturers": mdm_list,
         "count": len(mdm_list),
-        "source": "CISA ICSMA + NVD CVE",
+        "source": "CISA ICSMA (CSAF JSON + RSS)",
     })
 
 
