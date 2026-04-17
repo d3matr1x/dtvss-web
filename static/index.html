@@ -136,10 +136,11 @@ a{color:var(--acc);text-decoration:none}
 .results-list{display:flex;flex-direction:column;gap:6px;display:none}
 .results-list.visible{display:flex}
 .results-header{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em;padding:4px 0}
-.result-row{display:grid;grid-template-columns:40px 150px 1fr 40px 50px 60px 70px;align-items:center;gap:8px;
+.result-row{display:grid;grid-template-columns:4px 40px 150px 1fr 40px 50px 60px 70px;align-items:center;gap:8px;
   padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;cursor:pointer;
   transition:border-color .15s;font-family:var(--mono);font-size:10px}
 .result-row:hover{border-color:var(--acc)}
+.result-strip{width:4px;height:100%;border-radius:2px;min-height:24px}
 .result-rank{color:var(--dim);text-align:center}
 .result-cve{color:var(--hd);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .result-desc{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--body);font-size:10px}
@@ -170,7 +171,7 @@ a{color:var(--acc);text-decoration:none}
 .footer .bsl{font-size:8px;opacity:.7;margin-top:2px}
 
 @media(max-width:600px){
-  .result-row{grid-template-columns:30px 110px 1fr 50px 60px}
+  .result-row{grid-template-columns:4px 30px 110px 1fr 50px 60px}
   .result-desc{display:none}
   .result-year{display:none}
   .detail-grid{grid-template-columns:1fr}
@@ -208,6 +209,24 @@ a{color:var(--acc);text-decoration:none}
     </div>
     <div style="margin-top:10px;font-family:var(--mono);font-size:8px;color:var(--dim);opacity:.7">
       Calibrated against 96 real medical device CVEs · All public data sources · <a href="/about" style="color:var(--acc);text-decoration:none">Learn more →</a>
+    </div>
+
+    <!-- Example Score -->
+    <div style="margin-top:16px;padding:14px;background:linear-gradient(135deg,rgba(217,124,42,0.08),var(--s2));border:1px solid rgba(217,124,42,0.25);border-radius:8px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="font-family:var(--display);font-size:32px;font-weight:900;color:var(--high);line-height:1">7.35</div>
+        <div style="flex:1;min-width:150px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--hd);font-weight:600">CVE-2017-12725 · Smiths Medical Medfusion 4000</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px">Hard-coded credentials in wireless syringe infusion pump</div>
+        </div>
+        <div style="font-family:var(--mono);font-size:9px;font-weight:600;padding:3px 8px;border-radius:3px;background:rgba(217,124,42,0.15);color:var(--high);border:1px solid rgba(217,124,42,0.3)">HIGH</div>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:10px;font-family:var(--mono);font-size:9px;color:var(--dim)">
+        <span><span style="color:var(--acc)">B</span> 3.9</span>
+        <span><span style="color:var(--purple)">L(t)</span> 0.0089</span>
+        <span><span style="color:var(--high)">H</span> 7.5 · IIb</span>
+        <span style="margin-left:auto;color:var(--dim);font-size:8px">Try it → type the CVE ID above</span>
+      </div>
     </div>
   </div>
 
@@ -251,6 +270,11 @@ a{color:var(--acc);text-decoration:none}
     <div id="flags"></div>
     <div class="guidance" id="guidance"></div>
     <div class="baseline" id="baseline"></div>
+    <button id="copyBtn" onclick="copyScoreSummary()" style="
+      margin-top:8px;font-family:var(--mono);font-size:9px;padding:5px 14px;border-radius:4px;
+      cursor:pointer;border:1px solid var(--bd);background:var(--s1);color:var(--dim);
+      transition:all .15s;letter-spacing:.04em
+    ">Copy score summary</button>
   </div>
 
   <!-- Single result detail -->
@@ -305,6 +329,13 @@ a{color:var(--acc);text-decoration:none}
     </div>
   </div>
 
+  <!-- Disclaimer -->
+  <div style="max-width:680px;margin:0 auto;padding:16px 24px">
+    <div style="padding:12px 16px;border:1px solid rgba(217,79,79,0.2);border-radius:8px;background:rgba(217,79,79,0.04);font-family:var(--mono);font-size:8px;color:var(--dim);line-height:1.8;text-align:center">
+      <span style="color:#d94f4f;font-weight:600">RESEARCH PREVIEW</span> — This is a non-commercial research demonstration of the DTVSS scoring methodology. It is not a certified medical device risk management tool. Scores are derived from public data sources (NVD, EPSS, CISA KEV) which may be incomplete, delayed, or inaccurate. Do not use this system as the sole basis for clinical, procurement, or remediation decisions. The author accepts no liability for decisions made using this tool.
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -313,6 +344,7 @@ const TIER_BG = {Critical:'rgba(217,79,79,.08)',High:'rgba(217,124,42,.08)',Medi
 const TIER_BD = {Critical:'rgba(217,79,79,.25)',High:'rgba(217,124,42,.25)',Medium:'rgba(201,180,40,.25)',Low:'rgba(76,175,122,.25)'};
 let selectedClass = 'auto';
 let lastSearchData = null;
+let lastSingleResult = null;
 
 // Hardcoded fallback in case FDA API is slow on cold start
 // Fallback list: {name: display label, nvd: NVD search term}
@@ -351,7 +383,6 @@ function _populateFallbackMDMs(label) {
 }
 
 async function loadManufacturers() {
-  // Fall back to hardcoded list after 4s if FDA API is slow or errors
   const fallbackTimer = setTimeout(() => _populateFallbackMDMs('— Select manufacturer —'), 4000);
   try {
     const resp = await fetch('/api/manufacturers');
@@ -362,13 +393,25 @@ async function loadManufacturers() {
     clearTimeout(fallbackTimer);
     if (data.manufacturers && data.manufacturers.length > 0) {
       const select = document.getElementById('mdmSelect');
-      select.innerHTML = '<option value="">— Select manufacturer (' + data.count + ' from FDA) —</option>';
+      select.innerHTML = '<option value="">— Select manufacturer (' + data.count + ') —</option>';
+      let hasUpdating = false;
       data.manufacturers.forEach(m => {
         const opt = document.createElement('option');
-        opt.value = m.nvd_term || m.name;
-        opt.textContent = m.name;
+        opt.value = m.nvd || m.name;
+        if (m.status === 'updating') {
+          opt.textContent = m.name + ' — Updating...';
+          opt.disabled = true;
+          opt.style.color = '#d94f4f';
+          hasUpdating = true;
+        } else {
+          opt.textContent = m.name + ' — ' + m.cve_count + ' CVEs';
+        }
         select.appendChild(opt);
       });
+      // If any are still updating, refresh the dropdown in 10 seconds
+      if (hasUpdating) {
+        setTimeout(loadManufacturers, 10000);
+      }
       return;
     }
     clearTimeout(fallbackTimer);
@@ -461,6 +504,7 @@ function showError(msg) {
 }
 
 function showSingleResult(r) {
+  lastSingleResult = r;
   const tier = r.risk_level;
   const color = TIER_COLOR[tier] || 'var(--tx)';
   const pct = (r.score / 10 * 100).toFixed(0);
@@ -486,12 +530,36 @@ function showSingleResult(r) {
 
   let flags = '';
   if (r.kev_override) flags += '<span class="flag flag-kev">KEV</span>';
-  if (r.ics_advisory) flags += '<span class="flag flag-ics">ICS</span>';
+  if (r.ics_advisory && r.ics_urls && r.ics_urls.length) {
+    flags += `<a href="${r.ics_urls[0]}" target="_blank" rel="noopener noreferrer" style="text-decoration:none"><span class="flag flag-ics" style="cursor:pointer">ICS-CERT →</span></a>`;
+  } else if (r.ics_advisory) {
+    flags += '<span class="flag flag-ics">ICS</span>';
+  }
   document.getElementById('flags').innerHTML = flags;
 
   document.getElementById('guidance').textContent = r.guidance;
-  document.getElementById('baseline').textContent = r.kev_override ? '' :
-    `Static baseline (L=0): ${r.static_baseline.toFixed(2)} · Temporal lift: +${(r.score - r.static_baseline).toFixed(2)}`;
+
+  // Formula breakdown: show how B, L(t), H contribute to the score
+  const bContrib = r.B / 10;
+  const hContrib = r.H / 10;
+  const lContrib = 1 + 15 * r.L;
+  const bPct = Math.round(bContrib / (bContrib + hContrib + (lContrib - 1) + 0.001) * 100);
+  const hPct = Math.round(hContrib / (bContrib + hContrib + (lContrib - 1) + 0.001) * 100);
+  const lPct = 100 - bPct - hPct;
+
+  document.getElementById('baseline').innerHTML = r.kev_override ? '' :
+    `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:360px">` +
+    `<div style="font-family:var(--mono);font-size:10px;color:var(--dim)">Static baseline (L=0): ${r.static_baseline.toFixed(2)} · Temporal lift: +${(r.score - r.static_baseline).toFixed(2)}</div>` +
+    `<div style="display:flex;width:100%;height:8px;border-radius:4px;overflow:hidden;background:var(--trk)">` +
+    `<div style="width:${bPct}%;background:var(--acc)" title="B contribution: ${bContrib.toFixed(2)}"></div>` +
+    `<div style="width:${hPct}%;background:var(--high)" title="H contribution: ${hContrib.toFixed(2)}"></div>` +
+    `<div style="width:${Math.max(lPct,2)}%;background:var(--purple)" title="L(t) contribution: ${(lContrib-1).toFixed(4)}"></div>` +
+    `</div>` +
+    `<div style="display:flex;gap:12px;font-family:var(--mono);font-size:8px;color:var(--dim)">` +
+    `<span><span style="display:inline-block;width:6px;height:6px;border-radius:1px;background:var(--acc);margin-right:3px"></span>B=${r.B.toFixed(1)}</span>` +
+    `<span><span style="display:inline-block;width:6px;height:6px;border-radius:1px;background:var(--high);margin-right:3px"></span>H=${r.H.toFixed(1)}</span>` +
+    `<span><span style="display:inline-block;width:6px;height:6px;border-radius:1px;background:var(--purple);margin-right:3px"></span>L=${r.L.toFixed(4)}</span>` +
+    `</div></div>`;
 
   // Detail panel
   const jurisHTML = r.jurisdictions ? Object.entries(r.jurisdictions).map(([k,v]) =>
@@ -516,6 +584,7 @@ function showSingleResult(r) {
       <div class="df"><div class="df-label">Impact Score</div><div class="df-val">${r.impact_score}</div></div>
     </div>
     ${r.kev_override ? `<div class="df" style="margin-top:8px"><div class="df-label">KEV — Confirmed Exploitation</div><div class="df-val" style="color:var(--crit)">${r.kev_name || 'Listed in CISA KEV catalog'}${r.kev_due ? ' · Due: '+r.kev_due : ''}</div></div>` : ''}
+    ${r.ics_advisory && r.ics_urls && r.ics_urls.length ? `<div class="df" style="margin-top:8px"><div class="df-label">ICS-CERT Medical Advisory</div><div class="df-val">${r.ics_urls.map(u => `<a href="${u}" target="_blank" rel="noopener noreferrer" style="color:var(--high);text-decoration:none;display:block;margin-top:2px">${u.split('/').pop() || 'View Advisory'} →</a>`).join('')}</div></div>` : ''}
     ${jurisHTML ? `<div class="juris-grid">${jurisHTML}</div><div class="juris-note">H produces equivalent results across all jurisdictions · Medsafe (NZ) recognises TGA under Trans-Tasman MRA</div>` : ''}
   `;
   document.getElementById('detail').classList.add('visible');
@@ -532,7 +601,29 @@ function showSearchResults(data, page) {
   const pageResults = data.results.slice(startIdx, endIdx);
 
   const list = document.getElementById('resultsList');
-  let html = `<div class="results-header">${totalResults} CVEs · "${data.query}" · sorted by DTVSS score · showing ${startIdx+1}–${endIdx}${data.cached ? ' · <span style="color:var(--low)">cached</span>' : ''}</div>`;
+
+  // Severity summary counts
+  const counts = {Critical:0, High:0, Medium:0, Low:0};
+  data.results.forEach(r => { counts[r.risk_level] = (counts[r.risk_level]||0) + 1; });
+  const kevCount = data.results.filter(r => r.kev_override).length;
+
+  let html = `<div class="results-header">${totalResults} CVEs · "${data.query}" · showing ${startIdx+1}–${endIdx}</div>`;
+
+  // Severity summary bar
+  html += `<div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;margin-bottom:4px;font-family:var(--mono);font-size:10px;align-items:center">`;
+  if (kevCount > 0) html += `<span style="color:var(--crit);font-weight:600"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--crit);margin-right:4px"></span>KEV ${kevCount}</span>`;
+  if (counts.Critical > 0) html += `<span style="color:var(--crit)"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--crit);margin-right:4px"></span>Critical ${counts.Critical}</span>`;
+  if (counts.High > 0) html += `<span style="color:var(--high)"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--high);margin-right:4px"></span>High ${counts.High}</span>`;
+  if (counts.Medium > 0) html += `<span style="color:var(--med)"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--med);margin-right:4px"></span>Medium ${counts.Medium}</span>`;
+  if (counts.Low > 0) html += `<span style="color:var(--low)"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--low);margin-right:4px"></span>Low ${counts.Low}</span>`;
+  // Score distribution bar
+  const total = data.results.length || 1;
+  html += `<div style="flex:1;min-width:100px;height:6px;border-radius:3px;overflow:hidden;display:flex;background:var(--trk)">`;
+  if (counts.Critical) html += `<div style="width:${counts.Critical/total*100}%;background:var(--crit)"></div>`;
+  if (counts.High) html += `<div style="width:${counts.High/total*100}%;background:var(--high)"></div>`;
+  if (counts.Medium) html += `<div style="width:${counts.Medium/total*100}%;background:var(--med)"></div>`;
+  if (counts.Low) html += `<div style="width:${counts.Low/total*100}%;background:var(--low)"></div>`;
+  html += `</div></div>`;
 
   pageResults.forEach((r, i) => {
     const color = TIER_COLOR[r.risk_level] || 'var(--tx)';
@@ -544,6 +635,7 @@ function showSearchResults(data, page) {
 
     html += `
       <div class="result-row" onclick="lookupCVE('${r.cve_id}')">
+        <div class="result-strip" style="background:${color}"></div>
         <div class="result-rank">${startIdx+i+1}</div>
         <div class="result-cve">${r.cve_id}</div>
         <div class="result-desc">${r.description || '—'}</div>
@@ -575,8 +667,40 @@ function showSearchResults(data, page) {
 }
 
 function lookupCVE(cveId) {
+  // Try to show from cached search results first (instant)
+  if (lastSearchData && lastSearchData.results) {
+    const cached = lastSearchData.results.find(r => r.cve_id === cveId);
+    if (cached) {
+      showSingleResult(cached);
+      return;
+    }
+  }
+  // Fall back to live API lookup
   document.getElementById('searchInput').value = cveId;
   doSearch();
+}
+
+function copyScoreSummary() {
+  if (!lastSingleResult) return;
+  const r = lastSingleResult;
+  const text = [
+    `DTVSS Score: ${r.score.toFixed(2)} (${r.risk_level})`,
+    `CVE: ${r.cve_id}`,
+    `B (Exploitability): ${r.B.toFixed(3)}`,
+    `L(t) (EPSS): ${r.L.toFixed(4)}`,
+    `H (Patient Harm): ${r.H.toFixed(1)} (${r.tga_class})`,
+    r.kev_override ? `KEV: Confirmed active exploitation` : `Static baseline: ${r.static_baseline.toFixed(2)} · Temporal lift: +${(r.score - r.static_baseline).toFixed(2)}`,
+    `CVSS: ${r.cvss_version} · ${r.severity}`,
+    `Guidance: ${r.guidance}`,
+    `Source: dtvss.io · ${new Date().toISOString().slice(0,10)}`,
+  ].join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied ✓';
+    btn.style.color = 'var(--low)';
+    btn.style.borderColor = 'var(--low)';
+    setTimeout(() => { btn.textContent = 'Copy score summary'; btn.style.color = 'var(--dim)'; btn.style.borderColor = 'var(--bd)'; }, 2000);
+  });
 }
 
 function backToResults() {

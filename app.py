@@ -21,7 +21,8 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
-from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check, get_manufacturer_list, build_manufacturer_search_queries
+from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check
+from index_loader import get_manufacturer_dropdown, search_manufacturer_cves, get_cpe_search_terms
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
@@ -178,21 +179,19 @@ def search():
         if cve_id:
             nvd_results_map[cve_id] = r
 
-    # Then try manufacturer expansion (additive — adds more results, can't reduce)
-    # Time-budgeted: stop expanding after 15 seconds to avoid Railway timeout
+    # Then try CPE-based search terms from pre-built index
     import time as _search_time
     expanded_queries = []
     expansion_start = _search_time.time()
-    EXPANSION_BUDGET = 15.0  # seconds
+    EXPANSION_BUDGET = 15.0
 
     try:
-        expanded_queries = build_manufacturer_search_queries(query)
+        expanded_queries = get_cpe_search_terms(query)
         for q in expanded_queries:
             if q == query:
                 continue
-            # Check time budget before each query
             if (_search_time.time() - expansion_start) > EXPANSION_BUDGET:
-                print(f"Manufacturer expansion time budget exceeded for '{query}' after {len(nvd_results_map)} results")
+                print(f"Expansion time budget exceeded for '{query}' after {len(nvd_results_map)} results")
                 break
             batch = nvd_search_keyword(q, api_key=NVD_API_KEY, max_results=max_results)
             for r in batch:
@@ -202,7 +201,7 @@ def search():
                 if cve_id and cve_id not in nvd_results_map:
                     nvd_results_map[cve_id] = r
     except Exception as e:
-        print(f"Manufacturer expansion failed for '{query}': {e}")
+        print(f"CPE expansion failed for '{query}': {e}")
 
     # Post-filter: if this was a manufacturer search, only keep CVEs whose
     # description mentions at least one of the complete search terms.
@@ -307,24 +306,23 @@ def device_classes():
 
 @app.route("/api/manufacturers")
 def manufacturers():
-    """Return list of medical device manufacturers from FDA registry. Cached daily."""
-    mdm_list = get_manufacturer_list()
-    return jsonify({"manufacturers": mdm_list, "count": len(mdm_list), "source": "openFDA Registration & Listing API"})
+    """Return list of medical device manufacturers with per-entry status."""
+    mdm_list = get_manufacturer_dropdown()
+    return jsonify({
+        "manufacturers": mdm_list,
+        "count": len(mdm_list),
+        "source": "openFDA Registration API + NVD CPE/CVE",
+    })
 
 
-# Pre-load caches at import time (runs under both gunicorn and __main__)
+# Pre-load at import time (runs under both gunicorn and __main__)
+# index_loader.py loads the pre-built index and starts background refresh on import
 try:
     from api_clients import refresh_device_keywords
     _keywords = refresh_device_keywords()
     print(f"  Device keywords loaded: {len(_keywords)} from openFDA")
 except Exception as _e:
     print(f"  Device keyword refresh skipped: {_e}")
-
-try:
-    _mdm = get_manufacturer_list()
-    print(f"  Manufacturers loaded: {len(_mdm)} from FDA registry")
-except Exception as _e:
-    print(f"  Manufacturer registry refresh skipped: {_e}")
 
 
 if __name__ == "__main__":
