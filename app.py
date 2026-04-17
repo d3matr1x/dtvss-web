@@ -176,6 +176,7 @@ def search():
             nvd_results_map[cve_id] = r
 
     # Then try manufacturer expansion (additive — adds more results, can't reduce)
+    expanded_queries = []
     try:
         expanded_queries = build_manufacturer_search_queries(query)
         # Skip the baseline query (already done) to avoid duplicate API calls
@@ -191,6 +192,36 @@ def search():
                     nvd_results_map[cve_id] = r
     except Exception as e:
         print(f"Manufacturer expansion failed for '{query}': {e}")
+
+    # Post-filter: if this was a manufacturer search (expanded_queries has >1 entry),
+    # only keep CVEs whose description mentions at least one of the search terms.
+    # This prevents "Smiths Medical" returning "St. Jude Medical" results
+    # (NVD treats multi-word searches as separate keywords and matches broadly).
+    if len(expanded_queries) > 1:
+        # Build filter terms: each query term that's 3+ chars, lowercased
+        # For compound queries like "Medtronic pacemaker", split into individual terms
+        # but only keep manufacturer-specific terms (skip generic device words)
+        generic_words = {"infusion", "pump", "pacemaker", "defibrillator", "icd",
+                         "ventilator", "monitor", "patient", "cardiac", "glucose",
+                         "cgm", "ecg", "telemetry", "cpap", "aed", "crt", "syringe",
+                         "enteral", "feeding", "medical", "healthcare", "device"}
+        valid_terms = set()
+        for q in expanded_queries:
+            ql = q.lower().strip()
+            # Add full query as a match term
+            if len(ql) >= 3:
+                valid_terms.add(ql)
+            # Also add individual words that aren't generic
+            for word in ql.split():
+                if len(word) >= 3 and word not in generic_words:
+                    valid_terms.add(word)
+
+        filtered_map = {}
+        for cve_id, r in nvd_results_map.items():
+            desc = r.get("description", "").lower()
+            if any(term in desc for term in valid_terms):
+                filtered_map[cve_id] = r
+        nvd_results_map = filtered_map
 
     nvd_results = list(nvd_results_map.values())
 

@@ -795,8 +795,10 @@ def refresh_manufacturer_registry() -> list[dict]:
                     manufacturers[clean] = {
                         "name": canonical,
                         "product_codes": set(),
+                        "firm_names": set(),  # original FDA names for NVD searching
                     }
                 manufacturers[clean]["product_codes"].add(pc)
+                manufacturers[clean]["firm_names"].add(firm_name.strip())
 
         except Exception:
             continue
@@ -805,9 +807,12 @@ def refresh_manufacturer_registry() -> list[dict]:
         import time as _t
         _t.sleep(0.3)
 
-    # Sort by product count descending — manufacturers with most device categories first
+    # Sort by product count descending
     result_list = sorted(
-        [{"name": v["name"], "product_codes": list(v["product_codes"]), "count": len(v["product_codes"])}
+        [{"name": v["name"],
+          "product_codes": list(v["product_codes"]),
+          "firm_names": list(v["firm_names"]),
+          "count": len(v["product_codes"])}
          for v in manufacturers.values()],
         key=lambda x: (-x["count"], x["name"])
     )
@@ -857,74 +862,92 @@ PRODUCT_CODE_TO_DEVICE_TERMS = {
 
 def build_manufacturer_search_queries(manufacturer_name: str) -> list[str]:
     """
-    Given a manufacturer name (from the dropdown), return NVD search queries
-    that will find that manufacturer's medical device CVEs.
+    Build NVD search queries entirely from the FDA-cached manufacturer data.
 
-    Strategy:
-    1. Map canonical display name to NVD-friendly search terms
-    2. Combine each NVD name with device categories from their FDA product codes
-    3. Cap at 8 queries to stay within NVD rate limits
+    Uses:
+    1. The original FDA firm names (as registered) — these match how CVE descriptions
+       reference manufacturers (e.g. "Smiths Medical Inc" not "Smiths Medical")
+    2. The product codes → device term mapping to create scoped searches
+       (e.g. "Medtronic pacemaker", "Medtronic insulin pump")
+
+    Also includes known product line names that appear in CVE descriptions
+    but not in FDA registration data.
+
+    Returns list of NVD queries, capped at 8.
     """
+    lookup = _manufacturer_cache.get("lookup", {})
+    entry = lookup.get(manufacturer_name.lower())
 
-    # Map canonical dropdown names → NVD search terms that actually appear in CVE descriptions
-    # CVE descriptions use these names, not the FDA registration names
-    NVD_SEARCH_NAMES = {
-        "medtronic": ["Medtronic"],
-        "abbott": ["Abbott", "St. Jude Medical"],
-        "biotronik": ["Biotronik"],
-        "boston scientific": ["Boston Scientific"],
-        "philips": ["Philips"],
-        "baxter": ["Baxter"],
-        "dräger": ["Draeger", "Drager"],
-        "icu medical": ["ICU Medical", "Hospira", "Plum"],
-        "zoll": ["Zoll"],
-        "bd (becton dickinson)": ["Becton Dickinson", "BD Alaris", "Alaris"],
-        "dexcom": ["Dexcom"],
-        "fresenius kabi": ["Fresenius"],
-        "mindray": ["Mindray"],
-        "nihon kohden": ["Nihon Kohden"],
-        "resmed": ["ResMed"],
-        "tandem diabetes": ["Tandem"],
-        "smiths medical": ["Smiths Medical", "Medfusion", "CADD"],
-        "hamilton medical": ["Hamilton Medical"],
-        "ge healthcare": ["GE Healthcare"],
-        "b. braun": ["B. Braun", "B Braun"],
-        "hospira": ["Hospira"],
-        "insulet": ["Insulet", "OmniPod"],
-        "getinge": ["Getinge"],
-        "st. jude medical": ["St. Jude Medical"],
-        "carestream": ["Carestream"],
+    if not entry:
+        # Not in FDA cache — just search the name
+        return [manufacturer_name]
+
+    # Known product line names that appear in CVE descriptions
+    # These supplement the FDA data which only has regulatory names
+    PRODUCT_LINES = {
+        "medtronic": ["MiniMed", "MyCareLink", "CareLink"],
+        "abbott": ["FreeStyle Libre", "St. Jude Medical"],
+        "bd (becton dickinson)": ["Alaris", "Pyxis"],
+        "smiths medical": ["Medfusion", "CADD"],
+        "icu medical": ["Plum", "LifeCare"],
+        "philips": ["IntelliVue", "Respironics"],
+        "baxter": ["Sigma Spectrum"],
+        "dräger": ["Evita"],
+        "insulet": ["OmniPod"],
+        "dexcom": ["Dexcom G6", "Dexcom G7"],
+        "boston scientific": [],
+        "biotronik": [],
+        "fresenius kabi": ["Agilia", "Ivenix"],
+        "mindray": ["BeneVision"],
+        "ge healthcare": ["CARESCAPE"],
+        "resmed": ["AirSense"],
+        "tandem diabetes": ["t:slim"],
+        "b. braun": ["Infusomat", "Perfusor"],
+        "hamilton medical": [],
+        "nihon kohden": [],
+        "zoll": [],
+        "hospira": ["LifeCare", "Symbiq"],
+        "getinge": ["Servo"],
     }
 
-    key = manufacturer_name.lower().strip()
-    nvd_names = NVD_SEARCH_NAMES.get(key, [manufacturer_name])
+    queries = set()
 
-    # Get the manufacturer's registered product codes from FDA cache
-    lookup = _manufacturer_cache.get("lookup", {})
-    entry = lookup.get(key)
-    product_codes = entry.get("product_codes", []) if entry else []
+    # 1. Use FDA firm names (the actual registered names)
+    for firm in entry.get("firm_names", []):
+        # Clean the firm name to remove Inc/LLC etc for better NVD matching
+        import re as _re
+        clean = _re.sub(
+            r',?\s*(Inc\.?|LLC|Ltd\.?|GmbH|AG|Corp\.?|Corporation|Co\.?)$',
+            '', firm, flags=_re.IGNORECASE
+        ).strip()
+        if clean and len(clean) >= 3:
+            queries.add(clean)
 
-    # Build device terms from product codes
-    device_terms = set()
-    for pc in product_codes:
+    # 2. Add the canonical name as fallback
+    queries.add(manufacturer_name)
+
+    # 3. Add product line names scoped to manufacturer
+    key = manufacturer_name.lower()
+    for product in PRODUCT_LINES.get(key, []):
+        queries.add(product)
+
+    # 4. Add manufacturer + device category from product codes
+    for pc in entry.get("product_codes", []):
         for term in PRODUCT_CODE_TO_DEVICE_TERMS.get(pc, []):
-            device_terms.add(term)
+            # Use the shortest firm name for combinations
+            shortest_firm = min(
+                [manufacturer_name] + list(entry.get("firm_names", [])),
+                key=len
+            )
+            import re as _re2
+            shortest_clean = _re2.sub(
+                r',?\s*(Inc\.?|LLC|Ltd\.?|GmbH|AG|Corp\.?)$',
+                '', shortest_firm, flags=_re2.IGNORECASE
+            ).strip()
+            queries.add(f"{shortest_clean} {term}")
 
-    queries = []
-
-    # Primary: each NVD name alone (catches most CVEs)
-    for name in nvd_names:
-        if len(queries) < 8:
-            queries.append(name)
-
-    # Secondary: NVD name + device category (catches device-specific CVEs)
-    for name in nvd_names[:2]:  # limit to first 2 name variants
-        for term in list(device_terms)[:3]:  # limit to 3 device terms
-            combined = f"{name} {term}"
-            if combined not in queries and len(queries) < 8:
-                queries.append(combined)
-
-    return queries
+    # Cap at 8 to stay within NVD rate limits
+    return list(queries)[:8]
 
 
 # ═══════════════════════════════════════════════════════════════════════
