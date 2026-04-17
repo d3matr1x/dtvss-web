@@ -1,6 +1,5 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "python build_index.py"
 
 [deploy]
 startCommand = "gunicorn app:app --bind 0.0.0.0:$PORT"
