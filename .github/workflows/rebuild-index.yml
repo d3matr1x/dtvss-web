@@ -1,0 +1,41 @@
+name: Daily MDM Index Rebuild
+
+on:
+  schedule:
+    # Every day at 03:00 UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    # Allow manual trigger from GitHub Actions tab
+
+jobs:
+  rebuild-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run build_index.py
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: python build_index.py
+
+      - name: Check for changes
+        id: check
+        run: |
+          git diff --quiet static/data/mdm_index.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push updated index
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name "DTVSS Index Bot"
+          git config user.email "dtvss-bot@users.noreply.github.com"
+          git add static/data/mdm_index.json
+          git commit -m "Auto-update MDM index $(date -u +%Y-%m-%d)"
+          git push

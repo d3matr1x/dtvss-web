@@ -1,6 +1,6 @@
-# DTVSS — Dynamic Temporal Vulnerability Scoring System
+# DTVSS - Dynamic Temporal Vulnerability Scoring System
 
-**Patent Pending — IP Australia**
+**Patent Pending - IP Australia**
 **© 2026 Andrew Broglio. All rights reserved.**
 **Licensed under BSL 1.1**
 
@@ -10,11 +10,11 @@
 DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10
 ```
 
-- **B** — CVSS exploitability sub-score (NVD API v2)
-- **L(t)** — Exploit likelihood (EPSS API, updated daily)
-- **H** — Patient harm modifier (TGA/Medsafe/EU MDR/MHRA/FDA classification)
-- **k = 15** — Empirically calibrated against 96 real medical device CVEs
-- **KEV override** — Score forced to 10.0 Critical when CVE in CISA KEV catalog
+- **B** - CVSS exploitability sub-score (NVD API v2)
+- **L(t)** - Exploit likelihood (EPSS API, updated daily)
+- **H** - Patient harm modifier (TGA/Medsafe/EU MDR/MHRA/FDA classification)
+- **k = 15** - Empirically calibrated against 96 real medical device CVEs
+- **KEV override** - Score forced to 10.0 Critical when CVE in CISA KEV catalog
 
 ## API Endpoints
 

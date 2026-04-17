@@ -2,13 +2,13 @@
 <!--
   DTVSS About Page
   Copyright © 2026 Andrew Broglio. All rights reserved.
-  Patent Pending — IP Australia | Licensed under BSL 1.1
+  Patent Pending - IP Australia | Licensed under BSL 1.1
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>About DTVSS — Dynamic Temporal Vulnerability Scoring System</title>
+<title>About DTVSS - Dynamic Temporal Vulnerability Scoring System</title>
 <meta name="description" content="DTVSS is a patent-pending, healthcare-focused extension to vulnerability scoring. Calibrated against 96 real medical device CVEs. Aligned with ISO 14971. Covers TGA, EU MDR, MHRA, FDA, and Medsafe jurisdictions.">
 <meta name="keywords" content="DTVSS about, medical device vulnerability scoring, ISO 14971 cybersecurity, patient harm scoring, Andrew Broglio, healthcare cybersecurity research, TGA medical device classification">
 <meta name="author" content="Andrew Broglio">
@@ -16,7 +16,7 @@
 <link rel="canonical" href="https://dtvss.io/about">
 
 <!-- Open Graph -->
-<meta property="og:title" content="About DTVSS — Dynamic Temporal Vulnerability Scoring">
+<meta property="og:title" content="About DTVSS - Dynamic Temporal Vulnerability Scoring">
 <meta property="og:description" content="Patent-pending healthcare cybersecurity risk scoring. Calibrated against 96 real medical device CVEs. ISO 14971 aligned.">
 <meta property="og:url" content="https://dtvss.io/about">
 <meta property="og:type" content="website">
@@ -74,16 +74,20 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.1em;c
   <!-- The Approach -->
   <div class="section">
     <h3>The Approach</h3>
-    <p>DTVSS replaces the additive, static model with a multiplicative architecture where exploitability, patient harm, and exploitation likelihood are coupled — not summed.</p>
+    <p>DTVSS replaces the additive, static model with a multiplicative architecture where exploitability, patient harm, and exploitation likelihood are coupled - not summed.</p>
     <div class="formula">
       DTVSS(t) = (<span style="color:var(--acc)">B/10</span> × <span style="color:var(--high)">H/10</span> × <span style="color:var(--purple)">(1 + 15 × L(t))</span>) × 10
     </div>
     <p style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.8">
-      <span style="color:var(--acc)">B</span> — CVSS exploitability sub-score, supporting CVSS v2.0 through v4.0 (NVD API v2, MITRE CVE.org fallback)<br>
-      <span style="color:var(--high)">H</span> — Patient harm modifier from medical device regulatory classification (TGA / Medsafe / EU MDR / MHRA / FDA)<br>
-      <span style="color:var(--purple)">L(t)</span> — Daily exploitation probability (EPSS API from FIRST.org)<br>
-      <span style="color:var(--crit)">KEV override</span> — Confirmed active exploitation (CISA KEV catalog) forces score to 10.0<br>
-      <span style="color:var(--hd)">k = 15</span> — Empirically calibrated temporal amplification constant
+      <span style="color:var(--acc)">B</span> - CVSS exploitability sub-score (8.22 x AV x AC x PR x UI), supporting CVSS v2.0 through v4.0 (NVD API v2, MITRE CVE.org fallback)<br>
+      <span style="color:var(--high)">H</span> - Patient harm modifier from medical device regulatory classification (TGA / Medsafe / EU MDR / MHRA / FDA)<br>
+      <span style="color:var(--purple)">L(t)</span> - Daily exploitation probability (EPSS API from FIRST.org)<br>
+      <span style="color:var(--crit)">KEV override</span> - Confirmed active exploitation (CISA KEV catalog) forces score to 10.0<br>
+      <span style="color:var(--hd)">k = 15</span> - Empirically calibrated temporal amplification constant
+    </p>
+    <div style="margin-top:8px;font-family:var(--mono);font-size:8px;color:var(--dim)">
+      B is computed per the <a href="https://www.first.org/cvss/v3-1/specification-document" target="_blank" rel="noopener noreferrer" style="color:var(--acc)">CVSS v3.1 Specification (FIRST.org)</a>. For CVSS v4.0 vectors, the v3.1-compatible AV/AC/PR/UI components are extracted with AT mapped to AC equivalent. For v2.0, the exploitabilityScore is used directly from NVD.
+    </div>
     </p>
   </div>
 
@@ -99,7 +103,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.1em;c
   <div class="section">
     <h3>Standards Alignment</h3>
     <p>
-      <span style="color:var(--hd);font-weight:600">ISO 14971</span> defines risk as the combination of probability of harm and severity of harm. DTVSS operationalises this definition in a cybersecurity context — continuously, computationally, and reproducibly across jurisdictions.
+      <span style="color:var(--hd);font-weight:600">ISO 14971</span> defines risk as the combination of probability of harm and severity of harm. DTVSS operationalises this definition in a cybersecurity context - continuously, computationally, and reproducibly across jurisdictions.
     </p>
     <p style="margin-top:10px">
       The system aligns with risks identified in the <span style="color:var(--hd);font-weight:600">CSA/SANS "AI Vulnerability Storm" briefing</span> (April 2026), including outdated risk models (Risk #5), continuous vulnerability management maturity gaps (Risk #9), and threat detection dependent on lagging intelligence (Risk #10).
@@ -141,11 +145,53 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.1em;c
     <p style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:2">
       All inputs are drawn from public, independently verifiable data sources. No proprietary data. No operator configuration. Fully deterministic and reproducible across independent implementations.
     </p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">B</span> — NVD API v2 (MITRE CVE.org fallback)</span>
-      <span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">L(t)</span> — EPSS API (FIRST.org)</span>
-      <span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">KEV</span> — CISA KEV Catalog</span>
-      <span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">H</span> — TGA · Medsafe · EU MDR · MHRA · FDA</span>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:10px;line-height:1.8">
+      <div style="color:var(--hd);font-weight:600;font-size:10px;margin-bottom:6px">CVE discovery (CISA ICSMA pipeline)</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center">
+      <a href="https://github.com/cisagov/CSAF" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;border:1px solid rgba(217,124,42,0.3);background:rgba(217,124,42,0.08);color:var(--high);text-decoration:none;font-weight:600">CISA CSAF JSON (historical)</a>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--dim)">+</span>
+      <a href="https://www.cisa.gov/news-events/ics-advisories" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;border:1px solid rgba(217,124,42,0.3);background:rgba(217,124,42,0.08);color:var(--high);text-decoration:none;font-weight:600">ICSMA RSS (hourly)</a>
+    </div>
+    <p style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:8px;line-height:1.8">
+      All CVE discovery comes from CISA ICS Medical Advisories - the authoritative public record of medical device cybersecurity vulnerabilities. CSAF JSON provides the full historical archive of structured advisories from the official CISA GitHub repository. The ICSMA RSS feed provides hourly ingestion of new advisories. NVD is used only for CVSS enrichment (scoring), not for CVE discovery, preventing false positives from keyword search. CVEs with ICSMA advisories are tagged with a clickable <a href="https://www.cisa.gov/news-events/ics-advisories" target="_blank" rel="noopener noreferrer" style="font-weight:600;padding:1px 6px;border-radius:3px;background:rgba(217,124,42,0.15);color:var(--high);border:1px solid rgba(217,124,42,0.3);text-decoration:none">ICS-CERT -></a> indicator linking directly to the advisory.
+    </p>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:10px;line-height:1.8">
+      <div style="color:var(--hd);font-weight:600;font-size:10px;margin-bottom:6px">Scoring inputs</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+      <span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">B</span> - NVD API v2 -> MITRE CVE.org -> CISA Vulnrichment</span>
+      <span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">L(t)</span> - EPSS API (FIRST.org)</span>
+      <span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">KEV</span> - CISA KEV Catalog</span>
+      <span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">H</span> - TGA / Medsafe / EU MDR / MHRA / FDA</span>
+    </div>
+  </div>
+
+  <!-- Why This Matters Now -->
+  <div class="section" style="border:1px solid rgba(217,124,42,0.2);background:linear-gradient(135deg,rgba(217,124,42,0.03),var(--s2))">
+    <h3>Why This Matters Now</h3>
+    <p>
+      On 15 April 2026, NIST announced fundamental changes to NVD operations. CVE submissions increased 263% between 2020 and 2025, and submissions in Q1 2026 were a further third higher than the same period last year. Despite enriching 42,000 CVEs in 2025 - 45% more than any prior year - NIST can no longer keep pace.
+    </p>
+    <p style="margin-top:10px">
+      The signals were visible years earlier. In February 2024, NVD enrichment slowed sharply after NIST funding was cut by 12%. By May 2024, over 93% of new vulnerabilities remained unanalysed - including more than half of all known exploited vulnerabilities. NIST contracted Analygence for $865,000 to clear the backlog, but by September 2024 the unenriched count had grown to over 18,000 CVEs - 72% of all reported vulnerabilities. In April 2025, the entire CVE programme temporarily lost funding. The backlog was never cleared.
+    </p>
+    <p style="margin-top:10px">
+      Under the new model, NIST will only enrich CVEs that appear in the CISA KEV catalog, affect federal government software, or meet the critical software definition under Executive Order 14028. All other CVEs will be listed but will not receive severity scores, product lists, or other enrichment data from NIST.
+    </p>
+    <p style="margin-top:10px">
+      For medical device cybersecurity, this creates a critical blind spot. Most medical device CVEs are not in the KEV catalog and do not affect federal software. An unenriched CVE for a networked infusion pump or implantable cardiac device will have no severity score, no product list, and no actionable metadata from NVD. Clinical engineering teams relying solely on NVD for vulnerability prioritisation will not see these risks until it is too late.
+    </p>
+    <p style="margin-top:10px">
+      This is the exact gap DTVSS was designed to address. The DTVSS data pipeline does not depend on any single source. The manufacturer and CVE index is built exclusively from CISA ICS Medical Advisories - CSAF JSON for the full historical archive and the ICSMA RSS feed for hourly ingestion. NVD is used only for CVSS enrichment when CISA's structured data lacks a severity score, with fallback to the MITRE CVE.org API and CISA Vulnrichment ADP container. EPSS provides temporal exploitation likelihood regardless of NVD status. The KEV catalog provides confirmed exploitation data independently.
+    </p>
+    <p style="margin-top:10px">
+      The multiplicative architecture - coupling exploitability, patient harm, and exploitation likelihood - was designed precisely because static, centralised scoring cannot scale. DTVSS computes risk continuously from distributed public sources, with no dependency on any single enrichment pipeline.
+    </p>
+    <div style="margin-top:14px;padding:12px;background:var(--s1);border-radius:6px;font-family:var(--mono);font-size:9px;line-height:2;color:var(--dim)">
+      <div style="color:var(--hd);font-weight:600;font-size:10px;margin-bottom:4px">References</div>
+      <a href="https://www.nist.gov/news-events/news/2026/04/nist-updates-nvd-operations-address-record-cve-growth" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">NIST - Updates NVD Operations to Address Record CVE Growth (15 Apr 2026)</a>
+      <a href="https://www.nist.gov/itl/nvd" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">NIST - National Vulnerability Database: General Updates and Backlog Status (2024)</a>
     </div>
   </div>
 
@@ -153,7 +199,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.1em;c
   <div class="section">
     <h3>Author</h3>
     <p>
-      <span style="color:var(--hd);font-weight:600">Andrew Broglio</span> — Cybersecurity practitioner and researcher. The DTVSS scoring architecture, formula, calibration methodology, and implementation were developed independently.
+      <span style="color:var(--hd);font-weight:600">Andrew Broglio</span> - Cybersecurity practitioner and researcher. The DTVSS scoring architecture, formula, calibration methodology, and implementation were developed independently.
     </p>
     <div style="margin-top:10px">
       <a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:11px;font-weight:600">
@@ -166,8 +212,8 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.1em;c
   <div class="section" style="background:transparent;border:1px solid rgba(79,142,247,0.15)">
     <h3>Intellectual Property</h3>
     <p style="font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.8">
-      Patent Pending — IP Australia<br>
-      DTVSS™ — Trademark pending<br>
+      Patent Pending - IP Australia<br>
+      DTVSS™ - Trademark pending<br>
       © 2026 Andrew Broglio. All rights reserved.<br>
       Licensed under Business Source License 1.1 (BSL 1.1)<br>
       Non-commercial use permitted. Commercial licence required for production use.
@@ -181,7 +227,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.1em;c
 
   <!-- Footer -->
   <div class="footer">
-    <div>© 2026 Andrew Broglio · DTVSS™ · Patent Pending — IP Australia · BSL 1.1</div>
+    <div>© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia · BSL 1.1</div>
     <div style="margin-top:4px">
       <a href="/">Search</a> · <a href="/calculator">Calculator</a> · <a href="/about">About</a>
     </div>
@@ -189,7 +235,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.1em;c
 
   <!-- Disclaimer -->
   <div style="padding:12px 16px;border:1px solid rgba(217,79,79,0.2);border-radius:8px;background:rgba(217,79,79,0.04);font-family:var(--mono);font-size:8px;color:var(--dim);line-height:1.8;text-align:center">
-    <span style="color:#d94f4f;font-weight:600">RESEARCH PREVIEW</span> — This is a non-commercial research demonstration of the DTVSS scoring methodology. It is not a certified medical device risk management tool. Scores are derived from public data sources (NVD, EPSS, CISA KEV) which may be incomplete, delayed, or inaccurate. Do not use this system as the sole basis for clinical, procurement, or remediation decisions. The author accepts no liability for decisions made using this tool.
+    <span style="color:#d94f4f;font-weight:600">RESEARCH PREVIEW</span> - This is a non-commercial research demonstration of the DTVSS scoring methodology. It is not a certified medical device risk management tool. Scores are derived from public data sources (NVD, EPSS, CISA KEV) which may be incomplete, delayed, or inaccurate. Do not use this system as the sole basis for clinical, procurement, or remediation decisions. The author accepts no liability for decisions made using this tool.
   </div>
 
 </div>

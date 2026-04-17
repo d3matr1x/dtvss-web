@@ -1,7 +1,7 @@
-# DTVSS — Dynamic Temporal Vulnerability Scoring System
+# DTVSS - Dynamic Temporal Vulnerability Scoring System
 # Copyright © 2026 Andrew Broglio. All rights reserved.
-# Patent Pending — IP Australia
-# Licensed under BSL 1.1 — Commercial licence required for production use.
+# Patent Pending - IP Australia
+# Licensed under BSL 1.1 - Commercial licence required for production use.
 
 """
 DTVSS Scoring Engine
@@ -30,7 +30,7 @@ THRESHOLDS = [
 
 # Device keyword → TGA class mapping for auto-classification
 DEVICE_KEYWORDS = {
-    # Infusion pumps — IIb
+    # Infusion pumps - IIb
     "baxter": "IIb", "sigma spectrum": "IIb", "colleague": "IIb",
     "icu medical": "IIb", "plum 360": "IIb", "plum a+": "IIb",
     "hospira": "IIb", "lifecare": "IIb",
@@ -42,7 +42,7 @@ DEVICE_KEYWORDS = {
     "eitan": "IIb", "mindray": "IIb", "benefusion": "IIb",
     "treck": "IIb", "ripple20": "IIb",
     "infusion pump": "IIb",
-    # Insulin pumps — IIb
+    # Insulin pumps - IIb
     "medtronic minimed": "IIb", "minimed": "IIb", "paradigm": "IIb", "carelink": "IIb",
     "insulet": "IIb", "omnipod": "IIb",
     "tandem": "IIb", "t:slim": "IIb",
@@ -51,7 +51,7 @@ DEVICE_KEYWORDS = {
     "dana": "IIb", "diabecare": "IIb",
     "animas": "IIb",
     "insulin pump": "IIb",
-    # Ventilators — IIb
+    # Ventilators - IIb
     "philips respironics": "IIb", "respironics": "IIb",
     "hamilton medical": "IIb", "hamilton ventilator": "IIb",
     "drager": "IIb", "dräger": "IIb", "evita": "IIb",
@@ -59,22 +59,25 @@ DEVICE_KEYWORDS = {
     "resmed": "IIb",
     "getinge": "IIb", "servo": "IIb",
     "ventilator": "IIb",
-    # Patient monitors — IIb
+    # Patient monitors - IIb
     "philips intellivue": "IIb", "intellivue": "IIb",
     "ge healthcare monitor": "IIb", "carescape": "IIb",
     "nihon kohden": "IIb",
     "spacelabs": "IIb",
     "patient monitor": "IIb",
-    # CGMs — IIb
+    # CGMs - IIb
     "freestyle libre": "IIb", "dexcom": "IIb", "guardian": "IIb",
-    # Implantable cardiac — III
+    # Implantable cardiac - III
     "pacemaker": "III", "implantable cardioverter": "III", "defibrillator": "III",
     "medtronic pacemaker": "III", "medtronic icd": "III", "medtronic crt": "III",
     "abbott pacemaker": "III", "abbott defibrillator": "III",
     "boston scientific": "III",
     "biotronik": "III",
-    "zoll": "III",
+    "zoll": "IIb",
     "implantable": "III",
+    # PACS / imaging systems - IIb
+    "pacs": "IIb", "dicom": "IIb", "synapse": "IIb",
+    "carestream": "IIb", "radiology": "IIb",
 }
 
 
@@ -85,7 +88,7 @@ def classify_device(description: str, use_openfda: bool = True) -> tuple[str | N
       1. Static keyword match (fast, 80+ hardcoded device names)
       2. Dynamic openFDA keyword cache (refreshed daily from FDA API)
       3. openFDA single-device lookup (live API call)
-      4. None — caller prompts user to select manually
+      4. None - caller prompts user to select manually
     Returns (tga_class, source).
     """
     desc_lower = description.lower()

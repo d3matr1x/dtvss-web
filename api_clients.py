@@ -1,4 +1,4 @@
-# DTVSS — API Clients for NVD and EPSS
+# DTVSS - API Clients for NVD and EPSS
 # Copyright © 2026 Andrew Broglio. All rights reserved.
 # Licensed under BSL 1.1
 
@@ -60,7 +60,7 @@ def parse_cvss31_exploitability(vector: str) -> Optional[float]:
             at_map = {"N": "L", "P": "H"}  # None→Low complexity, Present→High complexity
             ac = CVSS31_AC.get(at_map.get(parts["AT"], ""), None)
 
-        # CVSS v4.0 doesn't have Scope — default to Unchanged for PR lookup
+        # CVSS v4.0 doesn't have Scope - default to Unchanged for PR lookup
         scope = parts.get("S", "U")
         pr_table = CVSS31_PR_C if scope == "C" else CVSS31_PR_U
         pr = pr_table.get(parts.get("PR", ""), None)
@@ -100,7 +100,7 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except Exception as e:
-        # NVD unreachable — try MITRE fallback
+        # NVD unreachable - try MITRE fallback
         mitre = mitre_lookup_cve(cve_id)
         if mitre and "error" not in mitre:
             return mitre
@@ -108,7 +108,7 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
 
     vulns = data.get("vulnerabilities", [])
     if not vulns:
-        # CVE not in NVD — try MITRE
+        # CVE not in NVD - try MITRE
         mitre = mitre_lookup_cve(cve_id)
         if mitre and "error" not in mitre:
             return mitre
@@ -166,7 +166,7 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
     cvss_vec = ""
     sev = ""
 
-    # Try CNA metrics — check all CVSS versions, prefer newer
+    # Try CNA metrics - check all CVSS versions, prefer newer
     version_keys = ["cvssV4_0", "cvssV3_1", "cvssV3_0", "cvssV2_0"]
     version_labels = {"cvssV4_0": "4.0", "cvssV3_1": "3.1", "cvssV3_0": "3.0", "cvssV2_0": "2.0"}
 
@@ -183,7 +183,7 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
                     B = float(cvss_data.get("exploitabilityScore", 0))
                 else:
                     B = parse_cvss31_exploitability(cvss_vec) or 0.0
-                    # No approximation for v4.0 — if vector parse fails, B stays 0
+                    # No approximation for v4.0 - if vector parse fails, B stays 0
                 break
         if B > 0:
             break
@@ -211,8 +211,8 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
     if not B:
         return {"error": f"No CVSS scoring data published for {cve_id}"}
 
-    # KEV — not available from MITRE API, will be checked separately
-    # ICS — check references
+    # KEV - not available from MITRE API, will be checked separately
+    # ICS - check references
     refs = [r.get("url", "") for r in cna.get("references", [])]
     ics = any(frag in ref_url for ref_url in refs for frag in ICS_URL_FRAGMENTS)
     ics_urls = [ref_url for ref_url in refs if any(f in ref_url for f in ICS_URL_FRAGMENTS)]
@@ -315,7 +315,7 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
         cvss_vec = x.get("cvssData", {}).get("vectorString", "")
         sev = x.get("cvssData", {}).get("baseSeverity", "")
     elif m.get("cvssMetricV40"):
-        # CVSS v4.0 — no exploitabilityScore in NVD response
+        # CVSS v4.0 - no exploitabilityScore in NVD response
         # Parse exploitability from vector using v3.1-compatible AV/AC/PR/UI components
         x = pick_best(m["cvssMetricV40"])
         cvss_ver = "4.0"
@@ -323,12 +323,12 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
         sev = x.get("cvssData", {}).get("baseSeverity", "")
 
         B = parse_cvss31_exploitability(cvss_vec) or 0.0
-        # No approximation — if the vector can't be parsed, B stays 0
+        # No approximation - if the vector can't be parsed, B stays 0
         # and the CVE is flagged as unscorable rather than guessing
 
         impact = float(x.get("cvssData", {}).get("baseScore", 0)) - B if B else 0.0
     elif m.get("cvssMetricV2"):
-        # v2.0 — compute exploitability from vector if available
+        # v2.0 - compute exploitability from vector if available
         x = pick_best(m["cvssMetricV2"])
         cvss_ver = "2.0"
         cvss_vec = x.get("cvssData", {}).get("vectorString", "")
@@ -338,7 +338,7 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
 
         # v2.0 exploitabilityScore is on 0-10 scale already
         if B:
-            # Flag as v2.0 but still score it — better than returning nothing
+            # Flag as v2.0 but still score it - better than returning nothing
             pass
         else:
             return {
@@ -352,13 +352,13 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
     if not B:
         return {"cve_id": cve_id, "error": "Exploitability sub-score is 0"}
 
-    # KEV — embedded in NVD response
+    # KEV - embedded in NVD response
     kev = bool(cve.get("cisaExploitAdd"))
     kev_added = cve.get("cisaExploitAdd", "")
     kev_due = cve.get("cisaActionDue", "")
     kev_name = cve.get("cisaVulnerabilityName", "")
 
-    # ICS advisory — from reference URLs
+    # ICS advisory - from reference URLs
     refs = [r.get("url", "") for r in cve.get("references", [])]
     ics = any(frag in ref_url for ref_url in refs for frag in ICS_URL_FRAGMENTS)
     ics_urls = [ref_url for ref_url in refs if any(f in ref_url for f in ICS_URL_FRAGMENTS)]
@@ -418,14 +418,14 @@ def epss_lookup(cve_ids: list[str]) -> dict:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# openFDA Device Classification (server-side only — never exposed to frontend)
+# openFDA Device Classification (server-side only - never exposed to frontend)
 # ═══════════════════════════════════════════════════════════════════════
 
 OPENFDA_DEVICE_URL = "https://api.fda.gov/device/classification.json"
 
 # FDA device class → TGA equivalent mapping
 FDA_TO_TGA = {
-    "1": None,   # Class I — no network-connected devices with CVEs
+    "1": None,   # Class I - no network-connected devices with CVEs
     "2": "IIb",  # FDA Class II ≈ TGA Class IIb for network-connected therapeutic devices
     "3": "III",  # FDA Class III = TGA Class III
 }
@@ -435,7 +435,7 @@ def openfda_classify_device(device_name: str) -> Optional[dict]:
     """
     Look up device classification from openFDA.
     Returns TGA-equivalent class and FDA product details, or None.
-    This runs server-side only — the user never sees the API call.
+    This runs server-side only - the user never sees the API call.
     """
     params = urllib.parse.urlencode({
         "search": f'device_name:"{device_name}"',
@@ -481,7 +481,7 @@ def openfda_classify_device(device_name: str) -> Optional[dict]:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# CISA KEV Catalog — Direct check (fallback when NVD hasn't enriched)
+# CISA KEV Catalog - Direct check (fallback when NVD hasn't enriched)
 # ═══════════════════════════════════════════════════════════════════════
 
 _kev_cache = {"data": None, "fetched_at": 0}
@@ -608,7 +608,7 @@ def refresh_device_keywords() -> dict:
                         keywords[short] = tga_class
 
         except Exception:
-            continue  # non-fatal — keep existing cache
+            continue  # non-fatal - keep existing cache
 
         # Rate limit: openFDA allows ~240 requests/minute without key
         import time as _time2

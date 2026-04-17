@@ -1,0 +1,6051 @@
+{
+  "manufacturers": {
+    "animas": {
+      "display_name": "Animas",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-16-279-01",
+          "title": "Animas OneTouch Ping Insulin Pump Vulnerabilities",
+          "icsma_id": "ICSMA-16-279-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2016-5084",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2016-07-09",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2016-5086",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.4,
+          "severity": "MEDIUM",
+          "published": "2016-07-09",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2016-5085",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.2,
+          "severity": "MEDIUM",
+          "published": "2016-07-09",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414160+00:00",
+      "source": "cisa_icsma"
+    },
+    "smiths medical": {
+      "display_name": "Smiths Medical",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-16-306-01",
+          "title": "Smiths Medical CADD-Solis Medication Safety Software Vulnerabilities",
+          "icsma_id": "ICSMA-16-306-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-250-02a",
+          "title": "Smiths Medical Medfusion 4000 Wireless Syringe Infusion Pump Vulnerabilities (Update A)",
+          "icsma_id": "ICSMA-17-250-02A"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2016-8355",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.9,
+          "severity": "CRITICAL",
+          "published": "2016-08-05",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2016-8358",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.5,
+          "severity": "HIGH",
+          "published": "2016-08-05",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-12718",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2017-09-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-12722",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2017-09-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-12725",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2017-09-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-12720",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2017-09-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-12724",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2017-09-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-12726",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2017-09-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-12721",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2017-09-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-12723",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2017-09-07",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 10,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414200+00:00",
+      "source": "cisa_icsma"
+    },
+    "st. jude medical": {
+      "display_name": "St. Jude Medical",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-009-01a",
+          "title": "ICSMA-17-009-01A_St. Jude Merlin@home Transmitter Vulnerability (Update A)",
+          "icsma_id": "ICSMA-17-009-01A"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2017-5149",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.9,
+          "severity": "HIGH",
+          "published": "2017-01-09",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414214+00:00",
+      "source": "cisa_icsma"
+    },
+    "bd (becton dickinson)": {
+      "display_name": "BD (Becton Dickinson)",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-017-01",
+          "title": "ICSMA-17-017-01_BD Alaris 8000 Insufficiently Protected Credentials Vulnerability",
+          "icsma_id": "ICSMA-17-017-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-017-02",
+          "title": "BD Alaris 8015 PC Unit (Update B)",
+          "icsma_id": "ICSMA-17-017-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-082-01",
+          "title": "ICSMA-17-082-01_BD Kiestra PerformA and KLA Journal Service Applications Hard-Coded Passwords Vulnerability",
+          "icsma_id": "ICSMA-17-082-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-114-01",
+          "title": "BD Pyxis",
+          "icsma_id": "ICSMA-18-114-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-142-01",
+          "title": "BD Kiestra and InoquIA Systems (Update A)",
+          "icsma_id": "ICSMA-18-142-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-235-01",
+          "title": "BD Alaris Plus",
+          "icsma_id": "ICSMA-18-235-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-029-02",
+          "title": "BD FACSLyric (Update A)",
+          "icsma_id": "ICSMA-19-029-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-164-01",
+          "title": "BD Alaris Gateway Workstation",
+          "icsma_id": "ICSMA-19-164-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-248-01",
+          "title": "BD Pyxis (Update A)",
+          "icsma_id": "ICSMA-19-248-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-091-01",
+          "title": "BD Pyxis MedStation and Pyxis Anesthesia (PAS) ES System",
+          "icsma_id": "ICSMA-20-091-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-170-06",
+          "title": "BD Alaris PCU (Update A)",
+          "icsma_id": "ICSMA-20-170-06"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-317-01",
+          "title": "BD Alaris 8015 PC Unit and BD Alaris Systems Manager",
+          "icsma_id": "ICSMA-20-317-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-062-01",
+          "title": "BD Pyxis",
+          "icsma_id": "ICSMA-22-062-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-062-02",
+          "title": "BD Viper LT",
+          "icsma_id": "ICSMA-22-062-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-151-01",
+          "title": "BD Pyxis",
+          "icsma_id": "ICSMA-22-151-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-151-02",
+          "title": "BD Synapsys",
+          "icsma_id": "ICSMA-22-151-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-277-01",
+          "title": "BD Totalys MultiProcessor",
+          "icsma_id": "ICSMA-22-277-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-335-01",
+          "title": "BD BodyGuard Pumps",
+          "icsma_id": "ICSMA-22-335-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-23-047-01",
+          "title": "BD Alaris Infusion Central",
+          "icsma_id": "ICSMA-23-047-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-23-194-01",
+          "title": "BD Alaris System with Guardrails Suite MX",
+          "icsma_id": "ICSMA-23-194-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-23-331-01",
+          "title": "BD FACSChorus",
+          "icsma_id": "ICSMA-23-331-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-352-01",
+          "title": "BD Diagnostic Solutions Products (Update A)",
+          "icsma_id": "ICSMA-24-352-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2019-10959",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2019-06-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-14786",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.4,
+          "severity": "CRITICAL",
+          "published": "2018-08-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-22767",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2022-05-31",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-30563",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.2,
+          "severity": "HIGH",
+          "published": "2023-07-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-22765",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.0,
+          "severity": "HIGH",
+          "published": "2022-03-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-10476",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.0,
+          "severity": "HIGH",
+          "published": "2024-12-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-13517",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.6,
+          "severity": "HIGH",
+          "published": "2019-09-05",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-6022",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2017-03-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-10962",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2019-06-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-47376",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2023-02-16",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-22766",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.0,
+          "severity": "HIGH",
+          "published": "2022-03-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-30564",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.9,
+          "severity": "MEDIUM",
+          "published": "2023-07-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2016-9355",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2017-01-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-13077",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2018-04-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-6517",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2019-01-29",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-10598",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2020-03-31",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-30560",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2023-07-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-30562",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.7,
+          "severity": "MEDIUM",
+          "published": "2023-07-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-40263",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.6,
+          "severity": "MEDIUM",
+          "published": "2022-10-04",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25165",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2020-11-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10595",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2018-05-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-30561",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2023-07-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-30277",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.7,
+          "severity": "MEDIUM",
+          "published": "2022-05-31",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10593",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.6,
+          "severity": "MEDIUM",
+          "published": "2018-05-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-29060",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2023-11-28",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-11479",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-43557",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2022-12-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-30559",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.2,
+          "severity": "MEDIUM",
+          "published": "2023-07-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-29061",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.2,
+          "severity": "MEDIUM",
+          "published": "2023-11-28",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2016-8375",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.9,
+          "severity": "MEDIUM",
+          "published": "2017-01-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-29064",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 4.1,
+          "severity": "MEDIUM",
+          "published": "2023-11-28",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-29065",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 4.1,
+          "severity": "MEDIUM",
+          "published": "2023-11-28",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-29062",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 3.8,
+          "severity": "LOW",
+          "published": "2023-11-28",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-30565",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.5,
+          "severity": "LOW",
+          "published": "2023-07-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-29066",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 3.2,
+          "severity": "LOW",
+          "published": "2023-11-28",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-1285",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.0,
+          "severity": "LOW",
+          "published": "2023-07-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-29063",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 2.4,
+          "severity": "LOW",
+          "published": "2023-11-28",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 37,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414238+00:00",
+      "source": "cisa_icsma"
+    },
+    "b. braun": {
+      "display_name": "B. Braun",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-082-02",
+          "title": "ICSMA-17-082-02_B. Braun Medical SpaceCom Open Redirect Vulnerability",
+          "icsma_id": "ICSMA-17-082-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-296-01",
+          "title": "B. Braun OnlineSuite",
+          "icsma_id": "ICSMA-20-296-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-296-02",
+          "title": "B. Braun SpaceCom, Battery Pack SP with Wi-Fi, and Data module compactplus",
+          "icsma_id": "ICSMA-20-296-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-294-01",
+          "title": "B. Braun Infusomat Space Large Volume Pump",
+          "icsma_id": "ICSMA-21-294-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-23-103-01",
+          "title": "B. Braun Battery Pack SP with Wi-Fi",
+          "icsma_id": "ICSMA-23-103-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2021-33885",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.0,
+          "severity": "CRITICAL",
+          "published": "2021-10-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25172",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.6,
+          "severity": "HIGH",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25174",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.4,
+          "severity": "HIGH",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25158",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.6,
+          "severity": "HIGH",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25150",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.6,
+          "severity": "HIGH",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25162",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25156",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.2,
+          "severity": "HIGH",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25170",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.9,
+          "severity": "MEDIUM",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25166",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25160",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33886",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2021-10-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33882",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2021-10-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16238",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.7,
+          "severity": "MEDIUM",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25152",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33884",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-10-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33883",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2021-10-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-0888",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.5,
+          "severity": "MEDIUM",
+          "published": "2023-04-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-6018",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2017-03-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25154",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25164",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.1,
+          "severity": "MEDIUM",
+          "published": "2020-10-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25168",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.3,
+          "severity": "LOW",
+          "published": "2020-10-22",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 21,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414255+00:00",
+      "source": "cisa_icsma"
+    },
+    "siemens": {
+      "display_name": "Siemens",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-215-01",
+          "title": "ICSMA-17-215-01_Siemens Molecular Imaging Vulnerabilities",
+          "icsma_id": "ICSMA-17-215-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-215-02",
+          "title": "ICSMA-17-215-02_Siemens Molecular Imaging Vulnerabilities",
+          "icsma_id": "ICSMA-17-215-02"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2008-4250",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2017-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-7269",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2017-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2015-1635",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2017-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2015-1497",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2017-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2015-7861",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2017-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2015-7860",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2017-08-03",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 6,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414265+00:00",
+      "source": "cisa_icsma"
+    },
+    "bmc medical": {
+      "display_name": "BMC Medical",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-227-01",
+          "title": "ICSMA-17-227-01_BMC Medical and 3B Medical Luna CPAP Machine",
+          "icsma_id": "ICSMA-17-227-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2017-12701",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2017-08-15",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414274+00:00",
+      "source": "cisa_icsma"
+    },
+    "philips": {
+      "display_name": "Philips",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-229-01",
+          "title": "ICSMA-17-229-01_Philips' DoseWise Portal Vulnerabilities",
+          "icsma_id": "ICSMA-17-229-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-255-01",
+          "title": "ICSMA-17-255-01_Philips' IntelliView MX40 Patient Worn Monitor (WLAN) Vulnerabilities",
+          "icsma_id": "ICSMA-17-255-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-318-01",
+          "title": "Philips IntelliSpace Cardiovascular System and Xcelera System Vulnerability",
+          "icsma_id": "ICSMA-17-318-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-025-01",
+          "title": "Philips IntelliSpace Cardiovascular System Vulnerability",
+          "icsma_id": "ICSMA-18-025-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-058-02",
+          "title": "Philips Intellispace Portal ISP Vulnerabilities",
+          "icsma_id": "ICSMA-18-058-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-086-01",
+          "title": "Philips Alice 6 Vulnerabilities (Update B)",
+          "icsma_id": "ICSMA-18-086-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-123-01",
+          "title": "Philips Brilliance Computed Tomography (CT) System (Update A)",
+          "icsma_id": "ICSMA-18-123-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-137-02",
+          "title": "Philips EncoreAnywhere",
+          "icsma_id": "ICSMA-18-137-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-156-01",
+          "title": "Philips' IntelliVue Patient and Avalon Fetal Monitors",
+          "icsma_id": "ICSMA-18-156-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-226-01",
+          "title": "Philips IntelliSpace Cardiovascular Vulnerabilities",
+          "icsma_id": "ICSMA-18-226-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-228-01",
+          "title": "Philips PageWriter TC10, TC20, TC30, TC50, and TC70 Cardiographs (Update A)",
+          "icsma_id": "ICSMA-18-228-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-233-01",
+          "title": "Philips IntelliVue Information Center iX (Update B)",
+          "icsma_id": "ICSMA-18-233-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-312-01",
+          "title": "Philips iSite and IntelliSpace PACS",
+          "icsma_id": "ICSMA-18-312-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-340-01",
+          "title": "Philips HealthSuite Health Android App",
+          "icsma_id": "ICSMA-18-340-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-120-01",
+          "title": "Philips Tasy EMR (Update A)",
+          "icsma_id": "ICSMA-19-120-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-192-01",
+          "title": "Philips Holter 2010 Plus",
+          "icsma_id": "ICSMA-19-192-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-241-02",
+          "title": "Philips HDI 4000 Ultrasound",
+          "icsma_id": "ICSMA-19-241-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-255-01",
+          "title": "Philips IntelliVue WLAN",
+          "icsma_id": "ICSMA-19-255-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-297-01",
+          "title": "Philips IntelliSpace Perinatal",
+          "icsma_id": "ICSMA-19-297-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-318-01",
+          "title": "Philips IntelliBridge EC40/80 (Update A)",
+          "icsma_id": "ICSMA-19-318-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-353-01",
+          "title": "Philips Veradius Unity, Pulsera, and Endura Dual WAN Routers",
+          "icsma_id": "ICSMA-19-353-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-163-01",
+          "title": "Philips IntelliBridge Enterprise IBE",
+          "icsma_id": "ICSMA-20-163-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-177-01",
+          "title": "Philips Ultrasound Systems",
+          "icsma_id": "ICSMA-20-177-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-212-01",
+          "title": "Philips DreamMapper",
+          "icsma_id": "ICSMA-20-212-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-233-01",
+          "title": "Philips SureSigns VS4",
+          "icsma_id": "ICSMA-20-233-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-254-01",
+          "title": "Philips Patient Monitoring Devices (Update C)",
+          "icsma_id": "ICSMA-20-254-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-261-01",
+          "title": "ICSMA-20-261-01_Philips Clinical Collaboration Platform",
+          "icsma_id": "ICSMA-20-261-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-019-01",
+          "title": "Philips Interventional Workstations",
+          "icsma_id": "ICSMA-21-019-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-084-01",
+          "title": "Philips Gemini PET/CT Family",
+          "icsma_id": "ICSMA-21-084-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-175-01",
+          "title": "Philips Interoperability Solution XDS",
+          "icsma_id": "ICSMA-21-175-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-187-01",
+          "title": "Philips Vue PACS (Update B)",
+          "icsma_id": "ICSMA-21-187-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-308-01",
+          "title": "Philips Tasy EMR",
+          "icsma_id": "ICSMA-21-308-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-313-01",
+          "title": "Philips MRI 1.5T and 3T (Update A)",
+          "icsma_id": "ICSMA-21-313-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-322-01",
+          "title": "Philips IntelliBridge EC 40 and EC 80 Hub",
+          "icsma_id": "ICSMA-21-322-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-322-02",
+          "title": "Philips Patient Information Center iX (PIC iX) and Efficia CM Series",
+          "icsma_id": "ICSMA-21-322-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-006-01",
+          "title": "Philips Engage Software",
+          "icsma_id": "ICSMA-22-006-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-088-01",
+          "title": "Philips e-Alert",
+          "icsma_id": "ICSMA-22-088-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-200-01",
+          "title": "Philips Vue PACS (Update A)",
+          "icsma_id": "ICSMA-24-200-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-072-01",
+          "title": "Philips Intellispace Cardiovascular (ISCV)",
+          "icsma_id": "ICSMA-25-072-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2018-5474",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5472",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5468",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-1938",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-12326",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-11218",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-4670",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-9656",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.1,
+          "severity": "CRITICAL",
+          "published": "2017-08-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-39375",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2021-11-04",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-39376",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2021-11-04",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-8857",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.4,
+          "severity": "HIGH",
+          "published": "2018-05-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10597",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.3,
+          "severity": "HIGH",
+          "published": "2018-06-05",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10601",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.2,
+          "severity": "HIGH",
+          "published": "2018-06-05",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-8014",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.2,
+          "severity": "HIGH",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0143",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0144",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0145",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0146",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0148",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0272",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-32993",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2021-11-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33017",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2021-11-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0199",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5470",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33020",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-2230",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.7,
+          "severity": "HIGH",
+          "published": "2025-03-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-2229",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.7,
+          "severity": "HIGH",
+          "published": "2025-03-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5458",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5462",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5464",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5466",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2016-2183",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10115",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33024",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-14111",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.2,
+          "severity": "HIGH",
+          "published": "2017-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0277",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.0,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0278",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.0,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0279",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.0,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16212",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2020-09-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16247",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2020-09-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-40704",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2024-07-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5438",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.7,
+          "severity": "MEDIUM",
+          "published": "2018-01-25",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-9654",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2017-08-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-9657",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2017-09-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-9658",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2017-09-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2005-1794",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16224",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2020-09-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16216",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2020-09-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16200",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2020-09-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27298",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-01-19",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27501",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33018",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27497",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-43548",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-11-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-0922",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2022-03-29",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-28165",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2024-07-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10599",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.4,
+          "severity": "MEDIUM",
+          "published": "2018-06-05",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-13530",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.4,
+          "severity": "MEDIUM",
+          "published": "2019-09-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-13534",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.4,
+          "severity": "MEDIUM",
+          "published": "2019-09-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-17906",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2018-11-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-18241",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2019-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-26262",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.2,
+          "severity": "MEDIUM",
+          "published": "2021-11-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-26248",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.2,
+          "severity": "MEDIUM",
+          "published": "2021-11-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-42744",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.2,
+          "severity": "MEDIUM",
+          "published": "2021-11-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-8853",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2018-05-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-8861",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2018-05-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-14801",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2018-08-16",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-13546",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2019-10-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2012-1708",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2015-9251",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-43552",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2021-11-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16228",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.0,
+          "severity": "MEDIUM",
+          "published": "2020-09-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0269",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0273",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0280",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0147",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0267",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0268",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0270",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0271",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0274",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0275",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0276",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-8863",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-05-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-14799",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2018-08-16",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-43550",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2021-11-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-1999-0103",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.7,
+          "severity": "MEDIUM",
+          "published": "2018-08-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5454",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5451",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2018-03-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-7498",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2018-03-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-18263",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2019-12-19",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14518",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2020-07-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27493",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16222",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.0,
+          "severity": "MEDIUM",
+          "published": "2020-09-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16198",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.0,
+          "severity": "MEDIUM",
+          "published": "2020-09-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-13557",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2019-04-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-14789",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.2,
+          "severity": "MEDIUM",
+          "published": "2018-08-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16214",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 4.2,
+          "severity": "MEDIUM",
+          "published": "2020-09-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-6562",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.1,
+          "severity": "MEDIUM",
+          "published": "2019-04-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2011-3389",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2004-2761",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-32966",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2021-06-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-9636",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14477",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.6,
+          "severity": "LOW",
+          "published": "2020-06-25",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-19001",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.5,
+          "severity": "LOW",
+          "published": "2018-12-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16218",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 3.5,
+          "severity": "LOW",
+          "published": "2020-09-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16220",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 3.5,
+          "severity": "LOW",
+          "published": "2020-09-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14525",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.5,
+          "severity": "LOW",
+          "published": "2020-09-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2014-3566",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 3.4,
+          "severity": "LOW",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14506",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.4,
+          "severity": "LOW",
+          "published": "2020-09-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-10988",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.0,
+          "severity": "LOW",
+          "published": "2019-08-29",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33022",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 2.7,
+          "severity": "LOW",
+          "published": "2021-07-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-23173",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 2.6,
+          "severity": "LOW",
+          "published": "2022-01-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27456",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 2.4,
+          "severity": "LOW",
+          "published": "2021-03-25",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-16237",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 2.1,
+          "severity": "LOW",
+          "published": "2020-08-20",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12023",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 2.0,
+          "severity": "LOW",
+          "published": "2020-06-11",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-10968",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 1.9,
+          "severity": "LOW",
+          "published": "2019-07-11",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 117,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414333+00:00",
+      "source": "cisa_icsma"
+    },
+    "abbott": {
+      "display_name": "Abbott",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-241-01",
+          "title": "ICSMA-17-241-01_Abbott Laboratories ' Accent/Anthem, Accent MRI, Assurity/Allure, and Assurity MRI Pacemaker Vulnerabilities",
+          "icsma_id": "ICSMA-17-241-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-107-01",
+          "title": "Abbott Laboratories Defibrillator",
+          "icsma_id": "ICSMA-18-107-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2017-12712",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-04-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-12714",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2018-04-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-12716",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.1,
+          "severity": "LOW",
+          "published": "2017-08-29",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414343+00:00",
+      "source": "cisa_icsma"
+    },
+    "i-sens inc": {
+      "display_name": "i-SENS Inc",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-250-01",
+          "title": "i-SENS, Inc. SmartLog Diabetes Management Software",
+          "icsma_id": "ICSMA-17-250-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2017-13993",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2017-09-07",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414350+00:00",
+      "source": "cisa_icsma"
+    },
+    "boston scientific": {
+      "display_name": "Boston Scientific",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-292-01",
+          "title": "ICSMA-17-292-01_Boston Scientific ZOOM LATITUDE PRM Vulnerabilities",
+          "icsma_id": "ICSMA-17-292-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-273-01",
+          "title": "Boston Scientific Zoom Latitude",
+          "icsma_id": "ICSMA-21-273-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2021-38400",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.9,
+          "severity": "MEDIUM",
+          "published": "2021-09-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-38392",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-09-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-38396",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-09-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-38398",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-09-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-38394",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.2,
+          "severity": "MEDIUM",
+          "published": "2021-09-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-14014",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2017-10-19",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-14012",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2017-10-19",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 7,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414360+00:00",
+      "source": "cisa_icsma"
+    },
+    "johnson & johnson": {
+      "display_name": "Johnson & Johnson",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-17-332-01",
+          "title": "Ethicon Endo-Surgery Generator G11 Vulnerability",
+          "icsma_id": "ICSMA-17-332-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2017-14018",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.8,
+          "severity": "MEDIUM",
+          "published": "2017-11-28",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414368+00:00",
+      "source": "cisa_icsma"
+    },
+    "vyaire medical": {
+      "display_name": "Vyaire Medical",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-037-01",
+          "title": "Vyaire Medical CareFusion Upgrade Utility Vulnerability",
+          "icsma_id": "ICSMA-18-037-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2018-5457",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.7,
+          "severity": "MEDIUM",
+          "published": "2018-02-06",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414375+00:00",
+      "source": "cisa_icsma"
+    },
+    "ge healthcare": {
+      "display_name": "GE Healthcare",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-037-02",
+          "title": "GE Medical Devices Vulnerability",
+          "icsma_id": "ICSMA-18-037-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-128-01",
+          "title": "Silex Technology SX-500/SD-320AN or GE Healthcare MobileLink (Update B)",
+          "icsma_id": "ICSMA-18-128-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-190-01",
+          "title": "GE Aestiva and Aespire Anesthesia (Update A)",
+          "icsma_id": "ICSMA-19-190-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-023-01",
+          "title": "GE CARESCAPE, ApexPro, and Clinical Information Center systems",
+          "icsma_id": "ICSMA-20-023-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-049-02",
+          "title": "GE Healthcare Ultrasound products (Update A)",
+          "icsma_id": "ICSMA-20-049-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-343-01",
+          "title": "GE Healthcare Imaging and Ultrasound Products",
+          "icsma_id": "ICSMA-20-343-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2020-6961",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2020-01-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-6962",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2020-01-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-6963",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2020-01-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-6964",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2020-01-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-6966",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2020-01-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2010-5306",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2009-5143",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2013-7404",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2014-7232",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2010-5310",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2014-7233",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2012-6693",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2012-6694",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2012-6695",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2013-7442",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-14008",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2011-5322",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2007-6757",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2003-1603",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2001-1594",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2010-5309",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2010-5307",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-14004",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2004-2777",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-14002",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2002-2446",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2012-6660",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-14006",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25175",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2020-12-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25179",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2020-12-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-6965",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.5,
+          "severity": "HIGH",
+          "published": "2020-01-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-6977",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.4,
+          "severity": "HIGH",
+          "published": "2020-02-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-6021",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.4,
+          "severity": "HIGH",
+          "published": "2018-05-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-1486",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.4,
+          "severity": "HIGH",
+          "published": "2020-02-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-6020",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2018-05-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-10966",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2019-07-09",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 36,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414394+00:00",
+      "source": "cisa_icsma"
+    },
+    "medtronic": {
+      "display_name": "Medtronic",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-058-01",
+          "title": "Medtronic 2090 Carelink Programmer Vulnerabilities (Update C)",
+          "icsma_id": "ICSMA-18-058-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-137-01",
+          "title": "Medtronic N'Vision Clinician Programmer (Update A)",
+          "icsma_id": "ICSMA-18-137-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-179-01",
+          "title": "Medtronic MyCareLink Patient Monitor",
+          "icsma_id": "ICSMA-18-179-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-219-01",
+          "title": "Medtronic MyCareLink 24950 Patient Monitor",
+          "icsma_id": "ICSMA-18-219-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-219-02",
+          "title": "Medtronic MiniMed MMT-500/MMT-503 Remote Controllers (Update A)",
+          "icsma_id": "ICSMA-18-219-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-347-01",
+          "title": "Medtronic 9790, 2090 CareLink, and 29901 Encore Programmers",
+          "icsma_id": "ICSMA-18-347-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-080-01",
+          "title": "Medtronic Conexus Radio Frequency Telemetry Protocol (Update C)",
+          "icsma_id": "ICSMA-19-080-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-178-01",
+          "title": "Medtronic MiniMed 508 and Paradigm Series Insulin Pumps",
+          "icsma_id": "ICSMA-19-178-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-311-01",
+          "title": "Medtronic Valleylab FT10 and LS10",
+          "icsma_id": "ICSMA-19-311-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-311-02",
+          "title": "Medtronic Valleylab FT10 and FX8",
+          "icsma_id": "ICSMA-19-311-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-345-01",
+          "title": "Medtronic MyCareLink Smart",
+          "icsma_id": "ICSMA-20-345-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-263-01",
+          "title": "Medtronic NGP 600 Series Insulin Pumps",
+          "icsma_id": "ICSMA-22-263-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-23-061-01",
+          "title": "Medtronic Micro Clinician and InterStim Apps",
+          "icsma_id": "ICSMA-23-061-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-23-180-01",
+          "title": "Medtronic Paceart Optima System",
+          "icsma_id": "ICSMA-23-180-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-205-01",
+          "title": "Medtronic MyCareLink Patient Monitor",
+          "icsma_id": "ICSMA-25-205-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2019-3464",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2019-11-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-31222",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2023-06-29",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-6538",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.3,
+          "severity": "CRITICAL",
+          "published": "2019-03-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25187",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2020-12-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27252",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2020-12-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-25183",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.0,
+          "severity": "HIGH",
+          "published": "2020-12-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10596",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.1,
+          "severity": "HIGH",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-10964",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.1,
+          "severity": "HIGH",
+          "published": "2019-06-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-13539",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.0,
+          "severity": "HIGH",
+          "published": "2019-11-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-4394",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2025-07-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-4395",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2025-07-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-6540",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2019-03-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-4393",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2025-07-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-8870",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.4,
+          "severity": "MEDIUM",
+          "published": "2018-06-28",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-25931",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.4,
+          "severity": "MEDIUM",
+          "published": "2023-03-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10631",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2018-05-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-8868",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.2,
+          "severity": "MEDIUM",
+          "published": "2018-06-28",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-13543",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.8,
+          "severity": "MEDIUM",
+          "published": "2019-11-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-14781",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2018-08-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5446",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.9,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10622",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.9,
+          "severity": "MEDIUM",
+          "published": "2018-08-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-5448",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.8,
+          "severity": "MEDIUM",
+          "published": "2018-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10634",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.8,
+          "severity": "MEDIUM",
+          "published": "2018-08-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-13531",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.8,
+          "severity": "MEDIUM",
+          "published": "2019-11-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-32537",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.8,
+          "severity": "MEDIUM",
+          "published": "2022-09-20",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-8849",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2018-05-17",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-18984",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2018-12-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-13535",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2019-11-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10626",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.4,
+          "severity": "MEDIUM",
+          "published": "2018-08-07",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 29,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414416+00:00",
+      "source": "cisa_icsma"
+    },
+    "beaconmedaes": {
+      "display_name": "BeaconMedaes",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-144-01",
+          "title": "BeaconMedaes TotalAlert Scroll Medical Air Systems",
+          "icsma_id": "ICSMA-18-144-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2018-7518",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-05-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-7510",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-05-24",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 2,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414423+00:00",
+      "source": "cisa_icsma"
+    },
+    "natus medical": {
+      "display_name": "Natus Medical",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-165-01",
+          "title": "Natus Xltek NeuroWorks",
+          "icsma_id": "ICSMA-18-165-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2017-2853",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2018-06-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-2868",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2018-06-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-2869",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2018-06-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-2867",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.0,
+          "severity": "CRITICAL",
+          "published": "2018-06-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-2852",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-06-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-2858",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-06-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-2860",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-06-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-2861",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2018-06-14",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 8,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414433+00:00",
+      "source": "cisa_icsma"
+    },
+    "qualcomm life": {
+      "display_name": "Qualcomm Life",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-240-01",
+          "title": "ICSMA-18-240-01_Qualcomm Life Capsule",
+          "icsma_id": "ICSMA-18-240-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2014-9222",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2018-08-28",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414440+00:00",
+      "source": "cisa_icsma"
+    },
+    "carestream": {
+      "display_name": "Carestream",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-277-01",
+          "title": "Carestream Vue RIS",
+          "icsma_id": "ICSMA-18-277-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2018-17891",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.7,
+          "severity": "LOW",
+          "published": "2018-10-04",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414446+00:00",
+      "source": "cisa_icsma"
+    },
+    "change healthcare": {
+      "display_name": "Change Healthcare",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-277-02",
+          "title": "Change Healthcare PeerVue Web Server",
+          "icsma_id": "ICSMA-18-277-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-241-01",
+          "title": "Change Healthcare McKesson and Horizon Cardiology",
+          "icsma_id": "ICSMA-19-241-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2018-18630",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2019-08-29",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-10624",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2018-10-04",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 2,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414454+00:00",
+      "source": "cisa_icsma"
+    },
+    "roche": {
+      "display_name": "Roche",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-18-310-01",
+          "title": "Roche Diagnostics Point of Care Handheld Medical Devices (Update A)",
+          "icsma_id": "ICSMA-18-310-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2018-18564",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.3,
+          "severity": "HIGH",
+          "published": "2018-11-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-18565",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.2,
+          "severity": "HIGH",
+          "published": "2018-11-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-18562",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.0,
+          "severity": "HIGH",
+          "published": "2018-11-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-18563",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.0,
+          "severity": "HIGH",
+          "published": "2018-11-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-18561",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2018-11-06",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 5,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414462+00:00",
+      "source": "cisa_icsma"
+    },
+    "dr\u00e4ger": {
+      "display_name": "Dr\u00e4ger",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-022-01",
+          "title": "Dr\u00e4ger Infinity Delta",
+          "icsma_id": "ICSMA-19-022-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2018-19012",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.4,
+          "severity": "HIGH",
+          "published": "2019-01-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-19010",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2019-01-22",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2018-19014",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2019-01-22",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414469+00:00",
+      "source": "cisa_icsma"
+    },
+    "stryker": {
+      "display_name": "Stryker",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-029-01",
+          "title": "Stryker Medical Beds",
+          "icsma_id": "ICSMA-19-029-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2017-13077",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2019-01-29",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414478+00:00",
+      "source": "cisa_icsma"
+    },
+    "fujifilm": {
+      "display_name": "FUJIFILM",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-113-01",
+          "title": "Fujifilm FCR Capsula X/Carbon X",
+          "icsma_id": "ICSMA-19-113-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-233-01",
+          "title": "FUJIFILM Healthcare Americas Synapse Mobility",
+          "icsma_id": "ICSMA-25-233-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2019-10950",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2019-04-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-10948",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2019-04-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-54551",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2025-08-21",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414486+00:00",
+      "source": "cisa_icsma"
+    },
+    "enea (rtos)": {
+      "display_name": "ENEA (RTOS)",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-19-274-01",
+          "title": "Interpeak IPnet TCP/IP Stack (Update D)",
+          "icsma_id": "ICSMA-19-274-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2019-12256",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2019-10-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-12255",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2019-10-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-12260",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2019-10-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-12257",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2019-10-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-12261",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2019-10-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-12263",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2019-10-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-12258",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2019-10-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-12264",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.1,
+          "severity": "HIGH",
+          "published": "2019-10-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-12262",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.1,
+          "severity": "HIGH",
+          "published": "2019-10-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-12259",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2019-10-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-12265",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2019-10-01",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 11,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414495+00:00",
+      "source": "cisa_icsma"
+    },
+    "spacelabs": {
+      "display_name": "Spacelabs",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-049-01",
+          "title": "Spacelabs Xhibit Telemetry Receiver (XTR)",
+          "icsma_id": "ICSMA-20-049-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2019-0708",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2020-02-18",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414502+00:00",
+      "source": "cisa_icsma"
+    },
+    "insulet": {
+      "display_name": "Insulet",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-079-01",
+          "title": "Insulet Omnipod",
+          "icsma_id": "ICSMA-20-079-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2020-10627",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2020-03-19",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414509+00:00",
+      "source": "cisa_icsma"
+    },
+    "baxter": {
+      "display_name": "Baxter",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-170-01",
+          "title": "Baxter ExactaMix (Update A)",
+          "icsma_id": "ICSMA-20-170-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-170-02",
+          "title": "Baxter PrismaFlex and PrisMax (Update B)",
+          "icsma_id": "ICSMA-20-170-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-170-03",
+          "title": "Baxter Phoenix Hemodialysis Delivery System (Update A)",
+          "icsma_id": "ICSMA-20-170-03"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-170-04",
+          "title": "Baxter Sigma Spectrum Infusion Pumps (Update B)",
+          "icsma_id": "ICSMA-20-170-04"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-251-01",
+          "title": "Baxter Sigma Spectrum Infusion Pump (Update A)",
+          "icsma_id": "ICSMA-22-251-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-151-01",
+          "title": "Baxter Welch Allyn Configuration Tool",
+          "icsma_id": "ICSMA-24-151-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-151-02",
+          "title": "Baxter Welch Allyn Connex Spot Monitor",
+          "icsma_id": "ICSMA-24-151-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-249-01",
+          "title": "Baxter Connex Health Portal",
+          "icsma_id": "ICSMA-24-249-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-319-01",
+          "title": "Baxter Life2000 Ventilation System",
+          "icsma_id": "ICSMA-24-319-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2024-6795",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2024-09-05",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-48966",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2024-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-48967",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2024-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-5176",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 9.6,
+          "severity": "CRITICAL",
+          "published": "2024-05-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-9834",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 9.3,
+          "severity": "CRITICAL",
+          "published": "2024-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-9832",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 9.3,
+          "severity": "CRITICAL",
+          "published": "2024-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-48971",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 9.3,
+          "severity": "CRITICAL",
+          "published": "2024-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-48973",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 9.3,
+          "severity": "CRITICAL",
+          "published": "2024-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-48974",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 9.3,
+          "severity": "CRITICAL",
+          "published": "2024-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-48970",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 9.3,
+          "severity": "CRITICAL",
+          "published": "2024-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12045",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.6,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12041",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.6,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-6796",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.2,
+          "severity": "HIGH",
+          "published": "2024-09-05",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12016",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12032",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2017-0143",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12035",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.6,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12008",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12048",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-26394",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2022-09-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-8004",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2024-11-14",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-1275",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.4,
+          "severity": "HIGH",
+          "published": "2024-05-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12040",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12047",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12043",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12012",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12024",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12036",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12020",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12037",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-26393",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.0,
+          "severity": "MEDIUM",
+          "published": "2022-09-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-12039",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-26390",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.2,
+          "severity": "MEDIUM",
+          "published": "2022-09-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-26392",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.1,
+          "severity": "LOW",
+          "published": "2022-09-08",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 34,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414526+00:00",
+      "source": "cisa_icsma"
+    },
+    "biotronik": {
+      "display_name": "BIOTRONIK",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-170-05",
+          "title": "BIOTRONIK CardioMessenger II",
+          "icsma_id": "ICSMA-20-170-05"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2019-18254",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-18256",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-18246",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-18248",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2019-18252",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2020-06-18",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 5,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414535+00:00",
+      "source": "cisa_icsma"
+    },
+    "openclinic ga": {
+      "display_name": "OpenClinic GA",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-184-01",
+          "title": "OpenClinic GA (Update B)",
+          "icsma_id": "ICSMA-20-184-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2014-0114",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2020-07-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14485",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.4,
+          "severity": "CRITICAL",
+          "published": "2020-07-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2016-1182",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.4,
+          "severity": "CRITICAL",
+          "published": "2020-07-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14488",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2020-07-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14490",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2020-07-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14491",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.3,
+          "severity": "HIGH",
+          "published": "2020-07-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14484",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2020-07-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14494",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2020-07-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14486",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2020-07-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2016-1181",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.2,
+          "severity": "MEDIUM",
+          "published": "2020-07-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-14492",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2020-07-02",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 11,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414545+00:00",
+      "source": "cisa_icsma"
+    },
+    "capsule technologies": {
+      "display_name": "Capsule Technologies",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-20-196-01",
+          "title": "Capsule Technologies SmartLinx Neuron 2 (Update A)",
+          "icsma_id": "ICSMA-20-196-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2019-5024",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.6,
+          "severity": "HIGH",
+          "published": "2020-07-14",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414552+00:00",
+      "source": "cisa_icsma"
+    },
+    "innokas yhtym\u00e3\u00a4 oy": {
+      "display_name": "Innokas Yhtym\u00c3\u00a4 Oy",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-007-01",
+          "title": "Innokas Yhtym\u00e4 Oy Vital Signs Monitor",
+          "icsma_id": "ICSMA-21-007-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2020-27260",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2021-01-07",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27262",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2021-01-07",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 2,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414560+00:00",
+      "source": "cisa_icsma"
+    },
+    "sooil": {
+      "display_name": "SOOIL",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-012-01",
+          "title": "SOOIL Dana Diabecare RS Products",
+          "icsma_id": "ICSMA-21-012-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2020-27264",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.6,
+          "severity": "HIGH",
+          "published": "2021-01-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27258",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-01-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27266",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-01-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27268",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-01-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27270",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.7,
+          "severity": "MEDIUM",
+          "published": "2021-01-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27272",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.7,
+          "severity": "MEDIUM",
+          "published": "2021-01-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27276",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.7,
+          "severity": "MEDIUM",
+          "published": "2021-01-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27269",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2021-01-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27256",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2021-01-12",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 9,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414569+00:00",
+      "source": "cisa_icsma"
+    },
+    "hamilton medical": {
+      "display_name": "Hamilton Medical",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-047-01",
+          "title": "Hamilton-T1",
+          "icsma_id": "ICSMA-21-047-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2020-27282",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2021-02-16",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27278",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 3.5,
+          "severity": "LOW",
+          "published": "2021-02-16",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-27290",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 2.1,
+          "severity": "LOW",
+          "published": "2021-02-16",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414576+00:00",
+      "source": "cisa_icsma"
+    },
+    "hillrom": {
+      "display_name": "Hillrom",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-152-01",
+          "title": "Hillrom Medical Device Management (Update B)",
+          "icsma_id": "ICSMA-21-152-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-343-01",
+          "title": "Hillrom Welch Allyn Cardio Products",
+          "icsma_id": "ICSMA-21-343-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-167-01",
+          "title": "Hillrom Medical Device Management",
+          "icsma_id": "ICSMA-22-167-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2021-43935",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.1,
+          "severity": "HIGH",
+          "published": "2021-12-09",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-26389",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.7,
+          "severity": "HIGH",
+          "published": "2022-06-16",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-26388",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.4,
+          "severity": "MEDIUM",
+          "published": "2022-06-16",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27410",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2021-06-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27408",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2021-06-01",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 5,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414584+00:00",
+      "source": "cisa_icsma"
+    },
+    "zoll": {
+      "display_name": "ZOLL",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-161-01",
+          "title": "ZOLL Defibrillator Dashboard",
+          "icsma_id": "ICSMA-21-161-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-26-041-01",
+          "title": "ZOLL ePCR IOS Mobile Application",
+          "icsma_id": "ICSMA-26-041-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2021-27489",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.9,
+          "severity": "CRITICAL",
+          "published": "2021-06-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27481",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.1,
+          "severity": "HIGH",
+          "published": "2021-06-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27487",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.1,
+          "severity": "HIGH",
+          "published": "2021-06-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27485",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.1,
+          "severity": "HIGH",
+          "published": "2021-06-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-12699",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.5,
+          "severity": "MEDIUM",
+          "published": "2026-02-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27483",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2021-06-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27479",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2021-06-10",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 7,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414593+00:00",
+      "source": "cisa_icsma"
+    },
+    "ypsomed": {
+      "display_name": "Ypsomed",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-196-01",
+          "title": "ICSMA-21-196-01_Ypsomed mylife",
+          "icsma_id": "ICSMA-21-196-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2021-27495",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2021-07-15",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27491",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.8,
+          "severity": "MEDIUM",
+          "published": "2021-07-15",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27499",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2021-07-15",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-27503",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2021-07-15",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 4,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414601+00:00",
+      "source": "cisa_icsma"
+    },
+    "swisslog healthcare": {
+      "display_name": "Swisslog Healthcare",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-215-01",
+          "title": "Swisslog Healthcare Translogic PTS",
+          "icsma_id": "ICSMA-21-215-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2021-37163",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2021-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-37161",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2021-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-37162",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2021-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-37165",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2021-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-37164",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2021-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-37166",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2021-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-37167",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2021-08-03",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-37160",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2021-08-03",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 8,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414610+00:00",
+      "source": "cisa_icsma"
+    },
+    "fresenius kabi": {
+      "display_name": "Fresenius Kabi",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-21-355-01",
+          "title": "Fresenius Kabi Agilia Connect Infusion System (Update A)",
+          "icsma_id": "ICSMA-21-355-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2021-23236",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2020-35340",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-41835",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-23196",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-23233",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-43355",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-31562",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-23207",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-44464",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33846",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33848",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-33843",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2021-12-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2021-23195",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2021-12-21",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 13,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414620+00:00",
+      "source": "cisa_icsma"
+    },
+    "lifepoint informatics": {
+      "display_name": "LifePoint Informatics",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-095-01",
+          "title": "LifePoint Informatics Patient Portal",
+          "icsma_id": "ICSMA-22-095-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2022-1067",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2022-04-05",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414626+00:00",
+      "source": "cisa_icsma"
+    },
+    "offis": {
+      "display_name": "OFFIS",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-174-01",
+          "title": "OFFIS DCMTK",
+          "icsma_id": "ICSMA-22-174-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2022-2119",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2022-06-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-2120",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2022-06-23",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-2121",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.5,
+          "severity": "MEDIUM",
+          "published": "2022-06-23",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414634+00:00",
+      "source": "cisa_icsma"
+    },
+    "contec health": {
+      "display_name": "Contec Health",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-244-01",
+          "title": "Contec Health CMS8000 Patient Monitor (Update A)",
+          "icsma_id": "ICSMA-22-244-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-030-01",
+          "title": "Contec Health CMS8000 Patient Monitor (Update A)",
+          "icsma_id": "ICSMA-25-030-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2024-12248",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2025-01-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-38100",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2022-09-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-0626",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2025-01-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-1204",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2025-01-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-36385",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2022-09-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-0683",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.9,
+          "severity": "MEDIUM",
+          "published": "2025-01-30",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-3027",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.7,
+          "severity": "MEDIUM",
+          "published": "2022-09-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-38069",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2022-09-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-38453",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 3.0,
+          "severity": "LOW",
+          "published": "2022-09-01",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 9,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414643+00:00",
+      "source": "cisa_icsma"
+    },
+    "alivecor": {
+      "display_name": "AliveCor",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-22-298-01",
+          "title": "AliveCor KardiaMobile",
+          "icsma_id": "ICSMA-22-298-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2022-40703",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 5.2,
+          "severity": "MEDIUM",
+          "published": "2022-10-25",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2022-41627",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 4.8,
+          "severity": "MEDIUM",
+          "published": "2022-10-25",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 2,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414650+00:00",
+      "source": "cisa_icsma"
+    },
+    "illumina": {
+      "display_name": "Illumina",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-23-117-01",
+          "title": "Illumina Universal Copy Service",
+          "icsma_id": "ICSMA-23-117-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2023-1968",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 10.0,
+          "severity": "CRITICAL",
+          "published": "2023-04-28",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-1966",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.4,
+          "severity": "HIGH",
+          "published": "2023-04-28",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 2,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414660+00:00",
+      "source": "cisa_icsma"
+    },
+    "softneta": {
+      "display_name": "Softneta",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-23-248-01",
+          "title": "Softneta MedDream PACS Premium",
+          "icsma_id": "ICSMA-23-248-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2023-40150",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2023-09-05",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-39227",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2023-09-05",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 2,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414667+00:00",
+      "source": "cisa_icsma"
+    },
+    "santesoft": {
+      "display_name": "Santesoft",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-23-285-01",
+          "title": "Santesoft Sante DICOM Viewer Pro",
+          "icsma_id": "ICSMA-23-285-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-23-285-02",
+          "title": "Santesoft Sante FFT Imaging",
+          "icsma_id": "ICSMA-23-285-02"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-058-01",
+          "title": "Santesoft Sante DICOM Viewer Pro",
+          "icsma_id": "ICSMA-24-058-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-065-01",
+          "title": "Santesoft Sante FFT Imaging",
+          "icsma_id": "ICSMA-24-065-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-079-01",
+          "title": "Santesoft Sante DICOM Viewer Pro",
+          "icsma_id": "ICSMA-25-079-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-148-01",
+          "title": "Santesoft Sante DICOM Viewer Pro",
+          "icsma_id": "ICSMA-25-148-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-224-01",
+          "title": "Santesoft Sante PACS Server",
+          "icsma_id": "ICSMA-25-224-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2023-39431",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2023-10-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-35986",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2023-10-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-5059",
+          "description": "",
+          "cvss_version": "3.0",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2023-10-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-1453",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2024-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-1696",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2024-03-05",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-2480",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2025-03-20",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-5307",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2025-05-29",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-53948",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2025-08-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-54156",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.4,
+          "severity": "HIGH",
+          "published": "2025-08-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-54759",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.1,
+          "severity": "MEDIUM",
+          "published": "2025-08-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-54862",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.4,
+          "severity": "MEDIUM",
+          "published": "2025-08-12",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-0572",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2025-08-12",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 12,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414677+00:00",
+      "source": "cisa_icsma"
+    },
+    "orthanc": {
+      "display_name": "Orthanc",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-023-01",
+          "title": "Orthanc Osimis DICOM Web Viewer",
+          "icsma_id": "ICSMA-24-023-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-037-02",
+          "title": "Orthanc Server",
+          "icsma_id": "ICSMA-25-037-02"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2025-0896",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 9.8,
+          "severity": "CRITICAL",
+          "published": "2025-02-06",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2023-7238",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.1,
+          "severity": "HIGH",
+          "published": "2024-01-23",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 2,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414684+00:00",
+      "source": "cisa_icsma"
+    },
+    "microdicom": {
+      "display_name": "MicroDicom",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-060-01",
+          "title": "MicroDicom DICOM Viewer",
+          "icsma_id": "ICSMA-24-060-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-163-01",
+          "title": "MicroDicom DICOM Viewer",
+          "icsma_id": "ICSMA-24-163-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-037-01",
+          "title": "MicroDicom DICOM Viewer",
+          "icsma_id": "ICSMA-25-037-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-121-01",
+          "title": "MicroDicom DICOM Viewer",
+          "icsma_id": "ICSMA-25-121-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-160-01",
+          "title": "MicroDicom DICOM Viewer",
+          "icsma_id": "ICSMA-25-160-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2024-33606",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2024-06-11",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-28877",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2024-06-11",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-35975",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2025-05-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-36521",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2025-05-01",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-5943",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.8,
+          "severity": "HIGH",
+          "published": "2025-06-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-22100",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2024-02-29",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-25578",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2024-02-29",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-1002",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.7,
+          "severity": "MEDIUM",
+          "published": "2025-02-06",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 8,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414692+00:00",
+      "source": "cisa_icsma"
+    },
+    "bpl medical technologies": {
+      "display_name": "BPL Medical Technologies",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-254-01",
+          "title": "BPL Medical Technologies PWS-01-BT and BPL Be Well Android Application",
+          "icsma_id": "ICSMA-24-254-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2024-34463",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 4.6,
+          "severity": "MEDIUM",
+          "published": "2024-09-10",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414699+00:00",
+      "source": "cisa_icsma"
+    },
+    "ossur": {
+      "display_name": "Ossur",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-354-01",
+          "title": "Ossur Mobile Logic Application",
+          "icsma_id": "ICSMA-24-354-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2024-53683",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 4.4,
+          "severity": "MEDIUM",
+          "published": "2024-12-19",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-45832",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 4.3,
+          "severity": "MEDIUM",
+          "published": "2024-12-19",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2024-54681",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 3.5,
+          "severity": "LOW",
+          "published": "2024-12-19",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414707+00:00",
+      "source": "cisa_icsma"
+    },
+    "qardio": {
+      "display_name": "Qardio",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-044-01",
+          "title": "Qardio Heart Health IOS and Android Application and QardioARM A100",
+          "icsma_id": "ICSMA-25-044-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2025-24836",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.1,
+          "severity": "HIGH",
+          "published": "2025-02-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-23421",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.4,
+          "severity": "MEDIUM",
+          "published": "2025-02-13",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-20615",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.2,
+          "severity": "MEDIUM",
+          "published": "2025-02-13",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414714+00:00",
+      "source": "cisa_icsma"
+    },
+    "medixant": {
+      "display_name": "Medixant",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-051-01",
+          "title": "Medixant RadiAnt DICOM Viewer",
+          "icsma_id": "ICSMA-25-051-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2025-1001",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.7,
+          "severity": "MEDIUM",
+          "published": "2025-02-20",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414721+00:00",
+      "source": "cisa_icsma"
+    },
+    "dario health": {
+      "display_name": "Dario Health",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-058-01",
+          "title": "Dario Health USB-C Blood Glucose Monitoring System Starter Kit Android Application",
+          "icsma_id": "ICSMA-25-058-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2025-20060",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2025-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-24849",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.1,
+          "severity": "HIGH",
+          "published": "2025-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-24318",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.8,
+          "severity": "MEDIUM",
+          "published": "2025-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-20049",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.8,
+          "severity": "MEDIUM",
+          "published": "2025-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-23405",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2025-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-24316",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2025-02-27",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-24843",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.1,
+          "severity": "MEDIUM",
+          "published": "2025-02-27",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 7,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414730+00:00",
+      "source": "cisa_icsma"
+    },
+    "infinitt healthcare": {
+      "display_name": "INFINITT Healthcare",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-100-01",
+          "title": "INFINITT Healthcare INFINITT PACS",
+          "icsma_id": "ICSMA-25-100-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2025-27721",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2025-04-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-27714",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2025-04-10",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-24489",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.3,
+          "severity": "MEDIUM",
+          "published": "2025-04-10",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414737+00:00",
+      "source": "cisa_icsma"
+    },
+    "pixmeo": {
+      "display_name": "Pixmeo",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-128-01",
+          "title": "Pixmeo OsiriX MD",
+          "icsma_id": "ICSMA-25-128-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2025-27578",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2025-05-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-27720",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.4,
+          "severity": "HIGH",
+          "published": "2025-05-08",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-31946",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.2,
+          "severity": "MEDIUM",
+          "published": "2025-05-08",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414744+00:00",
+      "source": "cisa_icsma"
+    },
+    "panoramic corporation": {
+      "display_name": "Panoramic Corporation",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-198-01",
+          "title": "Panoramic Corporation Digital Imaging Software",
+          "icsma_id": "ICSMA-25-198-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2024-22774",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2025-07-17",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414751+00:00",
+      "source": "cisa_icsma"
+    },
+    "oxford nanopore technologies": {
+      "display_name": "Oxford Nanopore Technologies",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-294-01",
+          "title": "Oxford Nanopore Technologies MinKNOW",
+          "icsma_id": "ICSMA-25-294-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2024-35585",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.6,
+          "severity": "HIGH",
+          "published": "2025-10-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-54808",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2025-10-21",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-10937",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.5,
+          "severity": "MEDIUM",
+          "published": "2025-10-21",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 3,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414759+00:00",
+      "source": "cisa_icsma"
+    },
+    "nihon kohden": {
+      "display_name": "NIHON KOHDEN",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-296-01",
+          "title": "NIHON KOHDEN Central Monitor CNS-6201",
+          "icsma_id": "ICSMA-25-296-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2025-59668",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2025-10-23",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414766+00:00",
+      "source": "cisa_icsma"
+    },
+    "vertikal systems": {
+      "display_name": "Vertikal Systems",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-301-01",
+          "title": "Vertikal Systems Hospital Manager Backend Services",
+          "icsma_id": "ICSMA-25-301-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2025-54459",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2025-10-28",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-61959",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 5.3,
+          "severity": "MEDIUM",
+          "published": "2025-10-28",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 2,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414773+00:00",
+      "source": "cisa_icsma"
+    },
+    "mirion medical": {
+      "display_name": "Mirion Medical",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-336-01",
+          "title": "Mirion Medical EC2 Software NMIS BioDose",
+          "icsma_id": "ICSMA-25-336-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2025-64298",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.4,
+          "severity": "HIGH",
+          "published": "2025-12-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-61940",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.3,
+          "severity": "HIGH",
+          "published": "2025-12-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-62575",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.3,
+          "severity": "HIGH",
+          "published": "2025-12-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-64642",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 8.0,
+          "severity": "HIGH",
+          "published": "2025-12-02",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-64778",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.3,
+          "severity": "HIGH",
+          "published": "2025-12-02",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 5,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414782+00:00",
+      "source": "cisa_icsma"
+    },
+    "grassroots": {
+      "display_name": "Grassroots",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-345-01",
+          "title": "Grassroots DICOM (GDCM)",
+          "icsma_id": "ICSMA-25-345-01"
+        },
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-26-083-01",
+          "title": "Grassroots DICOM (GDCM)",
+          "icsma_id": "ICSMA-26-083-01"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2026-3650",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.5,
+          "severity": "HIGH",
+          "published": "2026-03-24",
+          "source": "csaf"
+        },
+        {
+          "cve_id": "CVE-2025-11266",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 6.6,
+          "severity": "MEDIUM",
+          "published": "2025-12-11",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 2,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414789+00:00",
+      "source": "cisa_icsma"
+    },
+    "varex imaging": {
+      "display_name": "Varex Imaging",
+      "advisory_urls": [
+        {
+          "url": "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-25-345-02",
+          "title": "Varex Imaging Panoramic Dental Imaging Software",
+          "icsma_id": "ICSMA-25-345-02"
+        }
+      ],
+      "cves": [
+        {
+          "cve_id": "CVE-2024-22774",
+          "description": "",
+          "cvss_version": "3.1",
+          "base_score": 7.8,
+          "severity": "HIGH",
+          "published": "2025-12-11",
+          "source": "csaf"
+        }
+      ],
+      "cve_count": 1,
+      "icsma_checked": true,
+      "status": "has_cves",
+      "last_checked": "2026-04-17T11:38:25.414796+00:00",
+      "source": "cisa_icsma"
+    }
+  },
+  "built_at": "2026-04-17T11:38:25.414802+00:00",
+  "source": "CISA CSAF JSON + ICSMA RSS (NVD for CVSS enrichment only)",
+  "total_manufacturers": 62,
+  "manufacturers_with_cves": 62,
+  "total_cves": 492
+}

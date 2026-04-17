@@ -1,7 +1,7 @@
-# DTVSS — Web Application
+# DTVSS - Web Application
 # Copyright © 2026 Andrew Broglio. All rights reserved.
-# Patent Pending — IP Australia
-# Licensed under BSL 1.1 — Commercial licence required for production use.
+# Patent Pending - IP Australia
+# Licensed under BSL 1.1 - Commercial licence required for production use.
 
 """
 DTVSS Tier 1 Web Application
@@ -12,7 +12,7 @@ Flask backend with:
   - /api/score                         → manual scoring (POST with B, L, H, kev)
   - /                                  → serves the frontend
 
-All data from NVD API v2 + EPSS API + CISA KEV + openFDA. No proprietary data.
+All data from CISA ICSMA (CSAF JSON + RSS) + NVD + EPSS + CISA KEV. No proprietary data.
 """
 
 import os
@@ -22,7 +22,7 @@ from flask_cors import CORS
 
 from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
 from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check
-from index_loader import get_manufacturer_dropdown, search_manufacturer_cves, get_cpe_search_terms
+from index_loader import get_manufacturer_dropdown, search_manufacturer_cves, get_cpe_search_terms, get_advisory_urls
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
@@ -72,7 +72,7 @@ def lookup():
     Auto-fetches B from NVD, L(t) from EPSS, detects KEV, classifies device, scores.
 
     GET /api/lookup?cve=CVE-2017-12725&tga_class=IIb
-    tga_class is optional — auto-detected from CVE description if omitted.
+    tga_class is optional - auto-detected from CVE description if omitted.
     """
     cve_id = request.args.get("cve", "").strip().upper()
     tga_override = request.args.get("tga_class", "").strip()
@@ -157,7 +157,7 @@ def search():
     Auto-fetches all matching CVEs, scores each, returns ranked list.
 
     GET /api/search?q=Medfusion+4000&tga_class=IIb
-    tga_class is optional — auto-detected per CVE if omitted.
+    tga_class is optional - auto-detected per CVE if omitted.
     """
     query = request.args.get("q", "").strip()
     tga_override = request.args.get("tga_class", "").strip()
@@ -221,7 +221,7 @@ def search():
     #
     # Strategy: keep CVE if description contains ANY medical/clinical term,
     # OR if it contains the manufacturer's CPE product names.
-    # This is an allowlist, not a blocklist — safer for edge cases.
+    # This is an allowlist, not a blocklist - safer for edge cases.
     if len(expanded_queries) > 1:
         MEDICAL_TERMS = {
             "infusion pump", "insulin pump", "syringe pump", "pacemaker",
@@ -345,7 +345,7 @@ def manufacturers():
     return jsonify({
         "manufacturers": mdm_list,
         "count": len(mdm_list),
-        "source": "openFDA Registration API + NVD CPE/CVE",
+        "source": "CISA ICSMA + NVD CVE",
     })
 
 
@@ -354,7 +354,7 @@ def manufacturers():
 try:
     from api_clients import refresh_device_keywords
     _keywords = refresh_device_keywords()
-    print(f"  Device keywords loaded: {len(_keywords)} from openFDA")
+    print(f"  Device keywords loaded: {len(_keywords)}")
 except Exception as _e:
     print(f"  Device keyword refresh skipped: {_e}")
 
@@ -365,7 +365,7 @@ if __name__ == "__main__":
     print(f"\n{'=' * 60}")
     print(f"  DTVSS Web v1.0.0")
     print(f"  Formula: (B/10 × H/10 × (1 + 15 × L(t))) × 10")
-    print(f"  Patent Pending — © 2026 Andrew Broglio")
+    print(f"  Patent Pending - © 2026 Andrew Broglio")
     print(f"{'=' * 60}")
     print(f"  http://localhost:{port}")
     print(f"  NVD API key: {'loaded' if NVD_API_KEY else 'not set (rate limited)'}")

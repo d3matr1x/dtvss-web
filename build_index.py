@@ -1,106 +1,109 @@
 #!/usr/bin/env python3
 """
-DTVSS Build Script — CPE-First Manufacturer & Vulnerability Index
-==================================================================
-Builds the manufacturer dropdown and CVE index directly from NVD's CPE
-dictionary. No name guessing, no openFDA name cleaning.
+DTVSS Build Script - CISA ICSMA Pipeline
+==========================================
+Builds the manufacturer/CVE index from two authoritative sources:
 
-Approach:
-  1. Search NVD CPE dictionary for known medical device manufacturer keywords
-  2. Extract the exact CPE vendor strings (these ARE the canonical names)
-  3. For each vendor, query NVD CVE API using cpeName to get tagged CVEs
-  4. Write mdm_index.json — ships with deployment
+  Source 1: CISA CSAF JSON (cisagov/CSAF on GitHub)
+    - Full historical archive of every ICSMA advisory ever published
+    - Structured JSON with vendor, product, CVE IDs, CVSS vectors
 
-The CPE vendor field is NVD's own identifier for a manufacturer.
-No name cleaning needed — the vendor string is authoritative.
+  Source 2: CISA ICSMA RSS feed
+    - Catches advisories not yet committed to the CSAF repo
+    - Lightweight, fast
 
-Append-only: never removes manufacturers or CVEs from existing index.
+NVD is used only for CVSS enrichment (scoring CVEs that lack CVSS
+data in CSAF), not for CVE discovery. This prevents false positives
+from NVD keyword search matching non-medical products.
 
-Copyright © 2026 Andrew Broglio. All rights reserved.
-Patent Pending — IP Australia | Licensed under BSL 1.1
+Copyright 2026 Andrew Broglio. All rights reserved.
+Patent Pending - IP Australia | Licensed under BSL 1.1
 """
 
 import json
 import os
+import re
 import sys
 import time
 import urllib.parse
 import urllib.request
-from datetime import datetime
+import xml.etree.ElementTree as ET
+from datetime import datetime, timezone
 
 NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
 OUTPUT_FILE = os.path.join(os.path.dirname(__file__), "static", "data", "mdm_index.json")
 
-NVD_CPE_URL = "https://services.nvd.nist.gov/rest/json/cpes/2.0"
+CSAF_API_URL = "https://api.github.com/repos/cisagov/CSAF/git/trees/develop?recursive=1"
+CSAF_RAW_URL = "https://raw.githubusercontent.com/cisagov/CSAF/develop/"
+ICSMA_RSS_URL = "https://www.cisa.gov/cybersecurity-advisories/ics-medical-advisories.xml"
 NVD_CVE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
 NVD_DELAY = 0.7 if NVD_API_KEY else 6.0
 
-# Medical device manufacturers to search in CPE dictionary.
-# These are keyword searches — NVD returns all matching CPE entries.
-# The exact CPE vendor string is extracted from results (no guessing).
-# Source: CISA ICS-CERT medical advisory history + FDA registered manufacturers
-MDM_SEARCH_TERMS = [
-    "medtronic",
-    "abbott",
-    "st. jude medical",
-    "philips",
-    "baxter",
-    "becton dickinson",
-    "bd alaris",
-    "smiths medical",
-    "hospira",
-    "b. braun",
-    "fresenius",
-    "boston scientific",
-    "biotronik",
-    "dexcom",
-    "insulet",
-    "tandem diabetes",
-    "nihon kohden",
-    "mindray",
-    "ge healthcare",
-    "draeger",
-    "hamilton medical",
-    "zoll",
-    "resmed",
-    "getinge",
-    "carestream",
-    "roche",
-    "siemens healthineers",
-    "stryker",
-    "icu medical",
-    "gambro",
-    "natus",
-    "spacelabs",
-    "welch allyn",
-    "hillrom",
-    "karl storz",
-    "olympus medical",
-    "bd pyxis",
-    "covidien",
-    "cardinal health",
-    "cook medical",
+EXCLUDED_DEVICES = [
+    "wheelchair", "power chair", "electric chair",
+    "fitness", "wearable", "smart watch",
 ]
 
+# Vendor name normalisation - map CSAF variants to canonical names.
+VENDOR_ALIASES = {
+    "phillips": "Philips",
+    "philips": "Philips",
+    "b. braun": "B. Braun",
+    "b. braun medical": "B. Braun",
+    "b. braun melsungen ag": "B. Braun",
+    "ge healthcare": "GE Healthcare",
+    "general electric (ge)": "GE Healthcare",
+    "fujifilm": "FUJIFILM",
+    "fujifilm healthcare americas corporation": "FUJIFILM",
+    "fujifilm healthcare americas": "FUJIFILM",
+    "hillrom": "Hillrom",
+    "hillrom and eli, baxter international inc.": "Hillrom",
+    "silex technology and ge healthcare": "GE Healthcare",
+    "natus medical, inc. (natus)": "Natus Medical",
+    "natus medical, inc.": "Natus Medical",
+    "becton, dickinson and company (bd)": "BD (Becton Dickinson)",
+    "becton dickinson": "BD (Becton Dickinson)",
+    "sooil developments co, ltd.": "SOOIL",
+    "abbott laboratories": "Abbott",
+    "roche diagnostics": "Roche",
+    "hamilton medical ag": "Hamilton Medical",
+    "bmc medical, 3b medical": "BMC Medical",
+    "enea, green hills software, itron, ip infusion, and wind river": "ENEA (RTOS)",
+}
 
-def nvd_headers():
-    h = {"Accept": "application/json", "User-Agent": "DTVSS-Build/1.0"}
-    if NVD_API_KEY:
-        h["apiKey"] = NVD_API_KEY
-    return h
+
+def normalise_vendor(raw_name):
+    """Map vendor name variants to canonical display name."""
+    key = raw_name.lower().strip()
+    if key in VENDOR_ALIASES:
+        return VENDOR_ALIASES[key]
+    return raw_name
 
 
-def api_get(url, timeout=15):
+def api_get(url, headers=None, timeout=20):
+    hdrs = {"User-Agent": "DTVSS-Build/3.0"}
+    if headers:
+        hdrs.update(headers)
     try:
-        req = urllib.request.Request(url, headers=nvd_headers())
+        req = urllib.request.Request(url, headers=hdrs)
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            raw = resp.read().decode("utf-8")
-            if raw.strip().startswith("<"):
-                return None
-            return json.loads(raw)
+            return resp.read().decode("utf-8")
     except Exception as e:
         print(f"    API error: {e}")
+        return None
+
+
+def nvd_get(url, timeout=15):
+    hdrs = {"Accept": "application/json", "User-Agent": "DTVSS-Build/3.0"}
+    if NVD_API_KEY:
+        hdrs["apiKey"] = NVD_API_KEY
+    raw = api_get(url, headers=hdrs, timeout=timeout)
+    if not raw or raw.strip().startswith("<"):
+        return None
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
         return None
 
 
@@ -122,206 +125,352 @@ def save_index(index):
     print(f"\n  Index saved: {OUTPUT_FILE} ({kb:.1f} KB)")
 
 
-def vendor_display_name(cpe_vendor):
-    """Convert CPE vendor string to display name.
-    e.g. 'smiths_medical' → 'Smiths Medical'
-         'becton_dickinson' → 'Becton Dickinson'
+def is_excluded(title):
+    t = title.lower()
+    return any(term in t for term in EXCLUDED_DEVICES)
+
+
+# ================================================================
+# Source 1: CISA CSAF JSON from GitHub
+# ================================================================
+
+def source1_csaf():
     """
-    name = cpe_vendor.replace("_", " ").strip().title()
-    # Preserve known acronyms
-    for acr in ["BD", "GE", "ICU", "IV", "B."]:
-        name = name.replace(acr.title(), acr)
-    return name
-
-
-# ─── Step 1: Search CPE dictionary for medical device vendors ────────
-
-def find_cpe_vendors(search_term):
+    Fetch ICSMA advisory JSON files from cisagov/CSAF GitHub repo.
+    Returns dict of {vendor_key: {display_name, advisories, cves}}.
     """
-    Search NVD CPE dictionary for a keyword.
-    Returns dict of {cpe_vendor: [list of {product, cpe_name}]}
-    """
-    params = urllib.parse.urlencode({
-        "keywordSearch": search_term,
-        "resultsPerPage": 100,
-    })
-    url = f"{NVD_CPE_URL}?{params}"
-    data = api_get(url)
+    print("\n  Source 1: CISA CSAF JSON (GitHub)")
+    print("  Fetching repo file tree...")
 
-    if not data:
+    raw = api_get(CSAF_API_URL, timeout=30)
+    if not raw:
+        print("    Failed to fetch GitHub tree")
         return {}
 
+    try:
+        tree = json.loads(raw)
+    except json.JSONDecodeError:
+        print("    Invalid JSON from GitHub")
+        return {}
+
+    icsma_files = []
+    for item in tree.get("tree", []):
+        path = item.get("path", "")
+        if "/icsma-" in path and path.endswith(".json"):
+            icsma_files.append(path)
+
+    print(f"    Found {len(icsma_files)} ICSMA JSON files")
+
     vendors = {}
-    for entry in data.get("products", []):
-        cpe_name = entry.get("cpe", {}).get("cpeName", "")
-        parts = cpe_name.split(":")
-        if len(parts) < 5:
+    for i, path in enumerate(icsma_files):
+        url = CSAF_RAW_URL + path
+        icsma_id = path.split("/")[-1].replace(".json", "").upper()
+
+        if (i + 1) % 20 == 0:
+            print(f"    Processing {i+1}/{len(icsma_files)}...", flush=True)
+
+        time.sleep(0.1)
+        raw = api_get(url, timeout=10)
+        if not raw:
             continue
 
-        part_type = parts[2]   # a=application, h=hardware, o=os/firmware
-        vendor = parts[3]
-        product = parts[4]
-
-        if not product or product == "*" or len(product) < 2:
+        try:
+            csaf = json.loads(raw)
+        except json.JSONDecodeError:
             continue
 
-        # Only include hardware (h) and firmware (o) — skip generic applications (a)
-        # unless the vendor name strongly matches the search term
-        search_lower = search_term.lower().replace(" ", "_").replace(".", "")
-        vendor_lower = vendor.lower().replace(".", "")
-        if part_type == "a" and search_lower not in vendor_lower:
+        title = csaf.get("document", {}).get("title", "")
+        if is_excluded(title):
             continue
 
-        if vendor not in vendors:
-            vendors[vendor] = []
+        # Extract vendor from product_tree
+        vendor_name = ""
+        product_tree = csaf.get("product_tree", {})
+        for branch in product_tree.get("branches", []):
+            if branch.get("category") == "vendor":
+                vendor_name = branch.get("name", "")
+                break
 
-        # Deduplicate by product name (ignore version differences)
-        existing_products = {p["product"] for p in vendors[vendor]}
-        if product not in existing_products:
-            vendors[vendor].append({
-                "product": product,
-                "cpe_name": cpe_name,
-                "part_type": part_type,
+        if not vendor_name:
+            continue
+
+        vendor_name = normalise_vendor(vendor_name)
+
+        # Extract CVEs and CVSS from vulnerabilities
+        cves = []
+        for vuln in csaf.get("vulnerabilities", []):
+            cve_id = vuln.get("cve", "")
+            if not cve_id:
+                continue
+
+            base_score = 0
+            severity = ""
+            cvss_ver = ""
+            for score in vuln.get("scores", []):
+                if score.get("cvss_v3"):
+                    base_score = score["cvss_v3"].get("baseScore", 0)
+                    severity = score["cvss_v3"].get("baseSeverity", "")
+                    cvss_ver = score["cvss_v3"].get("version", "3.1")
+                    break
+
+            desc = ""
+            for note in vuln.get("notes", []):
+                if note.get("category") == "description":
+                    desc = note.get("text", "")[:300]
+                    break
+
+            cves.append({
+                "cve_id": cve_id,
+                "description": desc,
+                "cvss_version": cvss_ver,
+                "base_score": base_score,
+                "severity": severity,
+                "published": csaf.get("document", {}).get("tracking", {}).get("initial_release_date", "")[:10],
+                "source": "csaf",
             })
 
+        # Get advisory web URL
+        advisory_url = ""
+        for ref in csaf.get("document", {}).get("references", []):
+            if "Web Version" in ref.get("summary", ""):
+                advisory_url = ref.get("url", "")
+                break
+
+        if not advisory_url:
+            advisory_url = f"https://www.cisa.gov/news-events/ics-medical-advisories/{icsma_id.lower()}"
+
+        key = vendor_name.lower().strip()
+        if key not in vendors:
+            vendors[key] = {
+                "display_name": vendor_name,
+                "advisories": [],
+                "cves": {},
+            }
+
+        vendors[key]["advisories"].append({
+            "url": advisory_url,
+            "title": title,
+            "icsma_id": icsma_id,
+        })
+
+        for cve in cves:
+            vendors[key]["cves"][cve["cve_id"]] = cve
+
+    print(f"    Parsed: {len(vendors)} vendors, {sum(len(v['cves']) for v in vendors.values())} CVEs")
     return vendors
 
 
-# ─── Step 2: Query CVEs for each CPE vendor:product ─────────────────
+# ================================================================
+# Source 2: CISA ICSMA RSS feed
+# ================================================================
 
-def fetch_cves_for_cpe(cpe_name):
-    """Query NVD CVE API for vulnerabilities tagged to a CPE name."""
-    params = urllib.parse.urlencode({
-        "cpeName": cpe_name,
-        "resultsPerPage": 50,
-    })
-    url = f"{NVD_CVE_URL}?{params}"
-    data = api_get(url, timeout=20)
+def source2_rss(existing_vendors):
+    """
+    Fetch ICSMA RSS feed for advisories not yet in CSAF repo.
+    Adds new advisories/CVEs to existing_vendors dict.
+    """
+    print("\n  Source 2: CISA ICSMA RSS feed")
 
-    if not data:
-        return []
+    raw = api_get(ICSMA_RSS_URL, timeout=30)
+    if not raw:
+        print("    Failed to fetch RSS feed")
+        return 0
 
-    cves = []
-    for vuln in data.get("vulnerabilities", []):
-        cve = vuln.get("cve", {})
-        cve_id = cve.get("id", "")
-        if not cve_id:
+    try:
+        root = ET.fromstring(raw)
+    except ET.ParseError:
+        print("    XML parse error")
+        return 0
+
+    known_urls = set()
+    for v in existing_vendors.values():
+        for a in v.get("advisories", []):
+            known_urls.add(a.get("url", ""))
+
+    new_count = 0
+
+    for item in root.findall(".//item"):
+        title = (item.findtext("title") or "").strip()
+        link = (item.findtext("link") or "").strip()
+
+        if not title or not link:
+            continue
+        if "/icsma-" not in link.lower():
+            continue
+        if link in known_urls:
+            continue
+        if is_excluded(title):
             continue
 
-        desc = next(
-            (d["value"] for d in cve.get("descriptions", []) if d.get("lang") == "en"),
-            ""
-        )
+        icsma_id = ""
+        match = re.search(r'(icsma-[\d-]+)', link.lower())
+        if match:
+            icsma_id = match.group(1).upper()
 
-        m = cve.get("metrics", {})
-        base_score = 0
-        severity = ""
-        cvss_ver = ""
-        for vk, vl in [("cvssMetricV31", "3.1"), ("cvssMetricV30", "3.0"),
-                        ("cvssMetricV40", "4.0"), ("cvssMetricV2", "2.0")]:
-            if m.get(vk):
-                entry = m[vk][0]
-                base_score = entry.get("cvssData", {}).get("baseScore", 0)
-                severity = entry.get("cvssData", {}).get("baseSeverity", "")
-                cvss_ver = vl
-                break
+        vendor_name = _extract_vendor_from_title(title)
+        if not vendor_name:
+            continue
 
-        cves.append({
-            "cve_id": cve_id,
-            "description": desc[:300],
-            "cvss_version": cvss_ver,
-            "base_score": base_score,
-            "severity": severity,
-            "published": cve.get("published", "")[:10],
+        vendor_name = normalise_vendor(vendor_name)
+
+        time.sleep(0.3)
+        page = api_get(link, timeout=15)
+        cve_ids = list(set(re.findall(r'CVE-\d{4}-\d+', page))) if page else []
+
+        key = vendor_name.lower().strip()
+        if key not in existing_vendors:
+            existing_vendors[key] = {
+                "display_name": vendor_name,
+                "advisories": [],
+                "cves": {},
+            }
+
+        existing_vendors[key]["advisories"].append({
+            "url": link,
+            "title": title,
+            "icsma_id": icsma_id,
         })
 
-    return cves
+        for cve_id in cve_ids:
+            if cve_id not in existing_vendors[key]["cves"]:
+                existing_vendors[key]["cves"][cve_id] = {
+                    "cve_id": cve_id,
+                    "description": "",
+                    "cvss_version": "",
+                    "base_score": 0,
+                    "severity": "",
+                    "published": "",
+                    "source": "rss",
+                }
+
+        new_count += 1
+        print(f"    NEW: {vendor_name} - {icsma_id} ({len(cve_ids)} CVEs)")
+
+    print(f"    {new_count} new advisories from RSS")
+    return new_count
 
 
-# ─── Main Build ──────────────────────────────────────────────────────
+def _extract_vendor_from_title(title):
+    KNOWN_VENDORS = [
+        "B. Braun", "Boston Scientific", "GE Healthcare", "GE HealthCare",
+        "Becton, Dickinson", "Becton Dickinson", "BD ",
+        "St. Jude Medical", "ICU Medical", "Smiths Medical",
+        "Hamilton Medical", "Cook Medical", "Cardinal Health",
+        "Nihon Kohden", "Karl Storz", "Welch Allyn",
+        "Fresenius Kabi", "Tandem Diabetes", "Siemens Healthineers",
+        "Contec Health", "Hillrom", "Spacelabs", "Oxford Nanopore",
+        "FUJIFILM Healthcare",
+    ]
+    clean = re.sub(r'\s*\(Update [A-Z]\)', '', title).strip()
+    for vendor in KNOWN_VENDORS:
+        if clean.lower().startswith(vendor.lower()):
+            return vendor
+    words = clean.split()
+    if len(words) >= 2 and words[1].lower() in ("healthcare", "medical", "diabetes", "scientific"):
+        return f"{words[0]} {words[1]}"
+    return words[0] if words else ""
+
+
+# ================================================================
+# Enrich: Fetch NVD CVSS data for CVEs missing scores
+# ================================================================
+
+def enrich_missing_cvss(existing_vendors):
+    """For CVEs without CVSS scores (from RSS or CSAF without scores), query NVD."""
+    print("\n  Enrichment: Fetching NVD CVSS for unscored CVEs...")
+
+    enriched = 0
+    total_missing = 0
+
+    for key, vdata in existing_vendors.items():
+        for cve_id, cve in vdata.get("cves", {}).items():
+            if cve.get("base_score", 0) > 0:
+                continue
+
+            total_missing += 1
+            time.sleep(NVD_DELAY)
+            params = urllib.parse.urlencode({"cveId": cve_id})
+            data = nvd_get(f"{NVD_CVE_URL}?{params}")
+
+            if data and data.get("vulnerabilities"):
+                cve_obj = data["vulnerabilities"][0].get("cve", {})
+                desc = next(
+                    (d["value"] for d in cve_obj.get("descriptions", []) if d.get("lang") == "en"),
+                    ""
+                )
+                m = cve_obj.get("metrics", {})
+                for vk, vl in [("cvssMetricV31", "3.1"), ("cvssMetricV30", "3.0"),
+                                ("cvssMetricV40", "4.0"), ("cvssMetricV2", "2.0")]:
+                    if m.get(vk):
+                        entry = next((e for e in m[vk] if e.get("type") == "Primary"), m[vk][0])
+                        cve["base_score"] = entry.get("cvssData", {}).get("baseScore", 0)
+                        cve["severity"] = entry.get("cvssData", {}).get("baseSeverity", "")
+                        cve["cvss_version"] = vl
+                        cve["exploitability"] = entry.get("exploitabilityScore", 0)
+                        break
+                cve["description"] = desc[:300] if desc else cve.get("description", "")
+                cve["published"] = cve_obj.get("published", "")[:10] or cve.get("published", "")
+
+                if cve.get("base_score", 0) > 0:
+                    enriched += 1
+
+            if enriched > 0 and enriched % 20 == 0:
+                print(f"    Enriched {enriched}/{total_missing}...", flush=True)
+
+    print(f"    Enriched {enriched} of {total_missing} unscored CVEs")
+
+
+# ================================================================
+# Main Build
+# ================================================================
 
 def build_index():
     print("=" * 60)
-    print("  DTVSS Index Builder — CPE-First Approach")
-    print("  Patent Pending — © 2026 Andrew Broglio")
+    print("  DTVSS Index Builder - CISA ICSMA Pipeline")
+    print("  Patent Pending - (c) 2026 Andrew Broglio")
     print("=" * 60)
 
-    index = load_existing()
-    existing = index.get("manufacturers", {})
+    # Source 1: CSAF JSON (full historical)
+    vendors = source1_csaf()
 
-    print(f"\n  Existing index: {len(existing)} manufacturers")
-    print(f"  Searching NVD CPE for {len(MDM_SEARCH_TERMS)} medical device terms...\n")
+    # Source 2: ICSMA RSS (catch recent not yet in CSAF)
+    source2_rss(vendors)
 
-    total_new_vendors = 0
-    total_new_cves = 0
+    # Enrich CVEs missing CVSS scores via NVD
+    enrich_missing_cvss(vendors)
 
-    for i, term in enumerate(MDM_SEARCH_TERMS):
-        print(f"  [{i+1}/{len(MDM_SEARCH_TERMS)}] Searching CPE: \"{term}\"...", end=" ", flush=True)
+    # Convert to output format
+    manufacturers = {}
+    for key, vdata in vendors.items():
+        cves_list = sorted(vdata["cves"].values(), key=lambda c: c.get("base_score", 0), reverse=True)
+        manufacturers[key] = {
+            "display_name": vdata["display_name"],
+            "advisory_urls": vdata.get("advisories", []),
+            "cves": cves_list,
+            "cve_count": len(cves_list),
+            "icsma_checked": True,
+            "status": "has_cves" if cves_list else "no_cves",
+            "last_checked": datetime.now(timezone.utc).isoformat(),
+            "source": "cisa_icsma",
+        }
 
-        time.sleep(NVD_DELAY)
-        vendors = find_cpe_vendors(term)
-
-        if not vendors:
-            print("no CPE vendors found")
-            continue
-
-        print(f"{len(vendors)} vendor(s)")
-
-        for vendor, products in vendors.items():
-            key = vendor.lower()
-            display = vendor_display_name(vendor)
-
-            # Skip if already fully processed
-            if key in existing and existing[key].get("cve_checked"):
-                continue
-
-            print(f"    → {display} ({len(products)} products) — CVEs...", end=" ", flush=True)
-
-            # Query CVEs for up to 5 products
-            all_cves = {}
-            for prod in products[:5]:
-                time.sleep(NVD_DELAY)
-                for cve in fetch_cves_for_cpe(prod["cpe_name"]):
-                    if cve["cve_id"] not in all_cves:
-                        all_cves[cve["cve_id"]] = cve
-
-            n = len(all_cves)
-            print(f"{n} CVEs")
-
-            if key not in existing:
-                total_new_vendors += 1
-
-            total_new_cves += n
-
-            existing[key] = {
-                "display_name": display,
-                "cpe_vendor": vendor,
-                "cpe_entries": [{"product": p["product"], "cpe_name": p["cpe_name"],
-                                 "part_type": p["part_type"]} for p in products],
-                "cves": list(all_cves.values()),
-                "cve_checked": True,
-                "status": "has_cves" if n > 0 else "no_cves",
-                "last_checked": datetime.utcnow().isoformat() + "Z",
-                "search_term": term,
-            }
-
-    # Summary stats
-    index["manufacturers"] = existing
-    index["built_at"] = datetime.utcnow().isoformat() + "Z"
-    index["total_manufacturers"] = len(existing)
-    index["manufacturers_with_cves"] = sum(
-        1 for m in existing.values() if m.get("status") == "has_cves"
-    )
-    index["total_cves"] = sum(len(m.get("cves", [])) for m in existing.values())
+    index = {
+        "manufacturers": manufacturers,
+        "built_at": datetime.now(timezone.utc).isoformat(),
+        "source": "CISA CSAF JSON + ICSMA RSS (NVD for CVSS enrichment only)",
+        "total_manufacturers": len(manufacturers),
+        "manufacturers_with_cves": sum(1 for m in manufacturers.values() if m["status"] == "has_cves"),
+        "total_cves": sum(len(m["cves"]) for m in manufacturers.values()),
+    }
 
     save_index(index)
 
     print(f"\n  Summary:")
-    print(f"    Total vendors:       {len(existing)}")
-    print(f"    New this run:        {total_new_vendors}")
+    print(f"    Sources:             CSAF JSON + ICSMA RSS")
+    print(f"    Enrichment:          NVD (CVSS scores only)")
+    print(f"    Total vendors:       {index['total_manufacturers']}")
     print(f"    With CVEs:           {index['manufacturers_with_cves']}")
     print(f"    Total CVEs indexed:  {index['total_cves']}")
-    print(f"    New CVEs this run:   {total_new_cves}")
     print("=" * 60)
 
 
@@ -330,11 +479,13 @@ if __name__ == "__main__":
         build_index()
     except Exception as e:
         print(f"\n  Build failed: {e}")
+        import traceback
+        traceback.print_exc()
         if os.path.exists(OUTPUT_FILE):
             print(f"  Existing index preserved")
         else:
             os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
             with open(OUTPUT_FILE, "w") as f:
                 json.dump({"manufacturers": {}}, f)
-            print(f"  Empty index created — runtime will populate")
+            print(f"  Empty index created")
         sys.exit(0)

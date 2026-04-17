@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <!--
-  DTVSS Calculator — Full Interactive Calculator with Optional Embodiments
+  DTVSS Calculator - Full Interactive Calculator with Optional Embodiments
   Copyright © 2026 Andrew Broglio. All rights reserved.
-  Patent Pending — IP Australia | Licensed under BSL 1.1
+  Patent Pending - IP Australia | Licensed under BSL 1.1
   Route: dtvss.io/calculator
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTVSS Calculator — Interactive Vulnerability Scoring with Optional Embodiments</title>
+<title>DTVSS Calculator - Interactive Vulnerability Scoring with Optional Embodiments</title>
 <meta name="description" content="Interactive DTVSS calculator with manual input, CVE auto-lookup, environment-adjusted exploitability, temporal decay, and fleet-level organisational risk scaling. Patent pending.">
 <meta name="keywords" content="DTVSS calculator, vulnerability scoring, medical device cybersecurity, CVSS exploitability, EPSS, patient harm, ORS fleet scaling, ZTA, temporal decay">
 <meta name="author" content="Andrew Broglio">
@@ -54,7 +54,7 @@ window.addEventListener('error', function(e) {
 
   const TGA_CLASSES = {
     IIb: {
-      H: 7.5, label: "Class IIb", desc: "Moderate-high risk — Network-connected therapeutic devices",
+      H: 7.5, label: "Class IIb", desc: "Moderate-high risk - Network-connected therapeutic devices",
       color: "#d97c2a",
       examples: "Infusion pumps, insulin pumps, ventilators, patient monitors, CGMs",
       jurisdictions: {
@@ -65,7 +65,7 @@ window.addEventListener('error', function(e) {
       }
     },
     III: {
-      H: 10.0, label: "Class III", desc: "Highest risk — Implantable life-sustaining devices",
+      H: 10.0, label: "Class III", desc: "Highest risk - Implantable life-sustaining devices",
       color: "#d94f4f",
       examples: "Pacemakers, implantable defibrillators, CRT devices",
       jurisdictions: {
@@ -214,7 +214,7 @@ window.addEventListener('error', function(e) {
       // Header
       e('div', { style: { padding: "20px 24px 16px", borderBottom: "1px solid #1a2030", display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" } },
         e('a', { href: "/", style: { fontFamily: disp, fontSize: "16px", fontWeight: 900, color: "#e8ecf5", letterSpacing: "-0.02em", textDecoration: "none" } }, "DTVSS"),
-        e('span', { style: { fontFamily: mono, fontSize: "10px", color: "#4a5568" } }, "v6.0 — Interactive Calculator"),
+        e('span', { style: { fontFamily: mono, fontSize: "10px", color: "#4a5568" } }, "v6.0 - Interactive Calculator"),
         e('a', { href: "/", style: { marginLeft: "auto", fontFamily: mono, fontSize: "10px", color: "#4f8ef7", textDecoration: "none" } }, "← Back to Search")
       ),
 
@@ -237,7 +237,7 @@ window.addEventListener('error', function(e) {
           ),
           e('div', { style: { display: "flex", gap: "8px", alignItems: "center" } },
             e('span', { style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, color: tier.color, background: `${tier.color}18`, padding: "3px 10px", borderRadius: "4px", border: `1px solid ${tier.color}30` } },
-              (result.kevOverride ? "KEV OVERRIDE — " : "") + tier.level.toUpperCase()
+              (result.kevOverride ? "KEV OVERRIDE - " : "") + tier.level.toUpperCase()
             ),
             e('span', { style: { fontFamily: mono, fontSize: "9px", color: "#4a5568", background: "#0d1017", padding: "3px 8px", borderRadius: "4px", border: "1px solid #1a2030" } }, "SLA: " + tier.sla)
           ),
@@ -262,7 +262,7 @@ window.addEventListener('error', function(e) {
           // CVE lookup
           e('div', { style: { marginBottom: "16px" } },
             e('div', { style: { fontSize: "10px", fontWeight: 600, letterSpacing: "0.1em", color: "#4a5568", fontFamily: mono, marginBottom: "6px" } },
-              "CVE ID — enter and click Lookup to auto-populate B, L(t), H, and KEV"
+              "CVE ID - enter and click Lookup to auto-populate B, L(t), H, and KEV"
             ),
             e('div', { style: { display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" } },
               e('input', {
@@ -311,7 +311,7 @@ window.addEventListener('error', function(e) {
 
           // Jurisdiction table
           e('div', { style: { marginTop: "14px", padding: "12px", background: `${TGA_CLASSES[tgaClass].color}08`, border: `1px solid ${TGA_CLASSES[tgaClass].color}15`, borderRadius: "6px" } },
-            e('div', { style: { fontFamily: mono, fontSize: "10px", color: TGA_CLASSES[tgaClass].color, fontWeight: 600 } }, `${TGA_CLASSES[tgaClass].label} · H = ${H.toFixed(1)} — ${TGA_CLASSES[tgaClass].desc}`),
+            e('div', { style: { fontFamily: mono, fontSize: "10px", color: TGA_CLASSES[tgaClass].color, fontWeight: 600 } }, `${TGA_CLASSES[tgaClass].label} · H = ${H.toFixed(1)} - ${TGA_CLASSES[tgaClass].desc}`),
             e('div', { style: { fontFamily: body, fontSize: "10px", color: "#4a5568", marginTop: "2px" } }, TGA_CLASSES[tgaClass].examples),
             e('div', { style: { marginTop: "10px", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px", background: "#1a2030", borderRadius: "4px", overflow: "hidden" } },
               ...Object.entries(TGA_CLASSES[tgaClass].jurisdictions).map(([j, c], i) => e('div', { key: i, style: { background: "#0d1017", padding: "6px 4px", textAlign: "center", fontFamily: mono } },
@@ -326,7 +326,7 @@ window.addEventListener('error', function(e) {
             e('button', {
               onClick: () => setKev(!kev),
               style: { fontFamily: mono, fontSize: "10px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${kev ? "#d94f4f" : "#1a2030"}`, background: kev ? "rgba(217,79,79,0.15)" : "transparent", color: kev ? "#d94f4f" : "#4a5568", animation: kev ? "pulse 1.5s infinite" : "none" }
-            }, kev ? "⚠ KEV OVERRIDE ACTIVE — SCORE FORCED TO 10.0" : "KEV Override (CISA Known Exploited)")
+            }, kev ? "⚠ KEV OVERRIDE ACTIVE - SCORE FORCED TO 10.0" : "KEV Override (CISA Known Exploited)")
           )
         ),
 
@@ -347,7 +347,7 @@ window.addEventListener('error', function(e) {
             e('button', {
               onClick: () => setZtaEnabled(!ztaEnabled),
               style: { fontFamily: mono, fontSize: "10px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${ztaEnabled ? "#4f8ef7" : "#1a2030"}`, background: ztaEnabled ? "rgba(79,142,247,0.15)" : "transparent", color: ztaEnabled ? "#4f8ef7" : "#4a5568" }
-            }, ztaEnabled ? `ZTA: ON — B_adj = ${B_adj.toFixed(2)}` : "ZTA: OFF")
+            }, ztaEnabled ? `ZTA: ON - B_adj = ${B_adj.toFixed(2)}` : "ZTA: OFF")
           )
         ),
 
@@ -412,7 +412,7 @@ window.addEventListener('error', function(e) {
         // Footer
         e('div', { style: { textAlign: "center", padding: "12px 0", fontFamily: mono, fontSize: "9px", color: "#4a5568", borderTop: "1px solid #1a2030", lineHeight: 1.8 } },
           e('div', null, "DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10 · k=15 calibrated against 96 medical device CVEs"),
-          e('div', { style: { marginTop: "4px" } }, "© 2026 Andrew Broglio · DTVSS™ · Patent Pending — IP Australia · BSL 1.1"),
+          e('div', { style: { marginTop: "4px" } }, "© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia · BSL 1.1"),
           e('div', { style: { marginTop: "8px" } },
             e('a', { href: "/", style: { color: "#4f8ef7", textDecoration: "none" } }, "Search"),
             " · ",
@@ -430,7 +430,7 @@ window.addEventListener('error', function(e) {
         // Disclaimer
         e('div', { style: { padding: "12px 16px", border: "1px solid rgba(217,79,79,0.2)", borderRadius: "8px", background: "rgba(217,79,79,0.04)", fontFamily: mono, fontSize: "8px", color: "#4a5568", lineHeight: 1.8, textAlign: "center" } },
           e('span', { style: { color: "#d94f4f", fontWeight: 600 } }, "RESEARCH PREVIEW"),
-          " — This is a non-commercial research demonstration of the DTVSS scoring methodology. It is not a certified medical device risk management tool. Scores are derived from public data sources (NVD, EPSS, CISA KEV) which may be incomplete, delayed, or inaccurate. Do not use this system as the sole basis for clinical, procurement, or remediation decisions. The author accepts no liability for decisions made using this tool."
+          " - This is a non-commercial research demonstration of the DTVSS scoring methodology. It is not a certified medical device risk management tool. Scores are derived from public data sources (NVD, EPSS, CISA KEV) which may be incomplete, delayed, or inaccurate. Do not use this system as the sole basis for clinical, procurement, or remediation decisions. The author accepts no liability for decisions made using this tool."
         )
       )
     );
