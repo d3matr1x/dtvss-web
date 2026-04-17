@@ -173,7 +173,7 @@ def search():
     indexed_cves = search_manufacturer_cves(query)
     if indexed_cves:
         # Score each CVE from the index using live EPSS + KEV data
-        from api_clients import fetch_epss, check_kev_status
+        from api_clients import epss_lookup, cisa_kev_check
         from dtvss_engine import compute_dtvss, classify_device, get_threshold
 
         scored = []
@@ -187,14 +187,15 @@ def search():
 
             # Live EPSS
             try:
-                epss_data = fetch_epss(cve_id)
-                L = float(epss_data.get("epss", 0))
+                epss_data = epss_lookup([cve_id])
+                L = float(epss_data.get(cve_id, {}).get("epss", 0))
             except Exception:
                 L = 0.0
 
             # Live KEV
             try:
-                kev = check_kev_status(cve_id)
+                kev_result = cisa_kev_check(cve_id)
+                kev = bool(kev_result)
             except Exception:
                 kev = False
 
