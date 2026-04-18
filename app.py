@@ -115,7 +115,7 @@ try:
         app=app,
         default_limits=["200 per hour", "30 per minute"],
         storage_uri=os.environ.get("REDIS_URL", "memory://"),
-        strategy="fixed-window-elastic-expiry",
+        strategy="fixed-window",
         headers_enabled=True,  # Adds X-RateLimit-* headers
     )
     RATE_LIMIT_EXPENSIVE = "20 per hour;5 per minute"
