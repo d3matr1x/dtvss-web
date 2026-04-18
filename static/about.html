@@ -26,7 +26,7 @@
 :root {
   --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
   --tx:#b8bcc8; --dim:#6b7280; --hd:#e2e6f0;
-  --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e05252; --low:#48b878;
+  --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e05252; --low:#48b878; --med:#d4b832;
   --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -40,7 +40,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
 .section{padding:22px;background:var(--s1);border:1px solid var(--bd);border-radius:10px}
 .highlight{color:var(--acc)}
 .formula{font-family:var(--mono);font-size:13px;color:var(--hd);padding:14px;background:var(--bg);border-radius:6px;margin:12px 0}
-.footer{text-align:center;padding:24px 0;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
+.footer{text-align:center;padding:24px 0 8px;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
 </style>
 </head>
 <body>
@@ -69,7 +69,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
   <div class="section">
     <h3>The Problem</h3>
     <p>
-      Static vulnerability scoring systems like CVSS assign the same severity to a compromised printer and a compromised infusion pump. They measure technical severity, not clinical impact. A "Medium" on a pacemaker gets deprioritised while a "High" on a workstation gets patched first.
+      Static vulnerability scoring systems like CVSS assign the same severity to a compromised printer and a compromised infusion pump. They measure technical severity, not clinical impact. A <span style="display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid rgba(212,184,50,0.3);background:rgba(212,184,50,0.1);color:var(--med);letter-spacing:.04em;vertical-align:baseline">MEDIUM</span> on a pacemaker gets deprioritised while a <span style="display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid rgba(224,138,58,0.3);background:rgba(224,138,58,0.1);color:var(--high);letter-spacing:.04em;vertical-align:baseline">HIGH</span> on a workstation gets patched first.
     </p>
     <p style="margin-top:10px">
       Meanwhile, the attack surface has moved onto the patient's body. Insulin pumps communicate over Bluetooth. Pacemakers transmit to cloud platforms. Wearable CGMs stream data through smartphones 24 hours a day. The risk is no longer static. The scoring should not be either.
@@ -100,13 +100,13 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
     </div>
 
     <div style="display:flex;gap:0;margin:6px 0 4px">
-      <div style="flex:1;text-align:center;color:var(--acc);font-family:var(--mono);font-size:18px">&darr;</div>
-      <div style="flex:1;text-align:center;color:var(--acc);font-family:var(--mono);font-size:18px">&darr;</div>
-      <div style="flex:1;text-align:center;color:var(--acc);font-family:var(--mono);font-size:18px">&darr;</div>
+      <div style="flex:1;text-align:center;color:var(--crit);font-family:var(--mono);font-size:18px">&darr;</div>
+      <div style="flex:1;text-align:center;color:var(--high);font-family:var(--mono);font-size:18px">&darr;</div>
+      <div style="flex:1;text-align:center;color:var(--purple);font-family:var(--mono);font-size:18px">&darr;</div>
     </div>
 
-    <div style="background:rgba(79,142,247,0.06);border:1px solid var(--acc);border-radius:8px;padding:12px 14px">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--acc);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">DTVSS answers all three</div>
+    <div style="background:rgba(72,184,120,0.06);border:1px solid var(--low);border-radius:8px;padding:12px 14px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--low);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">DTVSS answers all three</div>
       <div style="color:var(--hd);font-size:12px;line-height:1.6">Multiplicative coupling of B &times; H &times; (1 + k&middot;L(t)). KEV override forces 10.0 Critical. MITRE and CISA Vulnrichment fallback when NVD enrichment is absent. H modifier anchors to TGA classification regardless of which agency leads the workstream.</div>
     </div>
 
@@ -142,13 +142,13 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
       </div>
       <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:10px;margin-bottom:8px">Scoring (per CVE, live)</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:11px">
-        <span style="padding:4px 10px;border-radius:4px;background:rgba(79,142,247,0.1);color:var(--acc);border:1px solid rgba(79,142,247,0.25)">NVD API v2</span>
+        <span style="padding:4px 10px;border-radius:4px;background:var(--s2);color:var(--dim);border:1px solid var(--bd)">NVD API v2</span>
         <span style="color:var(--dim)">-></span>
         <span style="padding:4px 10px;border-radius:4px;background:var(--s2);color:var(--dim);border:1px solid var(--bd)">MITRE CVE.org</span>
         <span style="color:var(--dim)">-></span>
         <span style="padding:4px 10px;border-radius:4px;background:var(--s2);color:var(--dim);border:1px solid var(--bd)">CISA Vulnrichment</span>
         <span style="color:var(--dim)">-></span>
-        <span style="padding:4px 10px;border-radius:4px;background:rgba(46,160,67,0.1);color:#2ea043;border:1px solid rgba(46,160,67,0.25);font-weight:600">DTVSS score</span>
+        <span style="padding:4px 10px;border-radius:4px;background:rgba(72,184,120,0.1);color:var(--low);border:1px solid rgba(72,184,120,0.25);font-weight:600">DTVSS score</span>
       </div>
       <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px">
         Discovery is ICSMA-only (zero false positives). Each scoring source is a fallback - if NVD has not enriched a CVE, the pipeline continues.
@@ -212,24 +212,50 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px">
 
       <!-- AU / NZ -->
-      <div style="background:var(--s1);border:1px solid var(--bd);border-left:3px solid #012169;border-radius:6px;padding:12px;text-align:center">
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:12px;text-align:center">
         <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px">
-          <svg width="22" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-label="Australia">
-            <rect width="30" height="20" fill="#012169"/>
-            <g fill="#ffffff"><path d="M0 0 L15 10 M15 0 L0 10" stroke="#ffffff" stroke-width="2"/><path d="M0 0 L15 10 M15 0 L0 10" stroke="#c8102e" stroke-width="1.2"/></g>
-            <rect x="0" y="3.5" width="15" height="3" fill="#ffffff"/><rect x="6" y="0" width="3" height="10" fill="#ffffff"/>
-            <rect x="0" y="4.25" width="15" height="1.5" fill="#c8102e"/><rect x="6.75" y="0" width="1.5" height="10" fill="#c8102e"/>
-            <circle cx="7.5" cy="15" r="1.3" fill="#ffffff"/>
-            <circle cx="20" cy="5" r="0.8" fill="#ffffff"/><circle cx="24" cy="9" r="0.8" fill="#ffffff"/><circle cx="20" cy="13" r="0.8" fill="#ffffff"/><circle cx="26" cy="13" r="0.8" fill="#ffffff"/><circle cx="23" cy="16" r="0.6" fill="#ffffff"/>
+          <!-- Australia -->
+          <svg width="22" height="14" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" aria-label="Australia" style="border-radius:1px">
+            <rect width="60" height="30" fill="#012169"/>
+            <!-- Union Jack (top-left quarter) -->
+            <clipPath id="aujc"><rect width="30" height="15"/></clipPath>
+            <g clip-path="url(#aujc)">
+              <path d="M0,0 L30,15 M30,0 L0,15" stroke="#fff" stroke-width="3"/>
+              <path d="M0,0 L30,15 M30,0 L0,15" stroke="#C8102E" stroke-width="1.5"/>
+              <path d="M15,0 V15 M0,7.5 H30" stroke="#fff" stroke-width="5"/>
+              <path d="M15,0 V15 M0,7.5 H30" stroke="#C8102E" stroke-width="3"/>
+            </g>
+            <!-- Commonwealth star -->
+            <polygon fill="#fff" points="15,18 15.9,20.7 18.7,20.7 16.4,22.4 17.3,25 15,23.4 12.7,25 13.6,22.4 11.3,20.7 14.1,20.7"/>
+            <!-- Southern Cross -->
+            <polygon fill="#fff" points="45,5 45.6,6.6 47.3,6.6 45.9,7.6 46.4,9.3 45,8.3 43.6,9.3 44.1,7.6 42.7,6.6 44.4,6.6"/>
+            <polygon fill="#fff" points="50,12 50.6,13.6 52.3,13.6 50.9,14.6 51.4,16.3 50,15.3 48.6,16.3 49.1,14.6 47.7,13.6 49.4,13.6"/>
+            <polygon fill="#fff" points="40,18 40.6,19.6 42.3,19.6 40.9,20.6 41.4,22.3 40,21.3 38.6,22.3 39.1,20.6 37.7,19.6 39.4,19.6"/>
+            <polygon fill="#fff" points="48,22 48.5,23.2 49.8,23.2 48.7,24 49.2,25.3 48,24.5 46.8,25.3 47.3,24 46.2,23.2 47.5,23.2"/>
+            <polygon fill="#fff" points="43,25 43.3,25.9 44.2,25.9 43.5,26.4 43.8,27.3 43,26.8 42.2,27.3 42.5,26.4 41.8,25.9 42.7,25.9"/>
           </svg>
-          <svg width="22" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-label="New Zealand">
-            <rect width="30" height="20" fill="#012169"/>
-            <rect x="0" y="3.5" width="15" height="3" fill="#ffffff"/><rect x="6" y="0" width="3" height="10" fill="#ffffff"/>
-            <rect x="0" y="4.25" width="15" height="1.5" fill="#c8102e"/><rect x="6.75" y="0" width="1.5" height="10" fill="#c8102e"/>
-            <circle cx="21" cy="6" r="0.9" fill="#c8102e" stroke="#ffffff" stroke-width="0.3"/>
-            <circle cx="25" cy="10" r="0.9" fill="#c8102e" stroke="#ffffff" stroke-width="0.3"/>
-            <circle cx="21" cy="14" r="0.9" fill="#c8102e" stroke="#ffffff" stroke-width="0.3"/>
-            <circle cx="26" cy="14.5" r="0.8" fill="#c8102e" stroke="#ffffff" stroke-width="0.3"/>
+          <!-- New Zealand -->
+          <svg width="22" height="14" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" aria-label="New Zealand" style="border-radius:1px">
+            <rect width="60" height="30" fill="#012169"/>
+            <!-- Union Jack (top-left quarter) -->
+            <clipPath id="nzjc"><rect width="30" height="15"/></clipPath>
+            <g clip-path="url(#nzjc)">
+              <path d="M0,0 L30,15 M30,0 L0,15" stroke="#fff" stroke-width="3"/>
+              <path d="M0,0 L30,15 M30,0 L0,15" stroke="#C8102E" stroke-width="1.5"/>
+              <path d="M15,0 V15 M0,7.5 H30" stroke="#fff" stroke-width="5"/>
+              <path d="M15,0 V15 M0,7.5 H30" stroke="#C8102E" stroke-width="3"/>
+            </g>
+            <!-- Southern Cross (red, white-edged) -->
+            <g>
+              <polygon fill="#fff" points="42,9 42.6,10.8 44.5,10.8 43,11.9 43.5,13.7 42,12.6 40.5,13.7 41,11.9 39.5,10.8 41.4,10.8"/>
+              <polygon fill="#C8102E" points="42,10 42.4,11.1 43.5,11.1 42.6,11.7 42.9,12.8 42,12.1 41.1,12.8 41.4,11.7 40.5,11.1 41.6,11.1"/>
+              <polygon fill="#fff" points="49,14 49.6,15.8 51.5,15.8 50,16.9 50.5,18.7 49,17.6 47.5,18.7 48,16.9 46.5,15.8 48.4,15.8"/>
+              <polygon fill="#C8102E" points="49,15 49.4,16.1 50.5,16.1 49.6,16.7 49.9,17.8 49,17.1 48.1,17.8 48.4,16.7 47.5,16.1 48.6,16.1"/>
+              <polygon fill="#fff" points="46,22 46.6,23.8 48.5,23.8 47,24.9 47.5,26.7 46,25.6 44.5,26.7 45,24.9 43.5,23.8 45.4,23.8"/>
+              <polygon fill="#C8102E" points="46,23 46.4,24.1 47.5,24.1 46.6,24.7 46.9,25.8 46,25.1 45.1,25.8 45.4,24.7 44.5,24.1 45.6,24.1"/>
+              <polygon fill="#fff" points="53,20 53.5,21.4 55,21.4 53.8,22.3 54.2,23.7 53,22.9 51.8,23.7 52.2,22.3 51,21.4 52.5,21.4"/>
+              <polygon fill="#C8102E" points="53,21 53.3,22 54.2,22 53.5,22.5 53.8,23.4 53,22.9 52.2,23.4 52.5,22.5 51.8,22 52.7,22"/>
+            </g>
           </svg>
         </div>
         <div style="font-family:var(--mono);color:var(--dim);font-size:11px;letter-spacing:0.04em">TGA / Medsafe</div>
@@ -237,12 +263,26 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
       </div>
 
       <!-- EU -->
-      <div style="background:var(--s1);border:1px solid var(--bd);border-left:3px solid #003399;border-radius:6px;padding:12px;text-align:center">
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:12px;text-align:center">
         <div style="display:flex;justify-content:center;margin-bottom:8px;height:14px;align-items:center">
-          <svg width="22" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-label="European Union">
-            <rect width="30" height="20" fill="#003399"/>
-            <g fill="#ffcc00">
-              <circle cx="15" cy="5" r="0.8"/><circle cx="19" cy="6" r="0.8"/><circle cx="22" cy="9" r="0.8"/><circle cx="23" cy="12" r="0.8"/><circle cx="22" cy="15" r="0.8"/><circle cx="19" cy="17" r="0.8"/><circle cx="15" cy="18" r="0.8"/><circle cx="11" cy="17" r="0.8"/><circle cx="8" cy="15" r="0.8"/><circle cx="7" cy="12" r="0.8"/><circle cx="8" cy="9" r="0.8"/><circle cx="11" cy="6" r="0.8"/>
+          <svg width="22" height="14" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg" aria-label="European Union" style="border-radius:1px">
+            <defs>
+              <polygon id="eustar" points="0,-3 0.88,-0.93 3.11,-0.93 1.31,0.36 1.98,2.43 0,1.15 -1.98,2.43 -1.31,0.36 -3.11,-0.93 -0.88,-0.93"/>
+            </defs>
+            <rect width="60" height="40" fill="#003399"/>
+            <g fill="#FFCC00" transform="translate(30 20)">
+              <use href="#eustar" transform="translate(0 -12)"/>
+              <use href="#eustar" transform="translate(6 -10.39)"/>
+              <use href="#eustar" transform="translate(10.39 -6)"/>
+              <use href="#eustar" transform="translate(12 0)"/>
+              <use href="#eustar" transform="translate(10.39 6)"/>
+              <use href="#eustar" transform="translate(6 10.39)"/>
+              <use href="#eustar" transform="translate(0 12)"/>
+              <use href="#eustar" transform="translate(-6 10.39)"/>
+              <use href="#eustar" transform="translate(-10.39 6)"/>
+              <use href="#eustar" transform="translate(-12 0)"/>
+              <use href="#eustar" transform="translate(-10.39 -6)"/>
+              <use href="#eustar" transform="translate(-6 -10.39)"/>
             </g>
           </svg>
         </div>
@@ -251,17 +291,26 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
       </div>
 
       <!-- UK -->
-      <div style="background:var(--s1);border:1px solid var(--bd);border-left:3px solid #c8102e;border-radius:6px;padding:12px;text-align:center">
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:12px;text-align:center">
         <div style="display:flex;justify-content:center;margin-bottom:8px;height:14px;align-items:center">
-          <svg width="22" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-label="United Kingdom">
-            <rect width="30" height="20" fill="#012169"/>
-            <path d="M0 0 L30 20 M30 0 L0 20" stroke="#ffffff" stroke-width="3"/>
-            <path d="M0 0 L30 20" stroke="#c8102e" stroke-width="1.5" clip-path="polygon(0 0, 15 10, 0 20)"/>
-            <path d="M30 0 L0 20" stroke="#c8102e" stroke-width="1.5" clip-path="polygon(30 0, 15 10, 30 20)"/>
-            <rect x="0" y="8" width="30" height="4" fill="#ffffff"/>
-            <rect x="13" y="0" width="4" height="20" fill="#ffffff"/>
-            <rect x="0" y="9" width="30" height="2" fill="#c8102e"/>
-            <rect x="14" y="0" width="2" height="20" fill="#c8102e"/>
+          <svg width="22" height="14" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" aria-label="United Kingdom" style="border-radius:1px">
+            <rect width="60" height="30" fill="#012169"/>
+            <!-- White saltire (diagonal cross) -->
+            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+            <!-- Red saltire — four offset segments so the red stripe is properly shifted -->
+            <clipPath id="ukTL"><polygon points="0,0 30,0 0,15"/></clipPath>
+            <clipPath id="ukTR"><polygon points="30,0 60,0 60,15"/></clipPath>
+            <clipPath id="ukBL"><polygon points="0,15 0,30 30,30"/></clipPath>
+            <clipPath id="ukBR"><polygon points="60,15 60,30 30,30"/></clipPath>
+            <g stroke="#C8102E" stroke-width="2">
+              <line x1="0" y1="0" x2="60" y2="30" clip-path="url(#ukTL)"/>
+              <line x1="0" y1="0" x2="60" y2="30" clip-path="url(#ukBR)"/>
+              <line x1="60" y1="0" x2="0" y2="30" clip-path="url(#ukTR)"/>
+              <line x1="60" y1="0" x2="0" y2="30" clip-path="url(#ukBL)"/>
+            </g>
+            <!-- St George's cross: white then red -->
+            <path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/>
+            <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/>
           </svg>
         </div>
         <div style="font-family:var(--mono);color:var(--dim);font-size:11px;letter-spacing:0.04em">MHRA</div>
@@ -269,13 +318,43 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
       </div>
 
       <!-- US -->
-      <div style="background:var(--s1);border:1px solid var(--bd);border-left:3px solid #b22234;border-radius:6px;padding:12px;text-align:center">
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:12px;text-align:center">
         <div style="display:flex;justify-content:center;margin-bottom:8px;height:14px;align-items:center">
-          <svg width="22" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-label="United States">
-            <rect width="30" height="20" fill="#ffffff"/>
-            <g fill="#b22234"><rect y="0" width="30" height="1.54"/><rect y="3.08" width="30" height="1.54"/><rect y="6.15" width="30" height="1.54"/><rect y="9.23" width="30" height="1.54"/><rect y="12.31" width="30" height="1.54"/><rect y="15.38" width="30" height="1.54"/><rect y="18.46" width="30" height="1.54"/></g>
-            <rect width="12" height="10.77" fill="#3c3b6e"/>
-            <g fill="#ffffff"><circle cx="2" cy="2" r="0.6"/><circle cx="5" cy="2" r="0.6"/><circle cx="8" cy="2" r="0.6"/><circle cx="11" cy="2" r="0.6"/><circle cx="3.5" cy="4" r="0.6"/><circle cx="6.5" cy="4" r="0.6"/><circle cx="9.5" cy="4" r="0.6"/><circle cx="2" cy="6" r="0.6"/><circle cx="5" cy="6" r="0.6"/><circle cx="8" cy="6" r="0.6"/><circle cx="11" cy="6" r="0.6"/><circle cx="3.5" cy="8" r="0.6"/><circle cx="6.5" cy="8" r="0.6"/><circle cx="9.5" cy="8" r="0.6"/></g>
+          <svg width="22" height="14" viewBox="0 0 60 32" xmlns="http://www.w3.org/2000/svg" aria-label="United States" style="border-radius:1px">
+            <rect width="60" height="32" fill="#fff"/>
+            <!-- 7 red stripes (odd rows 0,2,4,6,8,10,12 of 13) -->
+            <g fill="#B22234">
+              <rect y="0"    width="60" height="2.46"/>
+              <rect y="4.92" width="60" height="2.46"/>
+              <rect y="9.85" width="60" height="2.46"/>
+              <rect y="14.77" width="60" height="2.46"/>
+              <rect y="19.69" width="60" height="2.46"/>
+              <rect y="24.62" width="60" height="2.46"/>
+              <rect y="29.54" width="60" height="2.46"/>
+            </g>
+            <!-- Canton -->
+            <rect width="24" height="17.23" fill="#3C3B6E"/>
+            <!-- 50 stars, 9 alternating rows of 6/5 -->
+            <g fill="#fff">
+              <!-- row 1 (6 stars) -->
+              <circle cx="2" cy="1.7" r="0.7"/><circle cx="6" cy="1.7" r="0.7"/><circle cx="10" cy="1.7" r="0.7"/><circle cx="14" cy="1.7" r="0.7"/><circle cx="18" cy="1.7" r="0.7"/><circle cx="22" cy="1.7" r="0.7"/>
+              <!-- row 2 (5) -->
+              <circle cx="4" cy="3.6" r="0.7"/><circle cx="8" cy="3.6" r="0.7"/><circle cx="12" cy="3.6" r="0.7"/><circle cx="16" cy="3.6" r="0.7"/><circle cx="20" cy="3.6" r="0.7"/>
+              <!-- row 3 -->
+              <circle cx="2" cy="5.6" r="0.7"/><circle cx="6" cy="5.6" r="0.7"/><circle cx="10" cy="5.6" r="0.7"/><circle cx="14" cy="5.6" r="0.7"/><circle cx="18" cy="5.6" r="0.7"/><circle cx="22" cy="5.6" r="0.7"/>
+              <!-- row 4 -->
+              <circle cx="4" cy="7.5" r="0.7"/><circle cx="8" cy="7.5" r="0.7"/><circle cx="12" cy="7.5" r="0.7"/><circle cx="16" cy="7.5" r="0.7"/><circle cx="20" cy="7.5" r="0.7"/>
+              <!-- row 5 -->
+              <circle cx="2" cy="9.4" r="0.7"/><circle cx="6" cy="9.4" r="0.7"/><circle cx="10" cy="9.4" r="0.7"/><circle cx="14" cy="9.4" r="0.7"/><circle cx="18" cy="9.4" r="0.7"/><circle cx="22" cy="9.4" r="0.7"/>
+              <!-- row 6 -->
+              <circle cx="4" cy="11.4" r="0.7"/><circle cx="8" cy="11.4" r="0.7"/><circle cx="12" cy="11.4" r="0.7"/><circle cx="16" cy="11.4" r="0.7"/><circle cx="20" cy="11.4" r="0.7"/>
+              <!-- row 7 -->
+              <circle cx="2" cy="13.3" r="0.7"/><circle cx="6" cy="13.3" r="0.7"/><circle cx="10" cy="13.3" r="0.7"/><circle cx="14" cy="13.3" r="0.7"/><circle cx="18" cy="13.3" r="0.7"/><circle cx="22" cy="13.3" r="0.7"/>
+              <!-- row 8 -->
+              <circle cx="4" cy="15.2" r="0.7"/><circle cx="8" cy="15.2" r="0.7"/><circle cx="12" cy="15.2" r="0.7"/><circle cx="16" cy="15.2" r="0.7"/><circle cx="20" cy="15.2" r="0.7"/>
+              <!-- row 9 -->
+              <circle cx="2" cy="17.1" r="0.5"/><circle cx="6" cy="17.1" r="0.5"/><circle cx="10" cy="17.1" r="0.5"/><circle cx="14" cy="17.1" r="0.5"/><circle cx="18" cy="17.1" r="0.5"/><circle cx="22" cy="17.1" r="0.5"/>
+            </g>
           </svg>
         </div>
         <div style="font-family:var(--mono);color:var(--dim);font-size:11px;letter-spacing:0.04em">FDA</div>
@@ -363,11 +442,6 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
       Licensed under Business Source License 1.1 (BSL 1.1)<br>
       Non-commercial use permitted. Commercial licence required for production use.
     </p>
-    <div style="margin-top:10px">
-      <a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:11px;font-weight:600">
-        Commercial licence enquiries → LinkedIn
-      </a>
-    </div>
   </div>
 
   <!-- Footer -->
@@ -380,8 +454,8 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
   </div>
 
   <!-- Disclaimer -->
-  <div style="padding:14px 18px;border:1px solid rgba(224,82,82,0.25);border-radius:8px;background:rgba(224,82,82,0.05);font-family:var(--mono);font-size:11px;color:var(--tx);line-height:1.8;text-align:center;margin-bottom:24px">
-    <span style="color:var(--crit);font-weight:600">RESEARCH PREVIEW</span> - Non-commercial research demonstration. Not a certified medical device risk management tool. Commercial licence required for production use.
+  <div style="padding:14px 18px;margin-top:-16px;border:1px solid rgba(224,82,82,0.25);border-radius:8px;background:rgba(224,82,82,0.05);font-family:var(--mono);font-size:11px;color:var(--tx);line-height:1.8;text-align:center;margin-bottom:24px">
+    <span style="color:var(--crit);font-weight:600">RESEARCH PREVIEW</span> - Tier 1 is a non-commercial research demonstration. Not a certified medical device risk management tool. Commercial licence required for production use.
   </div>
 
 </div>

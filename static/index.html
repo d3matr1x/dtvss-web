@@ -155,15 +155,17 @@ a:hover{text-decoration:underline}
 .loading .dot{animation:pulse 1s infinite;color:var(--acc)}
 
 /* Footer */
-.footer{text-align:center;padding:24px 0;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
+.footer{text-align:center;padding:24px 0 0;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
 .footer .bsl{font-size:12px;color:var(--tx);margin-top:6px}
 
 /* Tier CTA — sticky pill on desktop (right side), floating bar on mobile (bottom) */
 .tier-float{
-  position:fixed; top:120px; right:24px; z-index:100;
+  /* Position relative to the centred container (740px wide).
+     Container's right edge sits at (50vw + 370px); put pills 12px past that. */
+  position:fixed; top:140px; left:calc(50% + 382px); z-index:100;
   display:flex; flex-direction:column; gap:8px;
   font-family:var(--mono); font-size:11px; font-weight:600;
-  max-width:180px;
+  width:180px;
 }
 .tier-float .tier-pill{
   padding:10px 14px; border-radius:999px;
@@ -178,11 +180,12 @@ a:hover{text-decoration:underline}
 .tier-float .t4{ color:#a070e8; border:1px solid #a070e844; background:rgba(160,112,232,0.08); }
 .tier-float .sep{ color:#6b7280; font-weight:400; }
 
-/* Mobile: fixed bar at bottom of screen, horizontal row */
-@media(max-width:900px){
+/* Narrow viewport: if there's not enough room to sit beside results, collapse to mobile bar.
+   740 container + 12 gap + 180 pills + 24 margin = needs ~956px viewport. */
+@media(max-width:960px){
   .tier-float{
-    top:auto; right:0; left:0; bottom:0;
-    flex-direction:row; max-width:none;
+    top:auto; left:0; right:0; bottom:0;
+    flex-direction:row; width:auto;
     padding:8px 10px; gap:6px;
     background:rgba(8,10,15,0.95); border-top:1px solid var(--bd);
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
@@ -226,8 +229,8 @@ a:hover{text-decoration:underline}
       <span style="color:var(--high);font-weight:600">regulatory device classification</span>, and
       <span style="color:var(--crit);font-weight:600">patient harm potential</span>.
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-top:18px;font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--dim)">
-      <div><span style="color:var(--acc)">x</span> Multiplicative coupling of B, H, and L(t)</div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:6px 14px;margin-top:18px;font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--dim)">
+      <div><span style="color:var(--acc)">x</span> Multiplicative coupling of B, H, L(t)</div>
       <div><span style="color:var(--high)">H</span> Patient harm from TGA / EU MDR / MHRA / FDA</div>
       <div><span style="color:var(--purple)">L</span> EPSS as continuous daily probability</div>
       <div><span style="color:var(--crit)">!</span> KEV override forces maximum score</div>
@@ -314,9 +317,9 @@ a:hover{text-decoration:underline}
   </div>
 
   <!-- Disclaimer -->
-  <div style="max-width:680px;margin:0 auto;padding:16px 24px">
+  <div style="max-width:680px;margin:-12px auto 0;padding:0 24px 16px">
     <div style="padding:12px 16px;border:1px solid rgba(217,79,79,0.3);border-radius:8px;background:rgba(217,79,79,0.06);font-family:var(--mono);font-size:11px;color:var(--tx);line-height:1.8;text-align:center">
-      <span style="color:var(--crit);font-weight:600">RESEARCH PREVIEW</span> - Non-commercial research demonstration. Not a certified medical device risk management tool. Commercial licence required for production use.
+      <span style="color:var(--crit);font-weight:600">RESEARCH PREVIEW</span> - Tier 1 is a non-commercial research demonstration. Not a certified medical device risk management tool. Commercial licence required for production use.
     </div>
   </div>
 
