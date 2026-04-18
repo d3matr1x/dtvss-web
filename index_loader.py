@@ -15,6 +15,7 @@ Patent Pending - IP Australia | Licensed under BSL 1.1
 import json
 import os
 import re
+import shutil
 import threading
 import time
 import urllib.parse
@@ -22,13 +23,58 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
-INDEX_FILE = os.path.join(os.path.dirname(__file__), "static", "data", "mdm_index.json")
+# ---------------------------------------------------------------------------
+# INDEX_FILE resolution
+# ---------------------------------------------------------------------------
+# The MDM index must survive container restarts so the hourly RSS top-up is
+# not lost. Resolution order:
+#
+#   1. DTVSS_INDEX_PATH env var (explicit override, any location)
+#   2. DTVSS_DATA_DIR env var + "mdm_index.json"
+#      (recommended on Railway: set DTVSS_DATA_DIR=/data and mount a Volume at /data)
+#   3. Legacy in-repo path static/data/mdm_index.json
+#      (used for local dev and as the baked-in seed on first boot after deploy)
+#
+# On first boot with a configured persistent path, if that path doesn't yet
+# contain an index, we seed it from the in-repo copy so the app has data from
+# cold start.
+_REPO_DEFAULT = os.path.join(os.path.dirname(__file__), "static", "data", "mdm_index.json")
+
+if os.environ.get("DTVSS_INDEX_PATH"):
+    INDEX_FILE = os.environ["DTVSS_INDEX_PATH"]
+elif os.environ.get("DTVSS_DATA_DIR"):
+    INDEX_FILE = os.path.join(os.environ["DTVSS_DATA_DIR"], "mdm_index.json")
+else:
+    INDEX_FILE = _REPO_DEFAULT
+
+
+def _seed_persistent_from_repo():
+    """
+    If INDEX_FILE points at a persistent volume that hasn't been seeded yet,
+    copy the baked-in repo index into it so we have data on cold start.
+    No-op if the persistent index already exists or INDEX_FILE == repo default.
+    """
+    if INDEX_FILE == _REPO_DEFAULT:
+        return
+    if os.path.exists(INDEX_FILE):
+        return
+    if not os.path.exists(_REPO_DEFAULT):
+        return
+    try:
+        os.makedirs(os.path.dirname(INDEX_FILE), exist_ok=True)
+        shutil.copy2(_REPO_DEFAULT, INDEX_FILE)
+        print(f"  Seeded persistent index from repo: {_REPO_DEFAULT} -> {INDEX_FILE}")
+    except Exception as e:
+        print(f"  Persistent seed failed ({e}); will read from repo default")
+
+
 NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
 NVD_DELAY = 0.7 if NVD_API_KEY else 6.0
 ICSMA_RSS_URL = "https://www.cisa.gov/cybersecurity-advisories/ics-medical-advisories.xml"
 NVD_CVE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
 EXCLUDED_DEVICES = ["wheelchair", "power chair", "electric chair", "fitness", "wearable", "smart watch"]
+
 
 VENDOR_ALIASES = {
     "phillips": "Philips", "philips": "Philips",
@@ -212,8 +258,12 @@ def _save_index():
 
 def _hourly_pipeline():
     """Check ICSMA RSS for new advisories, enrich with NVD CVSS."""
+    # Short first-iteration delay so a freshly deployed container picks up any
+    # new advisories within a minute rather than waiting a full hour.
+    first = True
     while True:
-        time.sleep(3600)
+        time.sleep(60 if first else 3600)
+        first = False
         try:
             ts = datetime.now(timezone.utc).isoformat()
             print(f"  [Hourly] {ts}")
@@ -339,6 +389,7 @@ def _load():
         print(f"  MDM index not found - run build_index.py")
 
 
+_seed_persistent_from_repo()
 _load()
 threading.Thread(target=_hourly_pipeline, daemon=True).start()
 print("  Hourly ICSMA pipeline started")

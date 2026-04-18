@@ -17,8 +17,11 @@ All data from CISA ICSMA (CSAF JSON + RSS) + NVD + EPSS + CISA KEV. No proprieta
 
 import os
 import json
+import logging
+import uuid
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+from werkzeug.exceptions import HTTPException
 
 from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
 from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check
@@ -29,15 +32,65 @@ CORS(app)
 
 NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
 
+# Structured server-side logging. Tracebacks go here, never to clients.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+log = logging.getLogger("dtvss")
+
+# -----------------------------------------------------------------------------
+# Rate limiting
+# -----------------------------------------------------------------------------
+# Protects live NVD/MITRE lookup paths from abuse. Cheap endpoints (the
+# pre-built index, manual scoring, device classes) get a generous budget;
+# expensive endpoints (live CVE lookup, free-text search) get a stricter one.
+#
+# Falls back to a no-op decorator if Flask-Limiter isn't installed, so the app
+# still boots on older requirements.txt pins.
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+
+    limiter = Limiter(
+        get_remote_address,
+        app=app,
+        default_limits=["200 per hour", "30 per minute"],
+        storage_uri="memory://",
+        strategy="fixed-window",
+    )
+    RATE_LIMIT_EXPENSIVE = "20 per hour;5 per minute"
+
+    def _expensive(fn):
+        return limiter.limit(RATE_LIMIT_EXPENSIVE)(fn)
+
+except ImportError:
+    log.warning("Flask-Limiter not installed; running without rate limiting")
+
+    def _expensive(fn):
+        return fn
+
 
 @app.errorhandler(Exception)
 def handle_exception(e):
-    """Return JSON instead of HTML for all errors so the frontend can parse them."""
-    import traceback
-    tb = traceback.format_exc()
-    print(f"ERROR: {e}\n{tb}")
-    code = getattr(e, 'code', 500)
-    return jsonify({"error": f"Server error: {str(e)}", "type": e.__class__.__name__}), code
+    """
+    Return JSON for all errors. Full traceback is logged server-side with a
+    correlation ID; the client only sees a generic message plus that ID.
+    This prevents leaking file paths, library internals, or (critically) the
+    NVD API key if it ever ends up in a urllib error message.
+    """
+    # Let Flask-Limiter and other HTTPExceptions pass through with their own
+    # status code and description (429 "Rate limit exceeded", 404, etc.).
+    # Their messages are framework-generated and safe to expose.
+    if isinstance(e, HTTPException):
+        return jsonify({"error": e.description, "type": e.__class__.__name__}), e.code
+
+    error_id = uuid.uuid4().hex[:12]
+    log.exception("Unhandled exception [%s]", error_id)
+    return jsonify({
+        "error": "Internal server error",
+        "error_id": error_id,
+    }), 500
 
 
 @app.route("/")
@@ -48,6 +101,11 @@ def index():
 @app.route("/calculator")
 def calculator():
     return send_from_directory("static", "calculator.html")
+
+
+@app.route("/calibration")
+def calibration():
+    return send_from_directory("static", "calibration.html")
 
 
 @app.route("/about")
@@ -66,6 +124,7 @@ def sitemap():
 
 
 @app.route("/api/lookup")
+@_expensive
 def lookup():
     """
     Look up a single CVE by ID.
@@ -151,6 +210,7 @@ def lookup():
 
 
 @app.route("/api/search")
+@_expensive
 def search():
     """
     Search by device name or keyword.

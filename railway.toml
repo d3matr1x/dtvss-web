@@ -6,3 +6,19 @@ startCommand = "gunicorn app:app --bind 0.0.0.0:$PORT"
 healthcheckPath = "/api/device-classes"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
+
+# -----------------------------------------------------------------------------
+# Persistent storage
+# -----------------------------------------------------------------------------
+# The MDM index must survive container restarts so the hourly ICSMA RSS top-up
+# is not lost between deploys. Attach a Railway Volume to this service and set
+# DTVSS_DATA_DIR to its mount path (recommended: /data).
+#
+# Steps:
+#   1. Railway dashboard -> this service -> Volumes -> New Volume -> mount at /data
+#   2. Variables -> add DTVSS_DATA_DIR=/data
+#
+# On first boot, the service will copy the repo-shipped mdm_index.json into
+# /data/mdm_index.json as a seed. Subsequent hourly appends persist across
+# restarts and deploys.
+# -----------------------------------------------------------------------------

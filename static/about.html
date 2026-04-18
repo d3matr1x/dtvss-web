@@ -51,6 +51,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
   <span style="margin-left:auto;font-size:13px;display:flex;gap:20px">
     <a href="/" style="color:var(--dim);text-decoration:none">Search</a>
     <a href="/calculator" style="color:var(--dim);text-decoration:none">Calculator</a>
+    <a href="/calibration" style="color:var(--dim);text-decoration:none">Calibration</a>
     <a href="/about" style="color:var(--acc);text-decoration:none">About</a>
   </span>
 </div>
@@ -75,9 +76,48 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
     </p>
   </div>
 
-  <!-- Why This Matters Now -->
+  <!-- Why now (scannable diagram) -->
+  <div class="section">
+    <h3>Why now</h3>
+    <p style="color:var(--dim);font-size:13px;margin-bottom:14px">Three pressures converge on medical device scoring in April 2026.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div style="background:var(--s2);border:1px solid var(--bd);border-top:2px solid var(--crit);border-radius:0 0 8px 8px;padding:12px 14px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--crit);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Threat side</div>
+        <div style="color:var(--hd);font-size:13px;font-weight:600;line-height:1.3;margin-bottom:4px">Autonomous exploitation is industrialising</div>
+        <div style="color:var(--tx);font-size:11px;line-height:1.5">Mythos: 72% exploit success on zero-days. MOAK: public-API models autonomously exploit KEVs at scale. Time-to-exploit under 1 day in 2026.</div>
+      </div>
+      <div style="background:var(--s2);border:1px solid var(--bd);border-top:2px solid var(--high);border-radius:0 0 8px 8px;padding:12px 14px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--high);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Defender side</div>
+        <div style="color:var(--hd);font-size:13px;font-weight:600;line-height:1.3;margin-bottom:4px">NVD enrichment is contracting</div>
+        <div style="color:var(--tx);font-size:11px;line-height:1.5">NIST stops routine enrichment on 15 Apr 2026. 263% CVE surge since 2020. Pre-March 2026 backlog reclassified Not Scheduled.</div>
+      </div>
+      <div style="background:var(--s2);border:1px solid var(--bd);border-top:2px solid var(--purple);border-radius:0 0 8px 8px;padding:12px 14px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--purple);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Regulatory</div>
+        <div style="color:var(--hd);font-size:13px;font-weight:600;line-height:1.3;margin-bottom:4px">AU Action Plan has no medical workstream</div>
+        <div style="color:var(--tx);font-size:11px;line-height:1.5">Shield 2 Action 8 covers consumer devices. TG(MD)R not referenced. TGA not named among lead or contributing agencies.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:0;margin:6px 0 4px">
+      <div style="flex:1;text-align:center;color:var(--acc);font-family:var(--mono);font-size:18px">&darr;</div>
+      <div style="flex:1;text-align:center;color:var(--acc);font-family:var(--mono);font-size:18px">&darr;</div>
+      <div style="flex:1;text-align:center;color:var(--acc);font-family:var(--mono);font-size:18px">&darr;</div>
+    </div>
+
+    <div style="background:rgba(79,142,247,0.06);border:1px solid var(--acc);border-radius:8px;padding:12px 14px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--acc);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">DTVSS answers all three</div>
+      <div style="color:var(--hd);font-size:12px;line-height:1.6">Multiplicative coupling of B &times; H &times; (1 + k&middot;L(t)). KEV override forces 10.0 Critical. MITRE and CISA Vulnrichment fallback when NVD enrichment is absent. H modifier anchors to TGA classification regardless of which agency leads the workstream.</div>
+    </div>
+
+    <p style="text-align:center;margin-top:14px;font-size:12px">
+      <a href="#why-now-detail" style="color:var(--acc)">Full discussion with sources below &darr;</a>
+    </p>
+  </div>
+
+  <!-- The defender side, in detail (previously Why This Matters Now) -->
   <div class="section" style="border:1px solid rgba(217,124,42,0.2);background:linear-gradient(135deg,rgba(217,124,42,0.03),var(--s2))">
-    <h3>Why This Matters Now</h3>
+    <h3>The defender side, in detail</h3>
     <p>
       On 15 April 2026, NIST announced fundamental changes to NVD operations. CVE submissions increased 263% between 2020 and 2025, and submissions in Q1 2026 were a further third higher than the same period last year. Despite enriching 42,000 CVEs in 2025 - 45% more than any prior year - NIST can no longer keep pace.
     </p>
@@ -141,14 +181,9 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
     <div style="margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--dim)">
       B is computed per the <a href="https://www.first.org/cvss/v3-1/specification-document" target="_blank" rel="noopener noreferrer" style="color:var(--acc)">CVSS v3.1 Specification (FIRST.org)</a>. For CVSS v4.0 vectors, the v3.1-compatible AV/AC/PR/UI components are extracted with AT mapped to AC equivalent. For v2.0, the exploitabilityScore is used directly from NVD.
     </div>
-    </p>
-  </div>
-
-  <!-- Calibration -->
-  <div class="section">
-    <h3>Calibration</h3>
-    <p>
-      The system was calibrated against 96 real-world medical device CVEs spanning infusion pumps, insulin pumps, implantable cardiac devices (pacemakers, ICDs, CRT), ventilators, patient monitors, and continuous glucose monitors. The temporal amplification constant k=15 was selected to satisfy four clinical discrimination criteria ensuring that the scoring correctly differentiates between devices with different patient harm profiles and exploitation contexts.
+    <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;font-size:13px;line-height:1.7">
+      The constant k = 15 was calibrated against 96 real medical device CVEs as the lowest integer satisfying four clinical criteria from the provisional patent. <a href="/calibration" style="color:var(--acc);font-weight:500">See how k = 15 was chosen &rarr;</a>. Full sweep, the binding constraint, and an out-of-sample re-run against 362 CVEs.
+    </div>
     </p>
   </div>
 
@@ -161,6 +196,11 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
     <p style="margin-top:10px">
       The system aligns with risks identified in the <span style="color:var(--hd);font-weight:600">CSA/SANS "AI Vulnerability Storm" briefing</span> (April 2026), including outdated risk models (Risk #5), continuous vulnerability management maturity gaps (Risk #9), and threat detection dependent on lagging intelligence (Risk #10).
     </p>
+    <div style="margin-top:14px;padding:12px;background:var(--s1);border-radius:6px;font-family:var(--mono);font-size:11px;line-height:2;color:var(--dim)">
+      <div style="color:var(--hd);font-weight:600;font-size:11px;margin-bottom:4px">References</div>
+      <a href="https://www.iso.org/standard/72704.html" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">ISO 14971:2019 - Medical devices: Application of risk management to medical devices</a>
+      <a href="https://labs.cloudsecurityalliance.org/mythos-ciso/" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">CSA / SANS - The "AI Vulnerability Storm": Building a "Mythos-ready" Security Program (14 Apr 2026)</a>
+    </div>
   </div>
 
   <!-- Jurisdictions -->
@@ -169,25 +209,81 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
     <p>
       The patient harm modifier H is portable across five regulatory jurisdictions. The same device receives the same H value regardless of where it is deployed.
     </p>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--bd);border-radius:6px;overflow:hidden;margin-top:12px;font-family:var(--mono);font-size:11px">
-      <div style="background:var(--s1);padding:10px;text-align:center">
-        <div style="color:var(--dim);font-size:11px;letter-spacing:0.04em">TGA / Medsafe</div>
-        <div style="color:var(--hd);font-weight:600;margin-top:4px">AU · NZ</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px">
+
+      <!-- AU / NZ -->
+      <div style="background:var(--s1);border:1px solid var(--bd);border-left:3px solid #012169;border-radius:6px;padding:12px;text-align:center">
+        <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px">
+          <svg width="22" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-label="Australia">
+            <rect width="30" height="20" fill="#012169"/>
+            <g fill="#ffffff"><path d="M0 0 L15 10 M15 0 L0 10" stroke="#ffffff" stroke-width="2"/><path d="M0 0 L15 10 M15 0 L0 10" stroke="#c8102e" stroke-width="1.2"/></g>
+            <rect x="0" y="3.5" width="15" height="3" fill="#ffffff"/><rect x="6" y="0" width="3" height="10" fill="#ffffff"/>
+            <rect x="0" y="4.25" width="15" height="1.5" fill="#c8102e"/><rect x="6.75" y="0" width="1.5" height="10" fill="#c8102e"/>
+            <circle cx="7.5" cy="15" r="1.3" fill="#ffffff"/>
+            <circle cx="20" cy="5" r="0.8" fill="#ffffff"/><circle cx="24" cy="9" r="0.8" fill="#ffffff"/><circle cx="20" cy="13" r="0.8" fill="#ffffff"/><circle cx="26" cy="13" r="0.8" fill="#ffffff"/><circle cx="23" cy="16" r="0.6" fill="#ffffff"/>
+          </svg>
+          <svg width="22" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-label="New Zealand">
+            <rect width="30" height="20" fill="#012169"/>
+            <rect x="0" y="3.5" width="15" height="3" fill="#ffffff"/><rect x="6" y="0" width="3" height="10" fill="#ffffff"/>
+            <rect x="0" y="4.25" width="15" height="1.5" fill="#c8102e"/><rect x="6.75" y="0" width="1.5" height="10" fill="#c8102e"/>
+            <circle cx="21" cy="6" r="0.9" fill="#c8102e" stroke="#ffffff" stroke-width="0.3"/>
+            <circle cx="25" cy="10" r="0.9" fill="#c8102e" stroke="#ffffff" stroke-width="0.3"/>
+            <circle cx="21" cy="14" r="0.9" fill="#c8102e" stroke="#ffffff" stroke-width="0.3"/>
+            <circle cx="26" cy="14.5" r="0.8" fill="#c8102e" stroke="#ffffff" stroke-width="0.3"/>
+          </svg>
+        </div>
+        <div style="font-family:var(--mono);color:var(--dim);font-size:11px;letter-spacing:0.04em">TGA / Medsafe</div>
+        <div style="font-family:var(--mono);color:var(--hd);font-weight:600;margin-top:4px;font-size:12px">AU &middot; NZ</div>
       </div>
-      <div style="background:var(--s1);padding:10px;text-align:center">
-        <div style="color:var(--dim);font-size:11px;letter-spacing:0.04em">MDR</div>
-        <div style="color:var(--hd);font-weight:600;margin-top:4px">EU</div>
+
+      <!-- EU -->
+      <div style="background:var(--s1);border:1px solid var(--bd);border-left:3px solid #003399;border-radius:6px;padding:12px;text-align:center">
+        <div style="display:flex;justify-content:center;margin-bottom:8px;height:14px;align-items:center">
+          <svg width="22" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-label="European Union">
+            <rect width="30" height="20" fill="#003399"/>
+            <g fill="#ffcc00">
+              <circle cx="15" cy="5" r="0.8"/><circle cx="19" cy="6" r="0.8"/><circle cx="22" cy="9" r="0.8"/><circle cx="23" cy="12" r="0.8"/><circle cx="22" cy="15" r="0.8"/><circle cx="19" cy="17" r="0.8"/><circle cx="15" cy="18" r="0.8"/><circle cx="11" cy="17" r="0.8"/><circle cx="8" cy="15" r="0.8"/><circle cx="7" cy="12" r="0.8"/><circle cx="8" cy="9" r="0.8"/><circle cx="11" cy="6" r="0.8"/>
+            </g>
+          </svg>
+        </div>
+        <div style="font-family:var(--mono);color:var(--dim);font-size:11px;letter-spacing:0.04em">MDR</div>
+        <div style="font-family:var(--mono);color:var(--hd);font-weight:600;margin-top:4px;font-size:12px">EU</div>
       </div>
-      <div style="background:var(--s1);padding:10px;text-align:center">
-        <div style="color:var(--dim);font-size:11px;letter-spacing:0.04em">MHRA</div>
-        <div style="color:var(--hd);font-weight:600;margin-top:4px">UK</div>
+
+      <!-- UK -->
+      <div style="background:var(--s1);border:1px solid var(--bd);border-left:3px solid #c8102e;border-radius:6px;padding:12px;text-align:center">
+        <div style="display:flex;justify-content:center;margin-bottom:8px;height:14px;align-items:center">
+          <svg width="22" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-label="United Kingdom">
+            <rect width="30" height="20" fill="#012169"/>
+            <path d="M0 0 L30 20 M30 0 L0 20" stroke="#ffffff" stroke-width="3"/>
+            <path d="M0 0 L30 20" stroke="#c8102e" stroke-width="1.5" clip-path="polygon(0 0, 15 10, 0 20)"/>
+            <path d="M30 0 L0 20" stroke="#c8102e" stroke-width="1.5" clip-path="polygon(30 0, 15 10, 30 20)"/>
+            <rect x="0" y="8" width="30" height="4" fill="#ffffff"/>
+            <rect x="13" y="0" width="4" height="20" fill="#ffffff"/>
+            <rect x="0" y="9" width="30" height="2" fill="#c8102e"/>
+            <rect x="14" y="0" width="2" height="20" fill="#c8102e"/>
+          </svg>
+        </div>
+        <div style="font-family:var(--mono);color:var(--dim);font-size:11px;letter-spacing:0.04em">MHRA</div>
+        <div style="font-family:var(--mono);color:var(--hd);font-weight:600;margin-top:4px;font-size:12px">UK</div>
       </div>
-      <div style="background:var(--s1);padding:10px;text-align:center">
-        <div style="color:var(--dim);font-size:11px;letter-spacing:0.04em">FDA</div>
-        <div style="color:var(--hd);font-weight:600;margin-top:4px">US</div>
+
+      <!-- US -->
+      <div style="background:var(--s1);border:1px solid var(--bd);border-left:3px solid #b22234;border-radius:6px;padding:12px;text-align:center">
+        <div style="display:flex;justify-content:center;margin-bottom:8px;height:14px;align-items:center">
+          <svg width="22" height="14" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-label="United States">
+            <rect width="30" height="20" fill="#ffffff"/>
+            <g fill="#b22234"><rect y="0" width="30" height="1.54"/><rect y="3.08" width="30" height="1.54"/><rect y="6.15" width="30" height="1.54"/><rect y="9.23" width="30" height="1.54"/><rect y="12.31" width="30" height="1.54"/><rect y="15.38" width="30" height="1.54"/><rect y="18.46" width="30" height="1.54"/></g>
+            <rect width="12" height="10.77" fill="#3c3b6e"/>
+            <g fill="#ffffff"><circle cx="2" cy="2" r="0.6"/><circle cx="5" cy="2" r="0.6"/><circle cx="8" cy="2" r="0.6"/><circle cx="11" cy="2" r="0.6"/><circle cx="3.5" cy="4" r="0.6"/><circle cx="6.5" cy="4" r="0.6"/><circle cx="9.5" cy="4" r="0.6"/><circle cx="2" cy="6" r="0.6"/><circle cx="5" cy="6" r="0.6"/><circle cx="8" cy="6" r="0.6"/><circle cx="11" cy="6" r="0.6"/><circle cx="3.5" cy="8" r="0.6"/><circle cx="6.5" cy="8" r="0.6"/><circle cx="9.5" cy="8" r="0.6"/></g>
+          </svg>
+        </div>
+        <div style="font-family:var(--mono);color:var(--dim);font-size:11px;letter-spacing:0.04em">FDA</div>
+        <div style="font-family:var(--mono);color:var(--hd);font-weight:600;margin-top:4px;font-size:12px">US</div>
       </div>
+
     </div>
-    <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:6px;text-align:center">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:10px;text-align:center">
       Medsafe (NZ) recognises TGA classifications under the Trans-Tasman MRA
     </div>
   </div>
@@ -202,9 +298,9 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
       <div style="color:var(--hd);font-weight:600;font-size:11px;margin-bottom:6px">CVE discovery (CISA ICSMA pipeline)</div>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center">
-      <a href="https://github.com/cisagov/CSAF" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid rgba(217,124,42,0.3);background:rgba(217,124,42,0.08);color:var(--high);text-decoration:none;font-weight:600">CISA CSAF JSON (historical)</a>
+      <span style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid rgba(217,124,42,0.3);background:rgba(217,124,42,0.08);color:var(--high);font-weight:600">CISA CSAF JSON (historical)</span>
       <span style="font-family:var(--mono);font-size:11px;color:var(--dim)">+</span>
-      <a href="https://www.cisa.gov/news-events/ics-advisories" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid rgba(217,124,42,0.3);background:rgba(217,124,42,0.08);color:var(--high);text-decoration:none;font-weight:600">ICSMA RSS (hourly)</a>
+      <span style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid rgba(217,124,42,0.3);background:rgba(217,124,42,0.08);color:var(--high);font-weight:600">ICSMA RSS (hourly)</span>
     </div>
     <p style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px;line-height:1.8">
       All CVE discovery comes from CISA ICS Medical Advisories - the authoritative public record of medical device cybersecurity vulnerabilities. CSAF JSON provides the full historical archive of structured advisories from the official CISA GitHub repository. The ICSMA RSS feed provides hourly ingestion of new advisories. NVD is used only for CVSS enrichment (scoring), not for CVE discovery, preventing false positives from keyword search. CVEs with ICSMA advisories are tagged with a clickable <a href="https://www.cisa.gov/news-events/ics-advisories" target="_blank" rel="noopener noreferrer" style="font-weight:600;padding:1px 6px;border-radius:3px;background:rgba(217,124,42,0.15);color:var(--high);border:1px solid rgba(217,124,42,0.3);text-decoration:none">ICS-CERT -></a> indicator linking directly to the advisory.
@@ -217,6 +313,29 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
       <span style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">L(t)</span> - EPSS API (FIRST.org)</span>
       <span style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">KEV</span> - CISA KEV Catalog</span>
       <span style="font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1)"><span style="color:var(--hd);font-weight:600">H</span> - TGA / Medsafe / EU MDR / MHRA / FDA</span>
+    </div>
+  </div>
+
+
+  <!-- Why now, in detail -->
+  <div class="section" id="why-now-detail">
+    <h3>Why now, in detail</h3>
+    <p>
+      Two developments in April 2026 reshape the environment DTVSS operates in. On 7 April, Anthropic disclosed Claude Mythos Preview, a model that autonomously identified thousands of zero-day vulnerabilities across every major operating system and browser and generated working exploits at a 72% success rate. Shortly after, the MOAK research project, built by Yair Saban and Niv Hoffman, demonstrated that general-purpose frontier models already available via API can autonomously exploit CVEs in the CISA KEV catalog at scale, with no human in the loop. KEV membership, once a prioritisation heuristic, is now a near-guaranteed exploitation signal for any attacker with API access. On 15 April, NIST announced it would stop routinely enriching CVEs in the National Vulnerability Database, citing a 263% surge in CVE submissions since 2020.
+    </p>
+    <p style="margin-top:10px">
+      Some commentators argue these developments make CVE-based scoring obsolete and that defenders should shift entirely to continuous threat exposure management (CTEM). That argument has force in enterprise IT environments with controllable inventories. It does not map to medical device fleets, which operate on 10-year replacement cycles, carry regulatory approval tied to specific firmware versions, and cannot be reconfigured or decommissioned on the basis of exposure scoring alone. For these fleets, the right response is to keep CVE-based scoring, force it to KEV-override on any confirmed-exploited vulnerability, and weight it by patient-harm consequence rather than exposure. That is what DTVSS does.
+    </p>
+    <p style="margin-top:10px">
+      Australia's 2023-2030 Cyber Security Strategy Action Plan structures its product-cybersecurity workstream around consumer devices and apps, led by Home Affairs with Health as a contributing agency. The Therapeutic Goods (Medical Devices) Regulations 2002 are not referenced, and the TGA is not named. Medical devices are not a standalone action item across the Plan's 20 items. Horizon 2 of the Strategy may address this in 2026-2028. DTVSS is designed to operate whether or not it does.
+    </p>
+    <div style="margin-top:14px;padding:12px;background:var(--s1);border-radius:6px;font-family:var(--mono);font-size:11px;line-height:2;color:var(--dim)">
+      <div style="color:var(--hd);font-weight:600;font-size:11px;margin-bottom:4px">References</div>
+      <a href="https://red.anthropic.com/2026/mythos-preview/" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">Anthropic - Claude Mythos Preview (7 Apr 2026)</a>
+      <a href="https://moak.ai/" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">MOAK - Mother of All KEVs (Saban & Hoffman)</a>
+      <a href="https://www.nist.gov/news-events/news/2026/04/nist-updates-nvd-operations-address-record-cve-growth" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">NIST - Updates NVD Operations to Address Record CVE Growth (15 Apr 2026)</a>
+      <a href="https://www.homeaffairs.gov.au/cyber-security-subsite/files/2023-cyber-security-strategy-action-plan.pdf" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">Australian Government - 2023-2030 Cyber Security Strategy Action Plan</a>
+      <a href="https://www.legislation.gov.au/F2002B00237/latest/text" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">Therapeutic Goods (Medical Devices) Regulations 2002 (Cth)</a>
     </div>
   </div>
 
@@ -256,7 +375,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
     <div>© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia</div>
     <div style="margin-top:4px;font-size:12px;color:var(--tx)">Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use</div>
     <div style="margin-top:8px;font-size:13px">
-      <a href="/">Search</a> · <a href="/calculator">Calculator</a> · <a href="/about">About</a>
+      <a href="/">Search</a> · <a href="/calculator">Calculator</a> · <a href="/calibration">Calibration</a> · <a href="/about">About</a>
     </div>
   </div>
 

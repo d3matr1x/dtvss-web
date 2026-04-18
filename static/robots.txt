@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Allow: /calculator
+Allow: /calibration
 Allow: /about
 
 Disallow: /api/

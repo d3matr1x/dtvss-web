@@ -212,10 +212,22 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
         return {"error": f"No CVSS scoring data published for {cve_id}"}
 
     # KEV - not available from MITRE API, will be checked separately
-    # ICS - check references
-    refs = [r.get("url", "") for r in cna.get("references", [])]
-    ics = any(frag in ref_url for ref_url in refs for frag in ICS_URL_FRAGMENTS)
-    ics_urls = [ref_url for ref_url in refs if any(f in ref_url for f in ICS_URL_FRAGMENTS)]
+    # ICS advisory detection - walk references from CNA AND every ADP container.
+    # CISA Vulnrichment lives in ADP and often adds the ICSMA URL that the CNA
+    # didn't, which is exactly the signal we want for a medical-device tool.
+    refs = [r.get("url", "") for r in cna.get("references", []) if r.get("url")]
+    for adp in data.get("containers", {}).get("adp", []):
+        for r in adp.get("references", []):
+            url = r.get("url", "")
+            if url:
+                refs.append(url)
+
+    # De-duplicate while preserving order (CNA refs first, then ADP)
+    seen = set()
+    refs = [u for u in refs if not (u in seen or seen.add(u))]
+
+    ics_urls = [u for u in refs if any(f in u for f in ICS_URL_FRAGMENTS)]
+    ics = bool(ics_urls)
 
     published = data.get("cveMetadata", {}).get("datePublished", "")
 

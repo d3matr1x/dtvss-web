@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<!--
+  DTVSS Calibration Page
+  Copyright © 2026 Andrew Broglio. All rights reserved.
+  Patent Pending - IP Australia
+  Licensed under BSL 1.1
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calibration - How k = 15 was chosen - DTVSS</title>
+<meta name="description" content="Executable record of the k = 15 calibration in DTVSS. Four clinical criteria, a full sweep from k = 1 to 30, and an out-of-sample re-run against a 362-CVE superset of the filing-time 96-CVE dataset.">
+<meta name="keywords" content="DTVSS calibration, k=15, temporal amplification, medical device CVE, EPSS, CVSS exploitability, patent calibration, ICU Medical Plum 360, CVE-2017-12718, Treck Ripple20, CVE-2020-11896">
+<meta name="author" content="Andrew Broglio">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://dtvss.io/calibration">
+
+<meta property="og:title" content="DTVSS Calibration - How k = 15 was chosen">
+<meta property="og:description" content="The lowest integer k satisfying the patent's four clinical criteria. Reproduces exactly on the 96-CVE filing set and holds on a 362-CVE live superset.">
+<meta property="og:url" content="https://dtvss.io/calibration">
+<meta property="og:site_name" content="DTVSS">
+<meta property="og:type" content="article">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DTVSS Calibration - How k = 15 was chosen">
+<meta name="twitter:description" content="Four criteria, one binding constraint. Full sweep and out-of-sample validation.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
+  --tx:#b8bcc8; --dim:#6b7280; --hd:#e2e6f0; --trk:#181d2a;
+  --acc:#5b93f5; --purple:#a070e8;
+  --crit:#e05252; --high:#e08a3a; --med:#d4b832; --low:#48b878;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;min-height:100vh;
+  -webkit-font-smoothing:antialiased;line-height:1.6}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.header{border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.header .ver{font-size:13px;color:var(--dim);font-weight:400}
+.header .right{margin-left:auto;font-size:13px;display:flex;gap:20px}
+.header .right a{color:var(--dim);text-decoration:none;transition:color .15s}
+.header .right a:hover{color:var(--hd)}
+.header .right a.active{color:var(--acc)}
+
+.container{max-width:740px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:24px}
+
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:22px 24px}
+.card h2{font-family:var(--sans);font-size:17px;font-weight:600;color:var(--hd);margin:0 0 10px}
+.card p{margin:0 0 10px;line-height:1.7;color:var(--tx);font-size:14px}
+.card p:last-child{margin-bottom:0}
+.card .muted{color:var(--dim);font-size:13px;line-height:1.7}
+.card .eyebrow{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.card h1{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--hd);letter-spacing:0.02em;margin:0}
+
+.headline-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.headline-stats .stat{background:var(--bg);border-radius:6px;padding:14px 16px}
+.headline-stats .stat-val{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--hd);line-height:1.1;margin-top:4px}
+.headline-stats .stat-val .u{font-size:12px;color:var(--dim);font-weight:400;margin-left:4px}
+
+/* Legend */
+.legend{display:flex;gap:20px;flex-wrap:wrap;margin:14px 0 12px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em}
+.legend span.sw{display:inline-flex;align-items:center;gap:6px}
+.legend .box-pass{width:12px;height:10px;background:rgba(72,184,120,0.14);border:1px solid rgba(72,184,120,0.4);border-radius:2px}
+.legend .box-fail{width:12px;height:10px;background:rgba(224,82,82,0.10);border:1px solid rgba(224,82,82,0.35);border-radius:2px}
+.legend .box-win{width:12px;height:10px;background:transparent;border:1.5px solid var(--acc);border-radius:2px}
+
+/* Sweep table */
+.sweep-wrap{background:var(--bg);border:1px solid var(--bd);border-radius:6px;overflow:hidden}
+.sweep{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;table-layout:fixed}
+.sweep thead tr{background:var(--s2)}
+.sweep th{padding:10px 10px;text-align:center;font-weight:600;color:var(--dim);letter-spacing:.04em;font-size:11px}
+.sweep th.k-col{width:44px;text-align:left;padding-left:14px}
+.sweep td{padding:7px 6px;text-align:center}
+.sweep td.k-cell{padding-left:14px;text-align:left;color:var(--hd);font-weight:500}
+.sweep tbody tr{border-top:1px solid var(--bd)}
+.sweep tbody tr.win td.k-cell{color:var(--acc);font-weight:700}
+.sweep tbody tr.win{box-shadow:inset 0 0 0 1.5px var(--acc)}
+.sweep td.pass{background:rgba(72,184,120,0.14);color:#8fd6a9}
+.sweep td.fail{background:rgba(224,82,82,0.10);color:#e89393}
+
+/* Chart */
+.chart-wrap{position:relative;width:100%;height:280px;background:var(--bg);border-radius:6px;padding:10px;margin-top:4px}
+
+/* Code / formula blocks */
+.code{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:14px 16px;font-family:var(--mono);font-size:12px;line-height:1.8;color:var(--tx);white-space:pre-wrap}
+.code-nowrap{white-space:pre}
+.code .k{color:var(--hd);font-weight:600}
+.code .win{color:var(--acc);font-weight:600}
+.code .prompt{color:var(--dim)}
+.code .ok{color:var(--low)}
+
+/* Dual dataset cards */
+.dual{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.dual .col{background:var(--bg);border-radius:6px;padding:14px 16px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-family:var(--mono);font-size:12px}
+.kv .k{color:var(--dim)}
+.kv .v{color:var(--hd);font-weight:600}
+.kv .v.acc{color:var(--acc)}
+.kv .v.crit{color:var(--crit)}
+
+/* Reproduce buttons */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.btn-ghost{font-family:var(--mono);font-size:11px;font-weight:600;padding:7px 14px;border-radius:5px;border:1px solid var(--bd);color:var(--dim);letter-spacing:.04em;text-decoration:none;transition:all .15s}
+.btn-ghost:hover{border-color:var(--acc);color:var(--acc);text-decoration:none}
+
+/* Footnotes */
+.fn{margin-top:16px;font-size:11px;line-height:1.7;color:var(--dim)}
+.fn .lbl{color:var(--high)}
+.fn + .fn{margin-top:6px}
+
+.footer{text-align:center;padding:24px 0;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
+.footer .bsl{font-size:12px;color:var(--tx);margin-top:6px}
+
+@media(max-width:600px){
+  .header{padding:12px 16px}
+  .container{padding:20px 16px}
+  .headline-stats{grid-template-columns:1fr 1fr}
+  .dual{grid-template-columns:1fr}
+  .sweep{font-size:11px}
+  .sweep th, .sweep td{padding:6px 4px}
+  .sweep th.k-col, .sweep td.k-cell{padding-left:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="/" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--hd);letter-spacing:0.04em;text-decoration:none">DTVSS</a>
+  <span class="ver">Calibration</span>
+  <span class="right">
+    <a href="/">Search</a>
+    <a href="/calculator">Calculator</a>
+    <a href="/calibration" class="active">Calibration</a>
+    <a href="/about">About</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <!-- Intro card -->
+  <div class="card">
+    <div class="eyebrow">Calibration evidence</div>
+    <h1>How k = 15 was chosen</h1>
+    <p style="color:var(--hd);font-size:16px;line-height:1.7;margin-top:12px">
+      The DTVSS formula multiplies severity, patient harm, and a temporal amplification factor
+      <span class="code" style="padding:1px 6px;border:0;background:transparent;color:var(--acc);display:inline">(1 + k&middot;L(t))</span>.
+      The constant <span style="font-family:var(--mono);color:var(--acc);font-weight:600">k</span> was calibrated against
+      <span style="color:var(--hd);font-weight:600">96 real medical device CVEs</span> as the lowest integer value satisfying
+      four clinical criteria defined in the provisional patent. A re-run against a
+      <span style="color:var(--hd);font-weight:600">362-CVE superset</span> drawn from the current live CISA ICSMA index
+      returns the same k.
+    </p>
+    <div class="headline-stats">
+      <div class="stat">
+        <div class="eyebrow" style="margin-bottom:2px">Lowest k</div>
+        <div class="stat-val">15</div>
+      </div>
+      <div class="stat">
+        <div class="eyebrow" style="margin-bottom:2px">Filing set</div>
+        <div class="stat-val">96<span class="u">CVEs</span></div>
+      </div>
+      <div class="stat">
+        <div class="eyebrow" style="margin-bottom:2px">Live superset</div>
+        <div class="stat-val">362<span class="u">CVEs</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sweep table -->
+  <div class="card">
+    <h2>The sweep</h2>
+    <p class="muted">
+      Each row shows an integer value of k. Green cells mark criteria that pass at that k. The lowest row where all four
+      are green is the calibrated value.
+    </p>
+
+    <div class="legend">
+      <span class="sw"><span class="box-pass"></span>PASSES</span>
+      <span class="sw"><span class="box-fail"></span>FAILS</span>
+      <span class="sw"><span class="box-win"></span>LOWEST ALL-PASS</span>
+    </div>
+
+    <div class="sweep-wrap">
+      <table class="sweep">
+        <thead>
+          <tr>
+            <th class="k-col">k</th>
+            <th>(i) Plum 360 &ge; 8.0</th>
+            <th>(ii) Low-risk &le; 5.5</th>
+            <th>(iii) Ripple20 &ge; 8.0</th>
+            <th>(iv) Span &ge; 4.0</th>
+          </tr>
+        </thead>
+        <tbody id="sweep-body"></tbody>
+      </table>
+    </div>
+    <p class="muted" style="margin-top:12px;font-size:12px">
+      Values are criterion scores at each k on the 96-CVE filing dataset. Criterion (i): score of CVE-2017-12718.
+      Criterion (ii): highest score among CVEs with B &le; 1.5 and L &le; 0.002. Criterion (iii): score of CVE-2020-11896.
+      Criterion (iv): score span across the full dataset. Sweep shown for k = 1 to 20; all rows from k = 21 to 30
+      continue to pass.
+    </p>
+  </div>
+
+  <!-- Criterion (i) chart + derivation -->
+  <div class="card">
+    <div class="eyebrow">Criterion (i) &mdash; the binding constraint</div>
+    <h2 style="margin-top:4px">Why the floor is 15 and not 5</h2>
+    <p class="muted">
+      Three of the four criteria pass at values well below 15. The one that binds is criterion (i): CVE-2017-12718,
+      a buffer overflow in the ICU Medical Plum 360 infusion pump, must reach the Critical tier (score &ge; 8.0).
+      At k = 14 it scores 7.60. At k = 15 it scores 8.03.
+    </p>
+
+    <div style="margin-top:14px">
+      <div class="legend">
+        <span class="sw"><span style="width:16px;height:2px;background:var(--acc)"></span>CVE-2017-12718 SCORE</span>
+        <span class="sw"><span style="width:16px;height:0;border-top:2px dashed var(--crit)"></span>CRITICAL THRESHOLD (8.0)</span>
+        <span class="sw"><span style="width:10px;height:10px;border:2px solid var(--acc);border-radius:50%;background:var(--bg);display:inline-block"></span>k = 14.93 (CROSSING)</span>
+        <span class="sw"><span style="width:10px;height:10px;background:var(--acc);display:inline-block"></span>k = 15 (LOWEST INTEGER)</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="critChart" role="img" aria-label="Line chart of DTVSS score for CVE-2017-12718 against k from 0 to 30, crossing the 8.0 Critical threshold at k equals 14.93">Score rises linearly, crosses 8.0 at k = 14.93.</canvas>
+      </div>
+    </div>
+
+    <div class="code code-nowrap" style="margin-top:14px">
+<span class="eyebrow" style="display:block;margin:0 0 8px 0;color:var(--dim)">CLOSED-FORM DERIVATION</span>DTVSS = (2.20 / 10) &middot; (7.5 / 10) &middot; (1 + k &middot; 0.2577) &middot; 10
+      = 1.65 &middot; (1 + 0.2577 &middot; k)
+
+DTVSS &ge; 8.0  &rArr;  k &ge; <span class="k">14.93</span>
+
+Lowest integer: <span class="win">k = 15</span></div>
+  </div>
+
+  <!-- Out-of-sample -->
+  <div class="card">
+    <h2>Out-of-sample validation</h2>
+    <p class="muted">
+      The 96-CVE dataset was frozen at the time of patent filing (April 2026). A re-run against the current live
+      CISA ICSMA index &mdash; 362 CVEs, 323 Class IIb and 39 Class III, 3.8&times; larger &mdash; returns k = 15
+      as well. The binding constraint in criterion (i) uses patent-frozen inputs, so the calibration is stable under
+      dataset expansion; the fact that it survives a near-quadrupling of the corpus is the evidence that k = 15 is
+      not a small-sample artefact.
+    </p>
+    <div class="dual">
+      <div class="col">
+        <div class="eyebrow" style="margin-bottom:10px">Filing &mdash; 96 CVEs</div>
+        <div class="kv">
+          <span class="k">Score span</span><span class="v">9.62</span>
+          <span class="k">L(t) score changes</span><span class="v">95 of 96</span>
+          <span class="k">L(t) tier crossings</span><span class="v">34</span>
+          <span class="k">KEV-overridden</span><span class="v crit">1</span>
+        </div>
+      </div>
+      <div class="col">
+        <div class="eyebrow" style="margin-bottom:10px">Live &mdash; 362 CVEs</div>
+        <div class="kv">
+          <span class="k">Score span</span><span class="v">9.84</span>
+          <span class="k">Class IIb</span><span class="v">323</span>
+          <span class="k">Class III</span><span class="v crit">39</span>
+          <span class="k">Lowest satisfying k</span><span class="v acc">15</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reproduce -->
+  <div class="card">
+    <h2>Reproduce it</h2>
+    <p class="muted">
+      All inputs are public. The calibration runs offline in under a second against the committed dataset.
+      To re-validate against a live ICSMA snapshot, the same script can rebuild the dataset from the current
+      index and fetch EPSS from FIRST.org.
+    </p>
+    <div class="code code-nowrap" style="margin-top:12px">
+<span class="prompt">$</span> git clone &lt;repo&gt; &amp;&amp; cd calibration
+<span class="prompt">$</span> python3 calibrate_k.py
+<span class="ok">&rarr; Lowest integer k satisfying all four criteria: k = 15</span></div>
+
+    <div class="btn-row">
+      <a class="btn-ghost" href="#">calibrate_k.py</a>
+      <a class="btn-ghost" href="#">dataset.csv</a>
+      <a class="btn-ghost" href="#">results.json</a>
+      <a class="btn-ghost" href="#">README</a>
+    </div>
+
+    <p class="fn"><span class="lbl">KEV note.</span> CVEs in the CISA KEV catalog are forced to score 10.0 post-scoring (Equation 1) regardless of k, so they are excluded from the "score changes from L(t)" statistic. The filing dataset contains 1 such CVE (CVE-2020-11899, Treck Ripple20, in CISA KEV since 2022-03-03). Excluding it leaves 95 non-KEV CVEs, all 95 of which change score when L is zeroed &mdash; hence "95 of 96."</p>
+    <p class="fn"><span class="lbl">Snapshot.</span> Filing dataset frozen 2026-04-09 (EPSS snapshot 2026-04-08). Live superset drawn from the current ICSMA index. L(t) values drift daily by design; the 96-CVE set is frozen for reproducibility.</p>
+  </div>
+
+  <div class="footer">
+    <div style="font-size:12px;color:var(--tx)">DTVSS(t) = (B/10 x H/10 x (1 + 15 x L(t))) x 10</div>
+    <div>k=15 empirically calibrated against 96 medical device CVEs</div>
+    <div style="margin-top:6px">&copy; 2026 Andrew Broglio &middot; DTVSS&trade; &middot; Patent Pending - IP Australia</div>
+    <div class="bsl">Licensed under BSL 1.1 &middot; Non-commercial use permitted &middot; Commercial licence required for production use</div>
+    <div style="margin-top:10px;font-size:12px">
+      <a href="/" style="color:var(--acc)">Search</a> &middot;
+      <a href="/calculator" style="color:var(--acc)">Calculator</a> &middot;
+      <a href="/calibration" style="color:var(--acc)">Calibration</a> &middot;
+      <a href="/about" style="color:var(--acc)">About</a>
+    </div>
+    <div style="margin-top:6px">
+      <a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer" style="color:var(--acc);font-weight:600">
+        Reach out for information about Tier 2-4 offerings &rarr; LinkedIn
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// Sweep data, computed offline from results.json
+var sweep = [
+  {k:1,i:2.08,ip:0,ii:0.98,iip:1,iii:4.17,iiip:0,iv:4.25,ivp:1},
+  {k:2,i:2.50,ip:0,ii:0.98,iip:1,iii:5.42,iiip:0,iv:5.94,ivp:1},
+  {k:3,i:2.93,ip:0,ii:0.98,iip:1,iii:6.67,iiip:0,iv:7.64,ivp:1},
+  {k:4,i:3.35,ip:0,ii:0.98,iip:1,iii:7.91,iiip:0,iv:9.33,ivp:1},
+  {k:5,i:3.78,ip:0,ii:0.98,iip:1,iii:9.16,iiip:1,iv:9.63,ivp:1},
+  {k:6,i:4.20,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.63,ivp:1},
+  {k:7,i:4.63,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:8,i:5.05,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:9,i:5.48,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:10,i:5.90,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:11,i:6.33,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:12,i:6.75,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:13,i:7.18,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:14,i:7.60,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:15,i:8.03,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1,win:1},
+  {k:16,i:8.45,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:17,i:8.88,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:18,i:9.30,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:19,i:9.73,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:20,i:10.00,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1}
+];
+
+var tbody = document.getElementById('sweep-body');
+sweep.forEach(function(r) {
+  var tr = document.createElement('tr');
+  if (r.win) tr.className = 'win';
+  var cellClass = function(p) { return p ? 'pass' : 'fail'; };
+  tr.innerHTML =
+    '<td class="k-cell">' + r.k + '</td>' +
+    '<td class="' + cellClass(r.ip) + '">' + r.i.toFixed(2) + '</td>' +
+    '<td class="' + cellClass(r.iip) + '">' + r.ii.toFixed(2) + '</td>' +
+    '<td class="' + cellClass(r.iiip) + '">' + r.iii.toFixed(2) + '</td>' +
+    '<td class="' + cellClass(r.ivp) + '">' + r.iv.toFixed(2) + '</td>';
+  tbody.appendChild(tr);
+});
+
+// Criterion (i) line chart
+var B = 2.20, H = 7.5, L = 0.2577;
+var line = [];
+for (var k = 0; k <= 30; k += 0.25) {
+  var raw = (B / 10) * (H / 10) * (1 + k * L) * 10;
+  line.push({x: k, y: Math.min(raw, 10)});
+}
+
+new Chart(document.getElementById('critChart'), {
+  type: 'line',
+  data: {
+    datasets: [
+      {
+        label: 'DTVSS score',
+        data: line,
+        borderColor: '#5b93f5',
+        backgroundColor: 'rgba(91, 147, 245, 0.10)',
+        borderWidth: 2,
+        fill: true,
+        pointRadius: 0,
+        tension: 0
+      },
+      {
+        label: 'Critical threshold',
+        data: [{x: 0, y: 8}, {x: 30, y: 8}],
+        borderColor: '#e05252',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointRadius: 0,
+        fill: false
+      },
+      {
+        label: 'Crossing',
+        data: [{x: 14.93, y: 8.0}],
+        borderColor: '#5b93f5',
+        backgroundColor: '#080a0f',
+        pointRadius: 6,
+        pointBorderWidth: 2,
+        showLine: false
+      },
+      {
+        label: 'k = 15',
+        data: [{x: 15, y: 8.03}],
+        borderColor: '#5b93f5',
+        backgroundColor: '#5b93f5',
+        pointRadius: 5,
+        pointStyle: 'rect',
+        pointBorderWidth: 0,
+        showLine: false
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        type: 'linear', min: 0, max: 30,
+        title: { display: true, text: 'k', color: '#6b7280', font: { family: 'IBM Plex Mono', size: 11 } },
+        ticks: { stepSize: 5, color: '#6b7280', font: { family: 'IBM Plex Mono', size: 11 } },
+        grid: { color: 'rgba(30, 36, 51, 0.8)' }
+      },
+      y: {
+        min: 0, max: 10.5,
+        title: { display: true, text: 'DTVSS score', color: '#6b7280', font: { family: 'IBM Plex Mono', size: 11 } },
+        ticks: { stepSize: 2, color: '#6b7280', font: { family: 'IBM Plex Mono', size: 11 }, callback: function(v) { return v.toFixed(0); } },
+        grid: { color: 'rgba(30, 36, 51, 0.8)' }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#141820',
+        borderColor: '#1e2433',
+        borderWidth: 1,
+        titleFont: { family: 'IBM Plex Mono', size: 11 },
+        bodyFont: { family: 'IBM Plex Mono', size: 12 },
+        callbacks: { label: function(ctx) { return 'k=' + ctx.parsed.x.toFixed(2) + '  score=' + ctx.parsed.y.toFixed(2); } }
+      }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

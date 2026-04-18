@@ -1,3 +1,8 @@
 flask==3.1.1
 flask-cors==5.0.1
+flask-limiter==3.8.0
 gunicorn==23.0.0
+
+# HTTP is handled by stdlib urllib.request throughout the codebase; we do not
+# depend on `requests`. No `urllib3` pin is needed because the stdlib ships
+# its own implementation and we don't re-export anything over it.
