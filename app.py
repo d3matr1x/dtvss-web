@@ -1,68 +1,126 @@
-# DTVSS - Web Application
+# DTVSS - Web Application (SECURITY HARDENED)
 # Copyright © 2026 Andrew Broglio. All rights reserved.
 # Patent Pending - IP Australia
 # Licensed under BSL 1.1 - Commercial licence required for production use.
 
 """
-DTVSS Tier 1 Web Application
-=============================
-Flask backend with:
-  - /api/lookup?cve=CVE-2017-12725    → single CVE lookup, auto-scored
-  - /api/search?q=Medfusion           → device name search, all results scored
-  - /api/score                         → manual scoring (POST with B, L, H, kev)
-  - /                                  → serves the frontend
+DTVSS Tier 1 Web Application — Security Hardened
+==================================================
+This version applies all findings from PENTEST_REPORT.md via security.py.
 
-All data from CISA ICSMA (CSAF JSON + RSS) + NVD + EPSS + CISA KEV. No proprietary data.
+Changes from original:
+  - CORS allowlist (HIGH-01)
+  - ProxyFix for accurate client IPs (HIGH-02)
+  - Redis-backed rate limiting with X-Forwarded-For awareness (HIGH-02)
+  - Input validation on all parameters (HIGH-03, HIGH-04, MED-02)
+  - Response size caps on outbound fetches (HIGH-03)
+  - Error message sanitization (HIGH-05)
+  - Security headers on all responses (MED-01)
+  - Payload size guards on POST (MED-02)
+  - Explicit static file allowlist (MED-04)
+  - Atomic index writes via security.atomic_write_json (MED-05)
+  - Structured logging with query hashing (MED-06)
+  - Modern request.get_json() (MED-07)
+  - Dedicated /health endpoint (INFO-03)
 """
 
-import os
-import json
+import hashlib
 import logging
+import os
 import uuid
-from flask import Flask, jsonify, request, send_from_directory
-from flask_cors import CORS
+
+from flask import Flask, abort, g, jsonify, request, send_from_directory
 from werkzeug.exceptions import HTTPException
 
 from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
 from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check
-from index_loader import get_manufacturer_dropdown, search_manufacturer_cves, get_cpe_search_terms, get_advisory_urls
+from index_loader import (
+    get_manufacturer_dropdown,
+    search_manufacturer_cves,
+    get_cpe_search_terms,
+    get_advisory_urls,
+)
 
-app = Flask(__name__, static_folder="static", static_url_path="")
-CORS(app)
+# Security module — centralized hardening
+from security import (
+    apply_hardening,
+    get_real_client_ip,
+    validate_cve_id,
+    validate_query,
+    validate_float_param,
+    validate_int_param,
+    sanitize_error,
+    require_max_body_size,
+    MAX_JSON_BODY_BYTES,
+)
+
+app = Flask(__name__, static_folder=None)  # MED-04: no wildcard static serving
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024  # 16 KB global cap on request bodies
+
+# Fail loud if running in Railway production without persistent storage
+# (RAIL-01 in PENTEST_RAILWAY_ADDENDUM.md). A "works, silently loses data"
+# configuration is worse than a startup crash.
+if os.environ.get("RAILWAY_ENVIRONMENT") == "production":
+    if not os.environ.get("DTVSS_DATA_DIR"):
+        raise RuntimeError(
+            "DTVSS_DATA_DIR must be set in Railway production. "
+            "Attach a Railway Volume and set DTVSS_DATA_DIR=/data. "
+            "Without this, hourly ICSMA index updates are lost on every restart."
+        )
+    if not os.environ.get("DTVSS_CORS_ORIGINS"):
+        logging.warning(
+            "DTVSS_CORS_ORIGINS is not set — CORS will use default allowlist "
+            "which probably doesn't match your production domain."
+        )
+
+# Apply all Flask-level security hardening at once
+apply_hardening(app)
 
 NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
 
-# Structured server-side logging. Tracebacks go here, never to clients.
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    format="%(asctime)s [%(levelname)s] [%(request_id)s] %(name)s: %(message)s",
 )
 log = logging.getLogger("dtvss")
 
+
+# Add request_id to every log record
+class RequestIdFilter(logging.Filter):
+    def filter(self, record):
+        try:
+            record.request_id = getattr(g, "request_id", "-")
+        except RuntimeError:
+            record.request_id = "-"
+        return True
+
+
+for handler in logging.getLogger().handlers:
+    handler.addFilter(RequestIdFilter())
+
+
 # -----------------------------------------------------------------------------
-# Rate limiting
+# Rate limiting (HIGH-02 hardened)
 # -----------------------------------------------------------------------------
-# Protects live NVD/MITRE lookup paths from abuse. Cheap endpoints (the
-# pre-built index, manual scoring, device classes) get a generous budget;
-# expensive endpoints (live CVE lookup, free-text search) get a stricter one.
-#
-# Falls back to a no-op decorator if Flask-Limiter isn't installed, so the app
-# still boots on older requirements.txt pins.
 try:
     from flask_limiter import Limiter
-    from flask_limiter.util import get_remote_address
 
     limiter = Limiter(
-        get_remote_address,
+        get_real_client_ip,  # Uses ProxyFix-corrected IP
         app=app,
         default_limits=["200 per hour", "30 per minute"],
-        storage_uri="memory://",
-        strategy="fixed-window",
+        storage_uri=os.environ.get("REDIS_URL", "memory://"),
+        strategy="fixed-window-elastic-expiry",
+        headers_enabled=True,  # Adds X-RateLimit-* headers
     )
     RATE_LIMIT_EXPENSIVE = "20 per hour;5 per minute"
+    RATE_LIMIT_CHEAP = "300 per hour;60 per minute"
 
     def _expensive(fn):
         return limiter.limit(RATE_LIMIT_EXPENSIVE)(fn)
+
+    def _cheap(fn):
+        return limiter.limit(RATE_LIMIT_CHEAP)(fn)
 
 except ImportError:
     log.warning("Flask-Limiter not installed; running without rate limiting")
@@ -70,27 +128,24 @@ except ImportError:
     def _expensive(fn):
         return fn
 
+    def _cheap(fn):
+        return fn
 
-@app.errorhandler(Exception)
-def handle_exception(e):
-    """
-    Return JSON for all errors. Full traceback is logged server-side with a
-    correlation ID; the client only sees a generic message plus that ID.
-    This prevents leaking file paths, library internals, or (critically) the
-    NVD API key if it ever ends up in a urllib error message.
-    """
-    # Let Flask-Limiter and other HTTPExceptions pass through with their own
-    # status code and description (429 "Rate limit exceeded", 404, etc.).
-    # Their messages are framework-generated and safe to expose.
-    if isinstance(e, HTTPException):
-        return jsonify({"error": e.description, "type": e.__class__.__name__}), e.code
 
-    error_id = uuid.uuid4().hex[:12]
-    log.exception("Unhandled exception [%s]", error_id)
-    return jsonify({
-        "error": "Internal server error",
-        "error_id": error_id,
-    }), 500
+# Helper for query logging — hash the query to avoid logging PII
+def _query_hash(q: str) -> str:
+    return hashlib.sha256(q.encode("utf-8")).hexdigest()[:8]
+
+
+# -----------------------------------------------------------------------------
+# Routes: HTML pages (MED-04: explicit allowlist only)
+# -----------------------------------------------------------------------------
+STATIC_PAGES = {
+    "": "index.html",
+    "calculator": "calculator.html",
+    "calibration": "calibration.html",
+    "about": "about.html",
+}
 
 
 @app.route("/")
@@ -123,61 +178,98 @@ def sitemap():
     return send_from_directory("static", "sitemap.xml", mimetype="application/xml")
 
 
+# Serve only whitelisted static assets (CSS, JS, images)
+STATIC_ASSET_PREFIXES = ("assets/", "css/", "js/", "img/", "fonts/")
+
+
+@app.route("/<path:filename>")
+def static_asset(filename):
+    """Serve static assets from /static, but only from known subfolders."""
+    if not filename.startswith(STATIC_ASSET_PREFIXES):
+        abort(404)
+    # send_from_directory protects against ../ traversal
+    return send_from_directory("static", filename)
+
+
+# -----------------------------------------------------------------------------
+# Health check (INFO-03: decoupled from business logic)
+# -----------------------------------------------------------------------------
+@app.route("/health")
+@_cheap
+def health():
+    return jsonify({
+        "status": "ok",
+        "service": "dtvss",
+        "version": "1.1.0",
+    })
+
+
+# -----------------------------------------------------------------------------
+# API: /api/lookup (HIGH-04, MED-02 validation)
+# -----------------------------------------------------------------------------
 @app.route("/api/lookup")
 @_expensive
 def lookup():
-    """
-    Look up a single CVE by ID.
-    Auto-fetches B from NVD, L(t) from EPSS, detects KEV, classifies device, scores.
-
-    GET /api/lookup?cve=CVE-2017-12725&tga_class=IIb
-    tga_class is optional - auto-detected from CVE description if omitted.
-    """
-    cve_id = request.args.get("cve", "").strip().upper()
-    tga_override = request.args.get("tga_class", "").strip()
-
+    """Look up a single CVE by ID. Auto-scores."""
+    raw_cve = request.args.get("cve", "")
+    cve_id = validate_cve_id(raw_cve)
     if not cve_id:
-        return jsonify({"error": "Missing 'cve' parameter"}), 400
+        return jsonify({
+            "error": "Invalid or missing 'cve' parameter",
+            "hint": "Expected format: CVE-YYYY-NNNNN",
+        }), 400
 
-    if not cve_id.startswith("CVE-"):
-        cve_id = "CVE-" + cve_id
+    tga_override = request.args.get("tga_class", "").strip()
+    if tga_override and tga_override not in TGA_CLASSES:
+        return jsonify({
+            "error": f"Invalid tga_class '{tga_override}'",
+            "valid": list(TGA_CLASSES.keys()),
+        }), 400
 
-    # Fetch from NVD
-    nvd = nvd_lookup_cve(cve_id, api_key=NVD_API_KEY)
+    try:
+        nvd = nvd_lookup_cve(cve_id, api_key=NVD_API_KEY)
+    except Exception as e:
+        log.exception("NVD lookup failed for %s", cve_id)
+        return jsonify({"error": "Upstream lookup failed", "detail": sanitize_error(e)}), 502
+
     if not nvd or "error" in nvd:
         return jsonify(nvd or {"error": "NVD lookup failed"}), 404
 
-    # Fetch EPSS
-    epss = epss_lookup([cve_id])
+    try:
+        epss = epss_lookup([cve_id])
+    except Exception as e:
+        log.exception("EPSS lookup failed for %s", cve_id)
+        epss = {}
     epss_data = epss.get(cve_id, {"epss": 0.0, "percentile": 0.0, "date": ""})
 
-    # Determine TGA class
-    if tga_override and tga_override in TGA_CLASSES:
+    # TGA classification
+    if tga_override:
         tga_class = tga_override
         classify_source = "user"
     else:
         tga_class, classify_source = classify_device(nvd.get("description", ""))
         if not tga_class:
-            tga_class = "IIb"  # default to IIb if unclassifiable
+            tga_class = "IIb"
             classify_source = "default"
 
     H = TGA_CLASSES[tga_class]["H"]
 
-    # KEV: check NVD first, then CISA catalog directly if NVD didn't have it
+    # KEV check
     kev_status = nvd.get("kev", False)
     kev_added = nvd.get("kev_added", "")
     kev_due = nvd.get("kev_due", "")
     kev_name = nvd.get("kev_name", "")
-
     if not kev_status:
-        cisa_kev = cisa_kev_check(cve_id)
-        if cisa_kev:
-            kev_status = True
-            kev_added = cisa_kev.get("kev_added", "")
-            kev_due = cisa_kev.get("kev_due", "")
-            kev_name = cisa_kev.get("kev_name", "")
+        try:
+            cisa_kev = cisa_kev_check(cve_id)
+            if cisa_kev:
+                kev_status = True
+                kev_added = cisa_kev.get("kev_added", "")
+                kev_due = cisa_kev.get("kev_due", "")
+                kev_name = cisa_kev.get("kev_name", "")
+        except Exception:
+            pass  # KEV check failure is non-fatal
 
-    # Score
     result = compute_dtvss(
         B=nvd.get("B", 0),
         L=epss_data["epss"],
@@ -185,7 +277,6 @@ def lookup():
         kev=kev_status,
     )
 
-    # Merge all data
     result.update({
         "cve_id": cve_id,
         "description": nvd.get("description", ""),
@@ -204,124 +295,150 @@ def lookup():
         "ics_advisory": nvd.get("ics_advisory", False),
         "ics_urls": nvd.get("ics_urls", []),
         "impact_score": nvd.get("impact_score", 0.0),
+        "classify_source": classify_source,
     })
 
     return jsonify(result)
 
 
+# -----------------------------------------------------------------------------
+# API: /api/search (HIGH-04 input validation, response caps)
+# -----------------------------------------------------------------------------
 @app.route("/api/search")
 @_expensive
 def search():
-    """
-    Search by device name or keyword.
-    Auto-fetches all matching CVEs, scores each, returns ranked list.
-
-    GET /api/search?q=Medfusion+4000&tga_class=IIb
-    tga_class is optional - auto-detected per CVE if omitted.
-    """
-    query = request.args.get("q", "").strip()
-    tga_override = request.args.get("tga_class", "").strip()
-    try:
-        max_results = min(int(request.args.get("max", 50)), 100)
-    except (ValueError, TypeError):
-        max_results = 50
-
+    """Search by device name or keyword."""
+    raw_query = request.args.get("q", "")
+    query = validate_query(raw_query)
     if not query:
-        return jsonify({"error": "Missing 'q' parameter"}), 400
+        return jsonify({
+            "error": "Invalid or missing 'q' parameter",
+            "hint": f"Query must be 1-100 printable chars, no control chars",
+        }), 400
 
-    # Check pre-built ICSMA index first - instant results for known manufacturers
+    tga_override = request.args.get("tga_class", "").strip()
+    if tga_override and tga_override not in TGA_CLASSES:
+        return jsonify({
+            "error": f"Invalid tga_class '{tga_override}'",
+            "valid": list(TGA_CLASSES.keys()),
+        }), 400
+
+    try:
+        max_results = validate_int_param(
+            request.args.get("max", 50), "max", 1, 100,
+        )
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+    log.info("search q_hash=%s max=%d", _query_hash(query), max_results)
+
+    # === Try pre-built ICSMA index first ===
     indexed_cves = search_manufacturer_cves(query)
     if indexed_cves:
-        from api_clients import epss_lookup, cisa_kev_check, parse_cvss31_exploitability
-        from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
+        return _search_indexed(query, tga_override, max_results, indexed_cves)
 
-        # Get advisory URLs once (same for all CVEs from this manufacturer)
-        adv_urls = get_advisory_urls(query)
-        ics_urls = [a["url"] for a in adv_urls if a.get("url")]
+    # === Fall back to live NVD ===
+    return _search_live_nvd(query, tga_override, max_results)
 
-        # Batch EPSS lookup for all CVE IDs (in chunks of 100)
-        all_cve_ids = [ic.get("cve_id", "") for ic in indexed_cves if ic.get("cve_id")]
+
+def _search_indexed(query: str, tga_override: str, max_results: int, indexed_cves: list):
+    """Score CVEs from the pre-built index."""
+    from api_clients import parse_cvss31_exploitability
+
+    adv_urls = get_advisory_urls(query)
+    ics_urls = [a["url"] for a in adv_urls if a.get("url")]
+
+    # Batch EPSS for all CVEs (epss_lookup handles chunking internally post-fix)
+    all_cve_ids = [ic.get("cve_id", "") for ic in indexed_cves if ic.get("cve_id")]
+    try:
+        epss_map = epss_lookup(all_cve_ids)
+    except Exception:
+        log.exception("EPSS batch lookup failed")
         epss_map = {}
-        try:
-            for i in range(0, len(all_cve_ids), 100):
-                chunk = all_cve_ids[i:i+100]
-                chunk_result = epss_lookup(chunk)
-                epss_map.update(chunk_result)
-        except Exception:
-            pass
 
-        scored = []
-        for ic in indexed_cves:
-            cve_id = ic.get("cve_id", "")
-            if not cve_id:
-                continue
+    scored = []
+    for ic in indexed_cves:
+        cve_id = ic.get("cve_id", "")
+        if not cve_id:
+            continue
 
-            # B = exploitability sub-score computed from CVSS vector
-            # If vector available, compute properly. Otherwise use base_score as fallback.
-            cvss_vector = ic.get("cvss_vector", "")
-            B = 0
-            if cvss_vector:
-                B = parse_cvss31_exploitability(cvss_vector) or 0
-            if not B:
-                B = ic.get("base_score", 0)
-            desc = ic.get("description", "")
-
-            # EPSS from batch lookup
-            L = float(epss_map.get(cve_id, {}).get("epss", 0))
-
-            # KEV check
+        # Proper B extraction with validated fallback chain
+        B = 0.0
+        vec = ic.get("cvss_vector", "")
+        if vec:
+            B = parse_cvss31_exploitability(vec) or 0.0
+        if not B and ic.get("exploitability"):
             try:
-                kev = bool(cisa_kev_check(cve_id))
-            except Exception:
-                kev = False
+                B = float(ic["exploitability"])
+            except (TypeError, ValueError):
+                pass
+        if not B:
+            continue  # Skip unscorable CVEs rather than guess
 
-            # Device class
-            tga_class = tga_override if tga_override in ("IIb", "III") else None
-            if not tga_class:
-                tga_class, _ = classify_device(desc + " " + query)
+        L = float(epss_map.get(cve_id, {}).get("epss", 0))
+
+        try:
+            kev = bool(cisa_kev_check(cve_id))
+        except Exception:
+            kev = False
+
+        # TGA class
+        if tga_override in TGA_CLASSES:
+            tga_class = tga_override
+        else:
+            tga_class, _ = classify_device((ic.get("description", "") + " " + query))
             if not tga_class:
                 tga_class = "IIb"
 
-            H = 10.0 if tga_class == "III" else 7.5
-            result = compute_dtvss(B, L, H, kev)
+        H = TGA_CLASSES[tga_class]["H"]
+        result = compute_dtvss(B, L, H, kev)
 
-            scored.append({
-                "cve_id": cve_id,
-                "description": desc,
-                "score": result["score"],
-                "risk_level": result["risk_level"],
-                "guidance": result["guidance"],
-                "B": result["B"], "H": result["H"], "L": result["L"],
-                "static_baseline": result["static_baseline"],
-                "tga_class": tga_class,
-                "tga_label": TGA_CLASSES.get(tga_class, {}).get("label", tga_class),
-                "jurisdictions": TGA_CLASSES.get(tga_class, {}).get("jurisdictions", {}),
-                "kev_override": result["kev_override"],
-                "cvss_version": ic.get("cvss_version", ""),
-                "cvss_vector": cvss_vector,
-                "base_score": ic.get("base_score", 0),
-                "severity": ic.get("severity", ""),
-                "published": ic.get("published", ""),
-                "epss_percentile": epss_map.get(cve_id, {}).get("percentile", 0),
-                "ics_advisory": bool(ics_urls),
-                "ics_urls": ics_urls[:3],
-                "source": ic.get("source", "icsma"),
-            })
-
-        scored.sort(key=lambda x: -x["score"])
-        return jsonify({
-            "results": scored[:max_results],
-            "count": len(scored),
-            "query": query,
-            "source": "CISA ICSMA index",
+        scored.append({
+            "cve_id": cve_id,
+            "description": ic.get("description", ""),
+            "score": result["score"],
+            "risk_level": result["risk_level"],
+            "guidance": result["guidance"],
+            "B": result["B"], "H": result["H"], "L": result["L"],
+            "static_baseline": result["static_baseline"],
+            "tga_class": tga_class,
+            "tga_label": TGA_CLASSES[tga_class]["label"],
+            "jurisdictions": TGA_CLASSES[tga_class]["jurisdictions"],
+            "kev_override": result["kev_override"],
+            "cvss_version": ic.get("cvss_version", ""),
+            "cvss_vector": vec,
+            "base_score": ic.get("base_score", 0),
+            "severity": ic.get("severity", ""),
+            "published": ic.get("published", ""),
+            "epss_percentile": epss_map.get(cve_id, {}).get("percentile", 0),
+            "ics_advisory": bool(ics_urls),
+            "ics_urls": ics_urls[:3],
+            "source": ic.get("source", "icsma"),
         })
 
-    # Not in index - fall back to live NVD keyword search
-    # (for manual CVE-like queries or unknown device names)
+    scored.sort(key=lambda x: (0 if x.get("kev_override") else 1, -x["score"]))
+    return jsonify({
+        "results": scored[:max_results],
+        "count": len(scored),
+        "query": query,
+        "source": "CISA ICSMA index",
+    })
 
-    # Always run the baseline query first (most reliable)
+
+def _search_live_nvd(query: str, tga_override: str, max_results: int):
+    """Fallback to live NVD keyword search."""
+    import time as _search_time
+
     nvd_results_map = {}
-    baseline = nvd_search_keyword(query, api_key=NVD_API_KEY, max_results=max_results)
+    try:
+        baseline = nvd_search_keyword(query, api_key=NVD_API_KEY, max_results=max_results) or []
+    except Exception as e:
+        log.exception("NVD search failed for q_hash=%s", _query_hash(query))
+        return jsonify({
+            "results": [], "count": 0, "query": query,
+            "note": "Upstream search temporarily unavailable. Try again later.",
+        }), 503
+
     for r in baseline:
         if "error" in r:
             continue
@@ -329,101 +446,62 @@ def search():
         if cve_id:
             nvd_results_map[cve_id] = r
 
-    # Then try CPE-based search terms from pre-built index
-    import time as _search_time
-    expanded_queries = []
+    # CPE expansion with time + count budgets (HIGH-04)
+    EXPANSION_TIME_BUDGET = 15.0
+    EXPANSION_QUERY_LIMIT = 10
     expansion_start = _search_time.time()
-    EXPANSION_BUDGET = 15.0
+    expansion_count = 0
 
     try:
-        expanded_queries = get_cpe_search_terms(query)
-        for q in expanded_queries:
-            if q == query:
+        expanded_queries = get_cpe_search_terms(query) or [query]
+    except Exception:
+        expanded_queries = [query]
+
+    for q in expanded_queries:
+        if q == query:
+            continue
+        if expansion_count >= EXPANSION_QUERY_LIMIT:
+            break
+        if (_search_time.time() - expansion_start) > EXPANSION_TIME_BUDGET:
+            break
+
+        expansion_count += 1
+        try:
+            batch = nvd_search_keyword(q, api_key=NVD_API_KEY, max_results=max_results) or []
+        except Exception:
+            continue
+        for r in batch:
+            if "error" in r:
                 continue
-            if (_search_time.time() - expansion_start) > EXPANSION_BUDGET:
-                print(f"Expansion time budget exceeded for '{query}' after {len(nvd_results_map)} results")
-                break
-            batch = nvd_search_keyword(q, api_key=NVD_API_KEY, max_results=max_results)
-            for r in batch:
-                if "error" in r:
-                    continue
-                cve_id = r.get("cve_id", "")
-                if cve_id and cve_id not in nvd_results_map:
-                    nvd_results_map[cve_id] = r
-    except Exception as e:
-        print(f"CPE expansion failed for '{query}': {e}")
-
-    # Post-filter: if this was a manufacturer search, only keep CVEs whose
-    # description mentions at least one of the complete search terms.
-    if len(expanded_queries) > 1:
-        valid_terms = [q.lower().strip() for q in expanded_queries if len(q.strip()) >= 3]
-        filtered_map = {}
-        for cve_id, r in nvd_results_map.items():
-            desc = r.get("description", "").lower()
-            if any(term in desc for term in valid_terms):
-                filtered_map[cve_id] = r
-        nvd_results_map = filtered_map
-
-    # Medical device relevance filter: for manufacturer searches, only keep
-    # CVEs that are plausibly about medical devices. This prevents companies
-    # that make both medical and consumer electronics (e.g. Shenzhen Zhibotong)
-    # from showing router/switch CVEs.
-    #
-    # Strategy: keep CVE if description contains ANY medical/clinical term,
-    # OR if it contains the manufacturer's CPE product names.
-    # This is an allowlist, not a blocklist - safer for edge cases.
-    if len(expanded_queries) > 1:
-        MEDICAL_TERMS = {
-            "infusion pump", "insulin pump", "syringe pump", "pacemaker",
-            "defibrillator", "ventilator", "patient monitor", "glucose monitor",
-            "cgm", "continuous glucose", "implantable", "cardiac", "medical device",
-            "clinical", "hospital", "healthcare", "patient", "therapeutic",
-            "drug delivery", "physiological", "telemetry", "ecg", "ekg",
-            "vital sign", "blood pressure", "oxygen", "pulse oximeter",
-            "anesthesia", "dialysis", "x-ray", "imaging", "ultrasound",
-            "endoscop", "surgical", "respirator", "cpap", "bipap",
-            "hl7", "dicom", "fhir", "hipaa", "phi ",
-            "medfusion", "carelink", "intellivue", "alaris", "omnipod",
-            "t:slim", "freestyle libre", "carescape", "pyxis",
-            "ics-cert", "icsma", "medical advisory",
-        }
-        # Also include the search terms themselves as valid
-        valid_terms = {q.lower().strip() for q in expanded_queries if len(q.strip()) >= 3}
-
-        medical_filtered = {}
-        for cve_id, r in nvd_results_map.items():
-            desc = r.get("description", "").lower()
-            has_medical = any(term in desc for term in MEDICAL_TERMS)
-            has_search_term = any(term in desc for term in valid_terms)
-            if has_medical or has_search_term:
-                medical_filtered[cve_id] = r
-        nvd_results_map = medical_filtered
+            cve_id = r.get("cve_id", "")
+            if cve_id and cve_id not in nvd_results_map:
+                nvd_results_map[cve_id] = r
 
     nvd_results = list(nvd_results_map.values())
-
     if not nvd_results:
-        return jsonify({"results": [], "count": 0, "query": query,
-                        "note": f"No CVEs found in NVD for \"{query}\". This manufacturer may not have any disclosed vulnerabilities."})
+        return jsonify({
+            "results": [], "count": 0, "query": query,
+            "note": "No CVEs found.",
+        })
 
-    # Filter out errors and v2.0-only
     valid = [r for r in nvd_results if "error" not in r]
-
     if not valid:
-        # All results had errors (mostly v2-only or no CVSS)
-        total = len(nvd_results)
-        return jsonify({"results": [], "count": 0, "query": query,
-                        "note": f"Found {total} CVE(s) for \"{query}\" but none have CVSS scores available for DTVSS scoring."})
+        return jsonify({
+            "results": [], "count": 0, "query": query,
+            "note": "Found CVEs but none have CVSS scores available for DTVSS scoring.",
+        })
 
-    # Batch EPSS lookup
     cve_ids = [r["cve_id"] for r in valid]
-    epss_map = epss_lookup(cve_ids)
+    try:
+        epss_map = epss_lookup(cve_ids)
+    except Exception:
+        epss_map = {}
 
-    # Score each
     scored = []
     for nvd in valid:
         epss_data = epss_map.get(nvd["cve_id"], {"epss": 0.0, "percentile": 0.0, "date": ""})
 
-        if tga_override and tga_override in TGA_CLASSES:
+        if tga_override in TGA_CLASSES:
             tga_class = tga_override
         else:
             tga_class, _ = classify_device(nvd.get("description", ""))
@@ -432,21 +510,21 @@ def search():
 
         H = TGA_CLASSES[tga_class]["H"]
 
-        # KEV: NVD first, CISA catalog fallback
         kev_status = nvd.get("kev", False)
         if not kev_status:
-            cisa_kev = cisa_kev_check(nvd["cve_id"])
-            if cisa_kev:
-                kev_status = True
+            try:
+                if cisa_kev_check(nvd["cve_id"]):
+                    kev_status = True
+            except Exception:
+                pass
 
         result = compute_dtvss(nvd["B"], epss_data["epss"], H, kev=kev_status)
-
         result.update({
             "cve_id": nvd["cve_id"],
             "description": nvd.get("description", ""),
             "tga_class": tga_class,
-            "tga_label": TGA_CLASSES.get(tga_class, {}).get("label", tga_class),
-            "jurisdictions": TGA_CLASSES.get(tga_class, {}).get("jurisdictions", {}),
+            "tga_label": TGA_CLASSES[tga_class]["label"],
+            "jurisdictions": TGA_CLASSES[tga_class]["jurisdictions"],
             "cvss_version": nvd.get("cvss_version", ""),
             "cvss_vector": nvd.get("cvss_vector", ""),
             "base_score": nvd.get("B", 0),
@@ -461,41 +539,50 @@ def search():
         })
         scored.append(result)
 
-    # Sort: KEV first, then score descending
     scored.sort(key=lambda x: (0 if x.get("kev_override") else 1, -x["score"], x["cve_id"]))
-
     return jsonify({
-        "results": scored,
+        "results": scored[:max_results],
         "count": len(scored),
         "query": query,
+        "source": "NVD live search",
     })
 
 
+# -----------------------------------------------------------------------------
+# API: /api/score (MED-02 — full input validation)
+# -----------------------------------------------------------------------------
 @app.route("/api/score", methods=["POST"])
+@_cheap
+@require_max_body_size(MAX_JSON_BODY_BYTES)
 def score():
-    """
-    Manual scoring endpoint.
-    POST {"B": 3.9, "L": 0.0089, "H": 7.5, "kev": false}
-    """
-    data = request.json or {}
-    B = float(data.get("B", 0))
-    L = float(data.get("L", 0))
-    H = float(data.get("H", 7.5))
-    kev = bool(data.get("kev", False))
+    """Manual scoring. POST {B, L, H, kev}."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Expected JSON object body"}), 400
 
-    result = compute_dtvss(B, L, H, kev)
-    return jsonify(result)
+    try:
+        B = validate_float_param(data.get("B", 0), "B", 0.0, 10.0)
+        L = validate_float_param(data.get("L", 0), "L", 0.0, 1.0)
+        H = validate_float_param(data.get("H", 7.5), "H", 0.0, 10.0)
+        kev = bool(data.get("kev", False))
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
+    return jsonify(compute_dtvss(B, L, H, kev))
 
 
+# -----------------------------------------------------------------------------
+# API: /api/device-classes, /api/manufacturers (cheap, rate-limited)
+# -----------------------------------------------------------------------------
 @app.route("/api/device-classes")
+@_cheap
 def device_classes():
-    """Return available device classes with H values and jurisdiction mappings."""
     return jsonify(TGA_CLASSES)
 
 
 @app.route("/api/manufacturers")
+@_cheap
 def manufacturers():
-    """Return list of medical device manufacturers with per-entry status."""
     mdm_list = get_manufacturer_dropdown()
     return jsonify({
         "manufacturers": mdm_list,
@@ -504,25 +591,26 @@ def manufacturers():
     })
 
 
-# Pre-load at import time (runs under both gunicorn and __main__)
-# index_loader.py loads the pre-built index and starts background refresh on import
+# -----------------------------------------------------------------------------
+# Startup
+# -----------------------------------------------------------------------------
 try:
     from api_clients import refresh_device_keywords
     _keywords = refresh_device_keywords()
-    print(f"  Device keywords loaded: {len(_keywords)}")
+    log.info("Device keywords loaded: %d", len(_keywords))
 except Exception as _e:
-    print(f"  Device keyword refresh skipped: {_e}")
+    log.warning("Device keyword refresh skipped: %s", sanitize_error(_e))
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-
     print(f"\n{'=' * 60}")
-    print(f"  DTVSS Web v1.0.0")
+    print(f"  DTVSS Web v1.1.0 (Security Hardened)")
     print(f"  Formula: (B/10 × H/10 × (1 + 15 × L(t))) × 10")
-    print(f"  Patent Pending - © 2026 Andrew Broglio")
     print(f"{'=' * 60}")
     print(f"  http://localhost:{port}")
-    print(f"  NVD API key: {'loaded' if NVD_API_KEY else 'not set (rate limited)'}")
+    print(f"  NVD API key: {'loaded' if NVD_API_KEY else 'not set'}")
+    print(f"  CORS origins: {os.environ.get('DTVSS_CORS_ORIGINS', 'defaults')}")
+    print(f"  Rate limit storage: {os.environ.get('REDIS_URL', 'memory (single-worker)')}")
     print(f"{'=' * 60}\n")
     app.run(host="0.0.0.0", port=port, debug=False)

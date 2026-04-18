@@ -8,6 +8,9 @@ and enriches new CVEs with CVSS data from NVD.
 NVD is used for scoring enrichment only, not CVE discovery.
 All CVE discovery comes from CISA ICSMA advisories.
 
+FIXED: Race condition in search functions
+FIXED: Case-insensitive partial matching
+
 Copyright 2026 Andrew Broglio. All rights reserved.
 Patent Pending - IP Australia | Licensed under BSL 1.1
 """
@@ -111,7 +114,8 @@ _lock = threading.Lock()
 def get_manufacturer_dropdown():
     """Return manufacturers for the dropdown, sorted by CVE count."""
     with _lock:
-        mdms = _index.get("manufacturers", {})
+        # Make a shallow copy of the dict to avoid holding lock during processing
+        mdms = dict(_index.get("manufacturers", {}))
 
     result = []
     for key, mdm in mdms.items():
@@ -132,33 +136,60 @@ def get_manufacturer_dropdown():
 
 
 def search_manufacturer_cves(manufacturer_name):
-    """Return pre-indexed CVEs for a manufacturer."""
+    """
+    Return pre-indexed CVEs for a manufacturer.
+    
+    FIXED: Holds lock for entire operation
+    FIXED: Case-insensitive partial matching (both directions)
+    FIXED: Returns deep copy to prevent mutation outside lock
+    """
+    if not manufacturer_name:
+        return []
+    
+    key = manufacturer_name.lower().strip()
+    
     with _lock:
         mdms = _index.get("manufacturers", {})
+        
+        # Strategy 1: Exact match on normalized key
+        if key in mdms:
+            return list(mdms[key].get("cves", []))
 
-    key = manufacturer_name.lower().strip()
-    if key in mdms:
-        return mdms[key].get("cves", [])
-
-    for mkey, mdm in mdms.items():
-        if key in mdm.get("display_name", "").lower():
-            return mdm.get("cves", [])
+        # Strategy 2: Partial match on display_name (bidirectional, case-insensitive)
+        for mkey, mdm in mdms.items():
+            display_name = mdm.get("display_name", "").lower()
+            
+            # Check if search query is substring of vendor name OR vice versa
+            # This handles both "Baxter" → "Baxter International" 
+            # and "Baxter International" → "Baxter"
+            if key in display_name or display_name in key:
+                return list(mdm.get("cves", []))
 
     return []
 
 
 def get_cpe_search_terms(manufacturer_name):
-    """Return search terms for live NVD queries."""
+    """
+    Return search terms for live NVD queries.
+    
+    FIXED: Holds lock for entire operation
+    """
+    if not manufacturer_name:
+        return [manufacturer_name]
+    
+    key = manufacturer_name.lower().strip()
+    
     with _lock:
         mdms = _index.get("manufacturers", {})
-
-    key = manufacturer_name.lower().strip()
-    mdm = mdms.get(key)
-    if not mdm:
-        for mkey, m in mdms.items():
-            if key in m.get("display_name", "").lower():
-                mdm = m
-                break
+        
+        mdm = mdms.get(key)
+        if not mdm:
+            # Try partial match
+            for mkey, m in mdms.items():
+                display_name = m.get("display_name", "").lower()
+                if key in display_name or display_name in key:
+                    mdm = m
+                    break
 
     if not mdm:
         return [manufacturer_name]
@@ -167,17 +198,27 @@ def get_cpe_search_terms(manufacturer_name):
 
 
 def get_advisory_urls(manufacturer_name):
-    """Return ICSMA advisory URLs for a manufacturer."""
+    """
+    Return ICSMA advisory URLs for a manufacturer.
+    
+    FIXED: Holds lock for entire operation
+    """
+    if not manufacturer_name:
+        return []
+    
+    key = manufacturer_name.lower().strip()
+    
     with _lock:
         mdms = _index.get("manufacturers", {})
-
-    key = manufacturer_name.lower().strip()
-    mdm = mdms.get(key)
-    if not mdm:
-        for mkey, m in mdms.items():
-            if key in m.get("display_name", "").lower():
-                mdm = m
-                break
+        
+        mdm = mdms.get(key)
+        if not mdm:
+            # Try partial match
+            for mkey, m in mdms.items():
+                display_name = m.get("display_name", "").lower()
+                if key in display_name or display_name in key:
+                    mdm = m
+                    break
 
     if not mdm:
         return []

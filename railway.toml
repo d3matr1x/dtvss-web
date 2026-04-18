@@ -2,23 +2,72 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "gunicorn app:app --bind 0.0.0.0:$PORT"
-healthcheckPath = "/api/device-classes"
+# gunicorn hardening (from INFO-02 in pentest):
+#   --workers 4            — serve concurrency, but cap it so Redis-based
+#                             rate limiting works correctly across workers
+#   --timeout 30           — kill workers stuck on bad upstream responses
+#   --limit-request-line   — reject oversized URLs (query-string DoS)
+#   --limit-request-fields — reject header-bomb DoS
+#   --access-logfile -     — send access logs to stdout (Railway captures)
+#   --error-logfile -      — send error logs to stdout (Railway captures)
+startCommand = "gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 30 --limit-request-line 2048 --limit-request-fields 50 --access-logfile - --error-logfile -"
+
+# Use the dedicated /health endpoint added by app_HARDENED.py
+# Reason: decouples health checks from business logic and keeps health
+# checks outside the expensive rate-limit bucket (so Railway's checks
+# don't generate 429s during noisy periods).
+healthcheckPath = "/health"
+healthcheckTimeout = 10
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 
 # -----------------------------------------------------------------------------
-# Persistent storage
+# Required variables (set in Railway dashboard → Variables)
 # -----------------------------------------------------------------------------
-# The MDM index must survive container restarts so the hourly ICSMA RSS top-up
-# is not lost between deploys. Attach a Railway Volume to this service and set
-# DTVSS_DATA_DIR to its mount path (recommended: /data).
 #
-# Steps:
-#   1. Railway dashboard -> this service -> Volumes -> New Volume -> mount at /data
-#   2. Variables -> add DTVSS_DATA_DIR=/data
+#   NVD_API_KEY          — your key from https://nvd.nist.gov/developers/request-an-api-key
+#                           Without this, NVD throttles you to 5 req/30s.
 #
-# On first boot, the service will copy the repo-shipped mdm_index.json into
-# /data/mdm_index.json as a seed. Subsequent hourly appends persist across
-# restarts and deploys.
+#   DTVSS_DATA_DIR       — /data   (must match the volume mount point below)
+#
+#   DTVSS_CORS_ORIGINS   — comma-separated list of production origins
+#                           e.g. https://dtvss.yourdomain.com
+#                           If unset, defaults to an allowlist that probably
+#                           won't match your real domain. Set this.
+#
+#   REDIS_URL            — ${{Redis.REDIS_URL}}
+#                           Add a Redis service to your project first; then
+#                           reference its REDIS_URL variable. Without this,
+#                           rate limiting uses in-process memory — each of
+#                           the 4 gunicorn workers has its own counter,
+#                           effectively 4× your advertised limit, and all
+#                           counters reset on restart.
+#
+# -----------------------------------------------------------------------------
+# Volume mount (set in Railway dashboard → Volumes)
+# -----------------------------------------------------------------------------
+#
+#   New Volume → mount at /data
+#
+#   The MDM index must persist across container restarts so the hourly RSS
+#   top-up isn't lost between deploys. On first boot the index_loader
+#   copies the repo-shipped seed index into /data/mdm_index.json, then
+#   updates it in place. Without the volume, every deploy wipes accumulated
+#   ICSMA enrichment data.
+#
+#   app_HARDENED.py also fails loud at startup if DTVSS_DATA_DIR isn't set
+#   in a production environment, because a "works fine, silently loses
+#   data" configuration is worse than crashing immediately.
+#
+# -----------------------------------------------------------------------------
+# Optional — add a Redis service for multi-worker rate limiting
+# -----------------------------------------------------------------------------
+#
+#   Dashboard → New Service → Database → Redis
+#   Then in this app's service → Variables → Add:
+#     REDIS_URL = ${{Redis.REDIS_URL}}
+#
+#   Python's `redis` client supports Railway's IPv6 private networking
+#   natively from 5.0+. requirements.txt pins redis>=5.0.0 accordingly.
+#
 # -----------------------------------------------------------------------------

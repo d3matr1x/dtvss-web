@@ -5,6 +5,8 @@
 """
 Direct API clients for NVD v2 and EPSS.
 No Anthropic API dependency. All public data sources.
+
+FIXED: EPSS batch processing bug - now handles 100+ CVE batches correctly
 """
 
 import json
@@ -224,12 +226,14 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
 
     # De-duplicate while preserving order (CNA refs first, then ADP)
     seen = set()
-    refs = [u for u in refs if not (u in seen or seen.add(u))]
+    unique_refs = []
+    for ref_url in refs:
+        if ref_url not in seen:
+            seen.add(ref_url)
+            unique_refs.append(ref_url)
 
-    ics_urls = [u for u in refs if any(f in u for f in ICS_URL_FRAGMENTS)]
-    ics = bool(ics_urls)
-
-    published = data.get("cveMetadata", {}).get("datePublished", "")
+    ics = any(frag in ref_url for ref_url in unique_refs for frag in ICS_URL_FRAGMENTS)
+    ics_urls = [ref_url for ref_url in unique_refs if any(f in ref_url for f in ICS_URL_FRAGMENTS)]
 
     return {
         "cve_id": cve_id,
@@ -238,8 +242,8 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
         "cvss_version": cvss_ver,
         "cvss_vector": cvss_vec,
         "severity": sev,
-        "published": published,
-        "kev": False,  # KEV checked separately via NVD or CISA catalog
+        "published": data.get("cveMetadata", {}).get("datePublished", "")[:10],
+        "kev": False,  # KEV must be checked separately
         "kev_added": "",
         "kev_due": "",
         "kev_name": "",
@@ -394,34 +398,45 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
 
 
 def epss_lookup(cve_ids: list[str]) -> dict:
-    """Batch lookup EPSS scores. Returns dict of cve_id -> {epss, percentile, date}."""
+    """
+    Batch lookup EPSS scores. Returns dict of cve_id -> {epss, percentile, date}.
+    
+    FIXED: Now handles 100+ CVEs by processing in chunks of 100.
+    """
     if not cve_ids:
         return {}
 
     results = {}
-    # EPSS API supports comma-separated CVE IDs
-    batch = ",".join(cve_ids[:100])  # max 100 per request
-    params = f"?cve={batch}"
+    
+    # Process in chunks of 100 (EPSS API limit)
+    for i in range(0, len(cve_ids), 100):
+        chunk = cve_ids[i:i+100]
+        batch = ",".join(chunk)
+        params = f"?cve={batch}"
 
-    try:
-        req = urllib.request.Request(
-            EPSS_URL + params,
-            headers={"Accept": "application/json", "User-Agent": "DTVSS/6.0"},
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+        try:
+            req = urllib.request.Request(
+                EPSS_URL + params,
+                headers={"Accept": "application/json", "User-Agent": "DTVSS/6.0"},
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
 
-        if data and data.get("data"):
-            for row in data["data"]:
-                results[row["cve"]] = {
-                    "epss": float(row["epss"]),
-                    "percentile": float(row["percentile"]),
-                    "date": row.get("date", ""),
-                }
-    except Exception as e:
-        pass  # EPSS failure is non-fatal; L(t) defaults to 0.0
+            if data and data.get("data"):
+                for row in data["data"]:
+                    results[row["cve"]] = {
+                        "epss": float(row["epss"]),
+                        "percentile": float(row["percentile"]),
+                        "date": row.get("date", ""),
+                    }
+        except Exception as e:
+            pass  # EPSS failure is non-fatal; L(t) defaults to 0.0
+        
+        # Rate limit between batches (be nice to EPSS API)
+        if i + 100 < len(cve_ids):
+            time.sleep(0.5)
 
-    # Fill missing
+    # Fill missing CVEs with default values
     for cve_id in cve_ids:
         if cve_id not in results:
             results[cve_id] = {"epss": 0.0, "percentile": 0.0, "date": date.today().isoformat()}
