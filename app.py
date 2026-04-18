@@ -328,6 +328,10 @@ def lookup():
         "impact_score": nvd.get("impact_score", 0.0),
         "classify_source": classify_source,
     })
+    # M-5: surface v4.0 approximation flag and note when present
+    if nvd.get("cvss_v4_approximate"):
+        result["cvss_v4_approximate"] = True
+        result["note"] = nvd.get("note", "")
 
     return jsonify(result)
 
@@ -445,6 +449,10 @@ def _search_indexed(query: str, tga_override: str, max_results: int, indexed_cve
             "ics_advisory": bool(ics_urls),
             "ics_urls": ics_urls[:3],
             "source": ic.get("source", "icsma"),
+            **(
+                {"cvss_v4_approximate": True, "note": ic.get("note", "")}
+                if ic.get("cvss_v4_approximate") else {}
+            ),
         })
 
     # Scope filter: the ICSMA index SHOULD already be medical-only, but
@@ -575,6 +583,10 @@ def _search_live_nvd(query: str, tga_override: str, max_results: int):
             "ics_urls": nvd.get("ics_urls", []),
             "impact_score": nvd.get("impact_score", 0.0),
         })
+        # M-5: surface v4.0 approximation flag and note when present
+        if nvd.get("cvss_v4_approximate"):
+            result["cvss_v4_approximate"] = True
+            result["note"] = nvd.get("note", "")
         scored.append(result)
 
     # Scope filter — THIS IS THE CRITICAL FIX.

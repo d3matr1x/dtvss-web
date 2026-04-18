@@ -18,9 +18,45 @@ import urllib.error
 from datetime import date
 from typing import Optional
 
+from security import safe_fetch_bytes
+
 NVD_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 EPSS_URL = "https://api.first.org/data/v1/epss"
 MITRE_CVE_URL = "https://cveawg.mitre.org/api/cve"
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# M-3: Centralized safe JSON fetch
+# ═══════════════════════════════════════════════════════════════════════
+
+def _fetch_json(url: str, headers: Optional[dict] = None, timeout: int = 15,
+                max_bytes: Optional[int] = None) -> dict:
+    """
+    Fetch JSON from an external API with SSRF protection, host allowlisting,
+    response size cap, and timeout. Wraps security.safe_fetch_bytes.
+
+    Replaces direct urllib.request.urlopen calls throughout this module
+    so that every external HTTP request goes through the central security
+    policy rather than re-implementing it per-callsite.
+
+    Raises ValueError on SSRF policy rejection or oversized response.
+    Raises json.JSONDecodeError if the body isn't valid JSON.
+    Raises urllib.error.URLError / socket errors on network failure.
+    Behaves like the previous urlopen+json.loads chain so existing
+    try/except blocks at call sites still catch the same exception types.
+    """
+    # Lazy import to avoid circulars and to read the latest cap value if
+    # security.MAX_RESPONSE_BYTES is changed at runtime.
+    from security import MAX_RESPONSE_BYTES
+    if max_bytes is None:
+        max_bytes = MAX_RESPONSE_BYTES
+    raw = safe_fetch_bytes(
+        url,
+        headers=headers or {},
+        timeout=timeout,
+        max_bytes=max_bytes,
+    )
+    return json.loads(raw.decode("utf-8"))
 
 # CVSS v3.1 exploitability sub-score computation from vector string
 # Used as fallback when NVD hasn't enriched the CVE (backlog)
@@ -98,9 +134,7 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
         headers["apiKey"] = api_key
 
     try:
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+        data = _fetch_json(url, headers=headers, timeout=15)
     except Exception as e:
         # NVD unreachable - try MITRE fallback
         mitre = mitre_lookup_cve(cve_id)
@@ -143,11 +177,9 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
     url = f"{MITRE_CVE_URL}/{cve_id}"
 
     try:
-        req = urllib.request.Request(url, headers={
+        data = _fetch_json(url, headers={
             "Accept": "application/json", "User-Agent": "DTVSS/6.0"
-        })
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+        }, timeout=15)
     except Exception as e:
         return {"error": f"MITRE CVE API error: {str(e)}"}
 
@@ -235,7 +267,8 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
     ics = any(frag in ref_url for ref_url in unique_refs for frag in ICS_URL_FRAGMENTS)
     ics_urls = [ref_url for ref_url in unique_refs if any(f in ref_url for f in ICS_URL_FRAGMENTS)]
 
-    return {
+    # M-5: same v4.0 approximation transparency as the NVD path
+    result = {
         "cve_id": cve_id,
         "description": desc[:300] + ("..." if len(desc) > 300 else ""),
         "B": round(float(B), 3),
@@ -252,6 +285,15 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
         "impact_score": 0.0,  # not available from MITRE
         "source": "mitre_cve",  # flag that this came from MITRE fallback
     }
+    if cvss_ver == "4.0":
+        result["cvss_v4_approximate"] = True
+        result["note"] = (
+            "B (exploitability sub-score) for CVSS v4.0 is approximated "
+            "using the v3.1 formula with AT mapped to AC, because MITRE's "
+            "v4.0 metric block does not expose an exploitability sub-score. "
+            "The B value is a proxy, not a true v4.0 sub-score."
+        )
+    return result
 
 
 def nvd_search_keyword(keyword: str, api_key: str = None, max_results: int = 50) -> list[dict]:
@@ -271,13 +313,11 @@ def nvd_search_keyword(keyword: str, api_key: str = None, max_results: int = 50)
         headers["apiKey"] = api_key
 
     try:
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            raw = resp.read().decode("utf-8")
-            # Guard against HTML error pages
-            if raw.strip().startswith("<"):
-                return []
-            data = json.loads(raw)
+        # M-3: _fetch_json applies SSRF policy + size cap. We still need
+        # the HTML-error-page guard because NVD has historically returned
+        # 200 OK with an HTML error body. _fetch_json will raise
+        # JSONDecodeError on that case; we catch it below as before.
+        data = _fetch_json(url, headers=headers, timeout=30)
     except json.JSONDecodeError:
         return []
     except Exception:
@@ -379,7 +419,13 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
     ics = any(frag in ref_url for ref_url in refs for frag in ICS_URL_FRAGMENTS)
     ics_urls = [ref_url for ref_url in refs if any(f in ref_url for f in ICS_URL_FRAGMENTS)]
 
-    return {
+    # M-5: CVSS v4.0 transparency flag.
+    # NVD's v4.0 metric block does not expose an exploitability sub-score
+    # the way v3.x does. We approximate it by parsing the v4.0 vector
+    # with the v3.1 formula (mapping AT→AC). This is a reasonable proxy
+    # but is NOT a true v4.0 sub-score, so we surface the approximation
+    # explicitly to API consumers and patent reproducibility checkers.
+    result = {
         "cve_id": cve_id,
         "description": desc[:300] + ("..." if len(desc) > 300 else ""),
         "B": round(float(B), 3),
@@ -395,6 +441,15 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
         "ics_urls": ics_urls,
         "impact_score": round(float(impact), 3),
     }
+    if cvss_ver == "4.0":
+        result["cvss_v4_approximate"] = True
+        result["note"] = (
+            "B (exploitability sub-score) for CVSS v4.0 is approximated "
+            "using the v3.1 formula with AT mapped to AC, because NVD's "
+            "v4.0 metric block does not expose an exploitability sub-score. "
+            "The B value is a proxy, not a true v4.0 sub-score."
+        )
+    return result
 
 
 def epss_lookup(cve_ids: list[str]) -> dict:
@@ -415,12 +470,11 @@ def epss_lookup(cve_ids: list[str]) -> dict:
         params = f"?cve={batch}"
 
         try:
-            req = urllib.request.Request(
+            data = _fetch_json(
                 EPSS_URL + params,
                 headers={"Accept": "application/json", "User-Agent": "DTVSS/6.0"},
+                timeout=10,
             )
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
 
             if data and data.get("data"):
                 for row in data["data"]:
@@ -471,11 +525,9 @@ def openfda_classify_device(device_name: str) -> Optional[dict]:
     url = f"{OPENFDA_DEVICE_URL}?{params}"
 
     try:
-        req = urllib.request.Request(url, headers={
+        data = _fetch_json(url, headers={
             "Accept": "application/json", "User-Agent": "DTVSS/6.0"
-        })
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+        }, timeout=10)
     except Exception:
         return None
 
@@ -528,19 +580,27 @@ def cisa_kev_check(cve_id: str) -> Optional[dict]:
     # Refresh cache if stale
     if _kev_cache["data"] is None or (now - _kev_cache["fetched_at"]) > KEV_CACHE_TTL:
         try:
-            req = urllib.request.Request(KEV_CATALOG_URL, headers={
-                "Accept": "application/json", "User-Agent": "DTVSS/6.0"
-            })
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                catalog = json.loads(resp.read().decode("utf-8"))
+            catalog = _fetch_json(
+                KEV_CATALOG_URL,
+                headers={"Accept": "application/json", "User-Agent": "DTVSS/6.0"},
+                timeout=15,
+            )
 
-            # Index by CVE ID for O(1) lookup
-            indexed = {}
-            for vuln in catalog.get("vulnerabilities", []):
-                indexed[vuln.get("cveID", "")] = vuln
-
-            _kev_cache["data"] = indexed
-            _kev_cache["fetched_at"] = now
+            # M-1: Validate the refreshed catalog before trusting it.
+            # If the upstream response is structurally bad or suspiciously
+            # small (e.g., compromised CDN serving an empty list to hide
+            # active exploits), keep whatever we already had cached
+            # rather than overwriting good data with poisoned data.
+            from security import validate_kev_catalog
+            indexed = validate_kev_catalog(catalog)
+            if indexed is None:
+                # Bad catalog - preserve prior cache rather than overwriting
+                if _kev_cache["data"] is None:
+                    return None
+                # Otherwise fall through to use stale-but-good cached data
+            else:
+                _kev_cache["data"] = indexed
+                _kev_cache["fetched_at"] = now
         except Exception:
             # If fetch fails and we have stale data, use it
             if _kev_cache["data"] is None:
@@ -611,11 +671,9 @@ def refresh_device_keywords() -> dict:
                 "limit": 10,
             })
             url = f"{OPENFDA_DEVICE_URL}?{params}"
-            req = urllib.request.Request(url, headers={
+            data = _fetch_json(url, headers={
                 "Accept": "application/json", "User-Agent": "DTVSS/6.0"
-            })
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
+            }, timeout=10)
 
             for result in data.get("results", []):
                 device_name = result.get("device_name", "").strip().lower()

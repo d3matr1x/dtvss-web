@@ -23,8 +23,13 @@ import threading
 import time
 import urllib.parse
 import urllib.request
-import xml.etree.ElementTree as ET
+import urllib.error
 from datetime import datetime, timezone
+
+# M-2: XXE-safe XML parsing + SSRF-guarded fetching for the RSS poller.
+# Replaces direct stdlib xml.etree.ElementTree (vulnerable to XXE on older
+# Python versions) and raw urlopen calls (no SSRF policy enforcement).
+from security import safe_parse_xml, safe_fetch_bytes, MAX_HTML_PAGE_BYTES, MAX_RSS_BYTES
 
 # ---------------------------------------------------------------------------
 # INDEX_FILE resolution
@@ -250,10 +255,13 @@ def _nvd_enrich_cve(cve_id):
     if NVD_API_KEY:
         hdrs["apiKey"] = NVD_API_KEY
     try:
+        # M-3: use the centralized SSRF-guarded JSON fetcher.
+        # Lazy import to avoid an import cycle at module load time
+        # (api_clients imports nothing from index_loader, but keeping
+        # the import lazy here matches the pattern used elsewhere).
+        from api_clients import _fetch_json
         params = urllib.parse.urlencode({"cveId": cve_id})
-        req = urllib.request.Request(f"{NVD_CVE_URL}?{params}", headers=hdrs)
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+        data = _fetch_json(f"{NVD_CVE_URL}?{params}", headers=hdrs, timeout=15)
 
         vulns = data.get("vulnerabilities", [])
         if not vulns:
@@ -286,11 +294,15 @@ def _nvd_enrich_cve(cve_id):
 
 def _save_index():
     try:
-        os.makedirs(os.path.dirname(INDEX_FILE), exist_ok=True)
+        # M-4: atomic write — either the full new file lands or the old
+        # file remains intact. The previous open()+json.dump() left a
+        # truncated/half-written file on crash, which would brick the
+        # next cold start. atomic_write_json also makes a .bak of the
+        # previous version automatically.
+        from security import atomic_write_json
         with _lock:
             snap = json.loads(json.dumps(_index, default=str))
-        with open(INDEX_FILE, "w") as f:
-            json.dump(snap, f, indent=2)
+        atomic_write_json(INDEX_FILE, snap, indent=2)
     except Exception as e:
         print(f"  [Hourly] Index save failed: {e}")
 
@@ -311,11 +323,22 @@ def _hourly_pipeline():
 
             changes = False
 
-            req = urllib.request.Request(ICSMA_RSS_URL, headers={"User-Agent": "DTVSS/3.0"})
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                raw = resp.read().decode("utf-8")
+            # M-2: SSRF-guarded RSS fetch with size cap.
+            # ICSMA_RSS_URL is on www.cisa.gov which is in the security
+            # allowlist, so safe_fetch_bytes will permit it. The 5 MB cap
+            # protects against a compromised CDN serving a giant blob.
+            raw_bytes = safe_fetch_bytes(
+                ICSMA_RSS_URL,
+                headers={"User-Agent": "DTVSS/3.0"},
+                timeout=30,
+                max_bytes=MAX_RSS_BYTES,
+            )
 
-            root = ET.fromstring(raw)
+            # M-2: XXE-safe XML parsing via defusedxml. The previous
+            # xml.etree.ElementTree.fromstring would resolve external
+            # entities on Python < 3.7.1 and is vulnerable to billion-
+            # laughs entity expansion on all versions.
+            root = safe_parse_xml(raw_bytes)
 
             with _lock:
                 mdms = _index.get("manufacturers", {})
@@ -347,10 +370,31 @@ def _hourly_pipeline():
                 # Fetch CVEs from advisory page
                 time.sleep(0.3)
                 try:
-                    req2 = urllib.request.Request(link, headers={"User-Agent": "DTVSS/3.0"})
-                    with urllib.request.urlopen(req2, timeout=15) as resp2:
-                        page = resp2.read().decode("utf-8")
-                    cve_ids = list(set(re.findall(r'CVE-\d{4}-\d+', page)))
+                    # M-2: Explicit host check on the per-advisory link.
+                    # The link comes from the RSS feed body, which means a
+                    # tampered/compromised feed could attempt to redirect
+                    # us to an attacker-controlled host or an internal
+                    # service. The general SSRF allowlist permits several
+                    # legitimate hosts (NVD, MITRE, EPSS, openFDA, GitHub),
+                    # but a CISA ICSMA *advisory page* should ONLY ever be
+                    # served from cisa.gov. We enforce that narrower policy
+                    # here rather than relying on extra_allowed_hosts,
+                    # which would *add* to the allowlist rather than
+                    # restrict it.
+                    parsed_link = urllib.parse.urlparse(link)
+                    link_host = (parsed_link.hostname or "").lower()
+                    if link_host not in ("cisa.gov", "www.cisa.gov"):
+                        print(f"    [Hourly] Rejected non-CISA advisory link: {link_host}")
+                        cve_ids = []
+                    else:
+                        page_bytes = safe_fetch_bytes(
+                            link,
+                            headers={"User-Agent": "DTVSS/3.0"},
+                            timeout=15,
+                            max_bytes=MAX_HTML_PAGE_BYTES,
+                        )
+                        page = page_bytes.decode("utf-8", errors="replace")
+                        cve_ids = list(set(re.findall(r'CVE-\d{4}-\d+', page)))
                 except Exception:
                     cve_ids = []
 

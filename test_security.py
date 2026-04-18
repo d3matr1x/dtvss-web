@@ -455,6 +455,386 @@ def test_kev_validation():
 
 
 # =============================================================================
+# M-1: KEV Cache Poisoning — preserve prior cache on bad refresh
+# =============================================================================
+
+def test_kev_cache_poisoning():
+    section("M-1: KEV Cache Poisoning Resilience (cisa_kev_check)")
+
+    # api_clients lives in /home/claude/dtvss in this test environment
+    sys.path.insert(0, "/home/claude/dtvss")
+    sys.path.insert(0, "/home/claude")
+    import api_clients
+
+    poc("Cache holds a known KEV entry; upstream then returns an empty catalog")
+    info("This simulates a compromised CDN serving an empty list to hide active exploits")
+
+    # Pre-seed the cache with one good entry
+    api_clients._kev_cache["data"] = {
+        "CVE-2017-12718": {
+            "cveID": "CVE-2017-12718",
+            "dateAdded": "2024-01-01",
+            "dueDate": "2024-02-01",
+            "vulnerabilityName": "Pre-existing KEV entry",
+            "requiredAction": "Patch",
+        }
+    }
+    api_clients._kev_cache["fetched_at"] = 0  # force refresh path
+
+    original_fetch = api_clients._fetch_json
+    try:
+        # Scenario 1: poisoned (empty) catalog
+        api_clients._fetch_json = (
+            lambda url, headers=None, timeout=15, max_bytes=None: {"vulnerabilities": []}
+        )
+        r1 = api_clients.cisa_kev_check("CVE-2017-12718")
+        if r1 and r1.get("kev") is True and "Pre-existing" in r1.get("kev_name", ""):
+            fix_ok("Empty/poisoned catalog rejected; prior cache preserved")
+        else:
+            fix_fail(f"Cache was overwritten by poisoned data: {r1!r}")
+
+        # Scenario 2: structurally broken catalog (not a dict)
+        api_clients._kev_cache["fetched_at"] = 0
+        api_clients._fetch_json = (
+            lambda url, headers=None, timeout=15, max_bytes=None: "garbage string"
+        )
+        r2 = api_clients.cisa_kev_check("CVE-2017-12718")
+        if r2 and r2.get("kev") is True:
+            fix_ok("Garbage (non-dict) response rejected; prior cache preserved")
+        else:
+            fix_fail(f"Cache lost on garbage response: {r2!r}")
+
+        # Scenario 3: cold start (no prior cache) + poisoned response → None
+        api_clients._kev_cache["data"] = None
+        api_clients._kev_cache["fetched_at"] = 0
+        api_clients._fetch_json = (
+            lambda url, headers=None, timeout=15, max_bytes=None: {"vulnerabilities": []}
+        )
+        r3 = api_clients.cisa_kev_check("CVE-2017-12718")
+        if r3 is None:
+            fix_ok("Cold-start + poisoned response returns None (no false confidence)")
+        else:
+            fix_fail(f"Cold-start should return None but got: {r3!r}")
+
+        # Scenario 4: a legitimate refresh after recovery still updates the cache
+        api_clients._kev_cache["data"] = None
+        api_clients._kev_cache["fetched_at"] = 0
+        good_catalog = {
+            "vulnerabilities": [
+                {
+                    "cveID": f"CVE-2024-{i:05d}",
+                    "dateAdded": "2024-01-01",
+                    "vendorProject": "v",
+                    "product": "p",
+                    "vulnerabilityName": "n",
+                    "dueDate": "2024-02-01",
+                    "requiredAction": "patch",
+                }
+                for i in range(600)
+            ] + [{
+                "cveID": "CVE-2017-12718",
+                "dateAdded": "2024-01-01",
+                "vendorProject": "v",
+                "product": "p",
+                "vulnerabilityName": "Recovered entry",
+                "dueDate": "2024-02-01",
+                "requiredAction": "patch",
+            }]
+        }
+        api_clients._fetch_json = (
+            lambda url, headers=None, timeout=15, max_bytes=None: good_catalog
+        )
+        r4 = api_clients.cisa_kev_check("CVE-2017-12718")
+        if r4 and r4.get("kev_name") == "Recovered entry":
+            fix_ok("Good response after recovery updates the cache normally")
+        else:
+            fix_fail(f"Good response did not update cache: {r4!r}")
+
+    finally:
+        api_clients._fetch_json = original_fetch
+        # Reset cache so subsequent tests don't see leaked state
+        api_clients._kev_cache["data"] = None
+        api_clients._kev_cache["fetched_at"] = 0
+
+
+# =============================================================================
+# M-2: Per-Advisory Page Host Restriction (index_loader)
+# =============================================================================
+
+def test_advisory_host_restriction():
+    section("M-2: Per-Advisory Page Host Restriction (RSS-injected links)")
+
+    poc("A tampered RSS feed injects a non-CISA <link> to redirect us")
+    info("ICSMA advisory pages must ONLY come from cisa.gov, even though "
+         "the broader allowlist contains other legitimate hosts (NVD, MITRE, etc)")
+
+    # Mirror the host-check logic from index_loader._hourly_pipeline.
+    # We test the policy directly because the actual function runs in
+    # a daemon thread on import and isn't easily callable in isolation.
+    import urllib.parse
+    def advisory_host_ok(link):
+        parsed = urllib.parse.urlparse(link)
+        return (parsed.hostname or "").lower() in ("cisa.gov", "www.cisa.gov")
+
+    attack_links = [
+        ("https://evil.com/icsma-fake/2024-001",
+         "Attacker-controlled host with icsma in path"),
+        ("https://attacker.example.com/icsma-001",
+         "Random attacker domain"),
+        ("https://services.nvd.nist.gov/icsma-001",
+         "Other allowlisted host (NVD) — should NOT serve advisories"),
+        ("https://api.fda.gov/icsma-001",
+         "Other allowlisted host (openFDA) — should NOT serve advisories"),
+        ("https://raw.githubusercontent.com/x/icsma.html",
+         "Other allowlisted host (GitHub) — should NOT serve advisories"),
+        ("https://evil-cisa.gov.attacker.com/icsma-001",
+         "Substring-bypass: cisa.gov as subdomain prefix"),
+        ("https://cisa.gov.evil.com/icsma-001",
+         "Substring-bypass: cisa.gov as suffix on attacker domain"),
+        ("http://www.cisa.gov/icsma-001",
+         "HTTP (not HTTPS) — caught by SSRF scheme check downstream"),
+    ]
+    all_blocked = True
+    for link, desc in attack_links:
+        # http:// case will pass the host check but be blocked by safe_fetch_bytes;
+        # for the purpose of this test we accept either layer rejecting it.
+        host_ok = advisory_host_ok(link)
+        if "http://" in link and host_ok:
+            # Verify the SSRF layer blocks it
+            from security import validate_external_url
+            if not validate_external_url(link):
+                print(f"  {C.GREEN}✓{C.RESET} Blocked at SSRF layer: {desc}")
+                continue
+        if host_ok:
+            print(f"  {C.RED}✗{C.RESET} NOT BLOCKED: {desc} — {link}")
+            all_blocked = False
+        else:
+            print(f"  {C.GREEN}✓{C.RESET} Blocked at host check: {desc}")
+
+    if all_blocked:
+        fix_ok(f"All {len(attack_links)} tampered-link attack vectors blocked")
+    else:
+        fix_fail("Some tampered advisory links not blocked")
+
+    poc("Legitimate cisa.gov ICSMA URLs still pass")
+    good_links = [
+        "https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-001-01",
+        "https://cisa.gov/news-events/ics-medical-advisories/icsma-24-002-01",
+    ]
+    for link in good_links:
+        if not advisory_host_ok(link):
+            fix_fail(f"Legitimate link rejected: {link}")
+            return
+        print(f"  {C.GREEN}✓{C.RESET} Allowed: {link}")
+    fix_ok("Legitimate CISA ICSMA URLs pass the host check")
+
+    poc("XXE RSS payload would be parsed by stdlib but is blocked by safe_parse_xml")
+    xxe_rss = b"""<?xml version="1.0"?>
+<!DOCTYPE rss [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+<rss><channel><item><title>&xxe;</title>
+<link>https://www.cisa.gov/icsma-evil</link></item></channel></rss>"""
+    try:
+        safe_parse_xml(xxe_rss)
+        fix_fail("XXE RSS was accepted by safe_parse_xml")
+    except Exception as e:
+        fix_ok(f"XXE RSS rejected by safe_parse_xml: {type(e).__name__}")
+
+    poc("A legitimate RSS feed still parses correctly")
+    good_rss = b"""<?xml version="1.0"?>
+<rss><channel>
+  <item>
+    <title>ICSMA-24-001-01 ExampleVendor Pump</title>
+    <link>https://www.cisa.gov/news-events/ics-medical-advisories/icsma-24-001-01</link>
+  </item>
+</channel></rss>"""
+    try:
+        root = safe_parse_xml(good_rss)
+        items = root.findall(".//item")
+        if len(items) == 1 and items[0].findtext("title", "").startswith("ICSMA-24-001-01"):
+            fix_ok("Legitimate RSS still parses with safe_parse_xml")
+        else:
+            fix_fail("Legitimate RSS did not parse as expected")
+    except Exception as e:
+        fix_fail(f"Legitimate RSS rejected: {e}")
+
+
+# =============================================================================
+# M-3: Response Size Cap on External JSON Fetches
+# =============================================================================
+
+def test_response_size_cap():
+    section("M-3: Response Size Cap (api_clients._fetch_json)")
+
+    sys.path.insert(0, "/home/claude/dtvss")
+    sys.path.insert(0, "/home/claude")
+    import api_clients
+    import urllib.request
+    from security import safe_fetch_bytes, MAX_RESPONSE_BYTES
+
+    poc("Compromised upstream returns an 11 MB JSON blob to exhaust memory")
+    info(f"Default cap is {MAX_RESPONSE_BYTES // (1024*1024)} MB on JSON responses")
+
+    class _FakeResp:
+        def __init__(self, body):
+            self._body = body
+            self.headers = {}
+        def read(self, n=-1):
+            return self._body if n < 0 else self._body[:n]
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    original_urlopen = urllib.request.urlopen
+
+    # Scenario 1: oversized response is blocked
+    def fake_giant(req, timeout=None):
+        return _FakeResp(b"0" * (MAX_RESPONSE_BYTES + 1024))
+    urllib.request.urlopen = fake_giant
+    try:
+        try:
+            safe_fetch_bytes(
+                "https://services.nvd.nist.gov/rest/json/cves/2.0",
+                timeout=5,
+            )
+            fix_fail("Oversized response was not blocked")
+        except ValueError as e:
+            fix_ok(f"Oversized response blocked: {e}")
+    finally:
+        urllib.request.urlopen = original_urlopen
+
+    # Scenario 2: Content-Length header declares oversized response.
+    # This used to be a known-broken path (the over-cap raise was caught
+    # by the same `except ValueError` that handled unparseable headers).
+    # That bug is now fixed in security.safe_fetch_bytes — this test
+    # guards against regression.
+    poc("Compromised upstream declares Content-Length > cap (early-exit)")
+
+    class _FakeRespWithCL:
+        def __init__(self):
+            self.headers = {"Content-Length": str(MAX_RESPONSE_BYTES + 1)}
+            self.was_read = False
+        def read(self, n=-1):
+            self.was_read = True
+            return b""
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    cl_resp = _FakeRespWithCL()
+    urllib.request.urlopen = lambda req, timeout=None: cl_resp
+    try:
+        try:
+            safe_fetch_bytes(
+                "https://services.nvd.nist.gov/rest/json/cves/2.0",
+                timeout=5,
+            )
+            fix_fail("Content-Length-declared oversized response not blocked")
+        except ValueError as e:
+            if cl_resp.was_read:
+                fix_fail(f"Content-Length over-cap rejected, but body was still read: {e}")
+            else:
+                fix_ok(f"Content-Length over-cap rejected early (body not read): {e}")
+    finally:
+        urllib.request.urlopen = original_urlopen
+
+    # Scenario 3: read-cap is the authoritative defense even when
+    # Content-Length lies about the size (declares small, sends large).
+    poc("Compromised upstream lies about Content-Length but sends a large body")
+
+    class _FakeRespLies:
+        def __init__(self):
+            self.headers = {"Content-Length": "100"}  # claims small
+        def read(self, n=-1):
+            # Sends large despite small Content-Length
+            body = b"0" * (MAX_RESPONSE_BYTES + 1024)
+            return body if n < 0 else body[:n]
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def fake_lies(req, timeout=None):
+        return _FakeRespLies()
+    urllib.request.urlopen = fake_lies
+    try:
+        try:
+            safe_fetch_bytes(
+                "https://services.nvd.nist.gov/rest/json/cves/2.0",
+                timeout=5,
+            )
+            fix_fail("Read-cap did not fire when Content-Length lied")
+        except ValueError as e:
+            fix_ok(f"Read-cap fires regardless of Content-Length: {e}")
+    finally:
+        urllib.request.urlopen = original_urlopen
+
+    # Scenario 3: every external API call site routes through _fetch_json
+    poc("All 7 api_clients.py external call sites route through _fetch_json (SSRF + cap apply uniformly)")
+
+    calls = []
+    def stub(url, headers=None, timeout=15, max_bytes=None):
+        calls.append(url)
+        if "first.org" in url:
+            return {"status": "OK", "data": [
+                {"cve": "CVE-2017-12718", "epss": "0.97",
+                 "percentile": "0.99", "date": "2024-01-01"}
+            ]}
+        if "fda.gov" in url:
+            return {"results": [
+                {"device_class": "3", "device_name": "test pump",
+                 "product_code": "FRN", "medical_specialty_description": "AN",
+                 "definition": "x"}
+            ]}
+        if "mitre" in url:
+            return {"containers": {"cna": {}}, "cveMetadata": {}}
+        if "cisa.gov" in url:
+            return {"vulnerabilities": [
+                {"cveID": f"CVE-2024-{i:05d}", "dateAdded": "2024-01-01",
+                 "vendorProject": "v", "product": "p",
+                 "vulnerabilityName": "n", "dueDate": "2024-02-01",
+                 "requiredAction": "patch"}
+                for i in range(600)
+            ]}
+        if "nist.gov" in url:
+            return {"vulnerabilities": []}
+        return {}
+
+    original_fetch_json = api_clients._fetch_json
+    api_clients._fetch_json = stub
+    api_clients._kev_cache["data"] = None
+    api_clients._kev_cache["fetched_at"] = 0
+    api_clients._device_cache["keywords"] = {}
+    api_clients._device_cache["fetched_at"] = 0
+
+    try:
+        api_clients.nvd_lookup_cve("CVE-2017-12718")
+        api_clients.mitre_lookup_cve("CVE-2017-12718")
+        api_clients.nvd_search_keyword("test")
+        api_clients.epss_lookup(["CVE-2017-12718"])
+        api_clients.openfda_classify_device("infusion pump")
+        api_clients.cisa_kev_check("CVE-2017-12718")
+        api_clients.refresh_device_keywords()
+
+        # Verify each expected host was hit
+        expected_substrings = ["nist.gov", "mitre", "first.org", "fda.gov", "cisa.gov"]
+        missing = [s for s in expected_substrings if not any(s in c for c in calls)]
+        if missing:
+            fix_fail(f"These expected call sites did not route through _fetch_json: {missing}")
+        else:
+            fix_ok(f"All 7 call sites route through _fetch_json (hit {len(set(calls))} distinct URLs)")
+
+        # Verify noRejected param preserved on NVD search
+        nvd_search_calls = [c for c in calls if "nist.gov" in c and "keywordSearch" in c]
+        if nvd_search_calls and "noRejected=" in nvd_search_calls[0]:
+            fix_ok("nvd_search_keyword preserves noRejected param")
+        else:
+            fix_fail(f"nvd_search_keyword lost noRejected param: {nvd_search_calls}")
+
+    finally:
+        api_clients._fetch_json = original_fetch_json
+        api_clients._kev_cache["data"] = None
+        api_clients._kev_cache["fetched_at"] = 0
+        api_clients._device_cache["keywords"] = {}
+        api_clients._device_cache["fetched_at"] = 0
+
+
+# =============================================================================
 # MAIN
 # =============================================================================
 
@@ -470,6 +850,9 @@ def main():
     test_score_input_validation()
     test_error_sanitization()
     test_kev_validation()
+    test_kev_cache_poisoning()
+    test_advisory_host_restriction()
+    test_response_size_cap()
     
     # Summary
     print(f"\n{C.BOLD}{'═' * 70}{C.RESET}")

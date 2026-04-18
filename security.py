@@ -192,16 +192,24 @@ def safe_fetch_bytes(
     
     req = urllib.request.Request(url, headers=headers or {})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
-        # Content-Length early check
+        # Content-Length early check.
+        # Bug fix: previously the over-cap `raise ValueError(...)` lived
+        # inside the same try-block as `int(content_length)`, so the
+        # `except ValueError: pass` (intended only to catch an unparseable
+        # header value) silently swallowed the size-cap rejection too.
+        # The hard read-cap below would still catch oversized bodies, but
+        # the early-exit benefit was lost. We now narrow the try to only
+        # the int() conversion and check the bound outside it.
         content_length = resp.headers.get("Content-Length")
         if content_length:
             try:
-                if int(content_length) > max_bytes:
-                    raise ValueError(
-                        f"Response too large: {content_length} > {max_bytes}"
-                    )
+                cl_int = int(content_length)
             except ValueError:
-                pass  # Unparseable Content-Length, continue with read cap
+                cl_int = None  # Unparseable header, fall through to read cap
+            if cl_int is not None and cl_int > max_bytes:
+                raise ValueError(
+                    f"Response too large: {content_length} > {max_bytes}"
+                )
         
         # Read with hard cap. Read one extra byte to detect overflow.
         raw = resp.read(max_bytes + 1)
