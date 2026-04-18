@@ -40,6 +40,11 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
 .section{padding:22px;background:var(--s1);border:1px solid var(--bd);border-radius:10px}
 .highlight{color:var(--acc)}
 .formula{font-family:var(--mono);font-size:13px;color:var(--hd);padding:14px;background:var(--bg);border-radius:6px;margin:12px 0}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid;letter-spacing:.04em;vertical-align:baseline;white-space:nowrap}
+.pill-crit{color:var(--crit);background:rgba(224,82,82,0.10);border-color:rgba(224,82,82,0.30)}
+.pill-high{color:var(--high);background:rgba(224,138,58,0.10);border-color:rgba(224,138,58,0.30)}
+.pill-med{color:var(--med);background:rgba(212,184,50,0.10);border-color:rgba(212,184,50,0.30)}
+.pill-low{color:var(--low);background:rgba(72,184,120,0.10);border-color:rgba(72,184,120,0.30)}
 .footer{text-align:center;padding:24px 0 8px;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
 </style>
 </head>
@@ -69,7 +74,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
   <div class="section">
     <h3>The Problem</h3>
     <p>
-      Static vulnerability scoring systems like CVSS assign the same severity to a compromised printer and a compromised infusion pump. They measure technical severity, not clinical impact. A <span style="display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid rgba(212,184,50,0.3);background:rgba(212,184,50,0.1);color:var(--med);letter-spacing:.04em;vertical-align:baseline">MEDIUM</span> on a pacemaker gets deprioritised while a <span style="display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid rgba(224,138,58,0.3);background:rgba(224,138,58,0.1);color:var(--high);letter-spacing:.04em;vertical-align:baseline">HIGH</span> on a workstation gets patched first.
+      Static vulnerability scoring systems like CVSS assign the same severity to a compromised printer and a compromised infusion pump. They measure technical severity, not clinical impact. A <span class="pill pill-med">MEDIUM</span> on a pacemaker gets deprioritised while a <span class="pill pill-high">HIGH</span> on a workstation gets patched first.
     </p>
     <p style="margin-top:10px">
       Meanwhile, the attack surface has moved onto the patient's body. Insulin pumps communicate over Bluetooth. Pacemakers transmit to cloud platforms. Wearable CGMs stream data through smartphones 24 hours a day. The risk is no longer static. The scoring should not be either.

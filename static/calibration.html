@@ -29,7 +29,7 @@
 :root {
   --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
   --tx:#b8bcc8; --dim:#6b7280; --hd:#e2e6f0;
-  --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e05252; --low:#48b878;
+  --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e05252; --low:#48b878; --med:#d4b832;
   --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -42,6 +42,11 @@ h2{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--hd);letter
 h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
 .section{padding:22px;background:var(--s1);border:1px solid var(--bd);border-radius:10px}
 .formula{font-family:var(--mono);font-size:13px;color:var(--hd);padding:14px;background:var(--bg);border-radius:6px;margin:12px 0}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid;letter-spacing:.04em;vertical-align:baseline;white-space:nowrap}
+.pill-crit{color:var(--crit);background:rgba(224,82,82,0.10);border-color:rgba(224,82,82,0.30)}
+.pill-high{color:var(--high);background:rgba(224,138,58,0.10);border-color:rgba(224,138,58,0.30)}
+.pill-med{color:var(--med);background:rgba(212,184,50,0.10);border-color:rgba(212,184,50,0.30)}
+.pill-low{color:var(--low);background:rgba(72,184,120,0.10);border-color:rgba(72,184,120,0.30)}
 .footer{text-align:center;padding:24px 0 8px;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
 
 /* Headline stats under the page title */
@@ -147,10 +152,10 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
       The provisional patent defines four clinical discrimination criteria that any calibrated k must satisfy. The criteria were designed before the value of k was picked; they encode what the scoring is required to do, not what any particular integer happens to produce.
     </p>
     <div class="formula" style="line-height:2">
-      <span style="color:var(--acc);font-weight:600">(i)</span> CVE-2017-12718 (Plum 360 infusion pump buffer overflow) must score &ge; 8.0 Critical<br>
-      <span style="color:var(--acc);font-weight:600">(ii)</span> The highest-scoring low-risk CVE (B &le; 1.5, L &le; 0.002) must stay &le; 5.5 Medium<br>
-      <span style="color:var(--acc);font-weight:600">(iii)</span> CVE-2020-11896 (Treck Ripple20 IP/in/IP) must score &ge; 8.0 Critical<br>
-      <span style="color:var(--acc);font-weight:600">(iv)</span> The score span across the full dataset must span at least 4.0 points
+      <span style="color:var(--acc);font-weight:600">(i)</span> CVE-2017-12718 (Plum 360 infusion pump) must score &ge; 8.0 <span class="pill pill-crit">CRITICAL</span><br>
+      <span style="color:var(--acc);font-weight:600">(ii)</span> Low-risk CVEs (B &le; 1.5, L &le; 0.002) must stay &le; 5.5 <span class="pill pill-med">MEDIUM</span><br>
+      <span style="color:var(--acc);font-weight:600">(iii)</span> CVE-2020-11896 (Treck Ripple20) must score &ge; 8.0 <span class="pill pill-crit">CRITICAL</span><br>
+      <span style="color:var(--acc);font-weight:600">(iv)</span> The score span across the full dataset must be &ge; 4.0 points
     </div>
     <p style="margin-top:10px;color:var(--dim);font-size:13px">
       Criterion (i) guarantees the formula recognises clinically-deployed exploitable infusion pump vulnerabilities. Criterion (ii) prevents score inflation on low-exploitability workstation-class findings. Criterion (iii) anchors known-exploited IP stack flaws at Critical. Criterion (iv) ensures the scale actually discriminates between device classes rather than compressing everything toward one value.
