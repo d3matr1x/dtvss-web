@@ -54,6 +54,11 @@ from security import (
     MAX_JSON_BODY_BYTES,
 )
 
+# Medical-device scope filter — rejects non-medical CVEs (PHP-Fusion,
+# Wonderware, WordPress, ZPanel, etc.) that were leaking through the old
+# substring-based filter.
+from medical_scope import is_in_scope, filter_scored_results
+
 app = Flask(__name__, static_folder=None)  # MED-04: no wildcard static serving
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024  # 16 KB global cap on request bodies
 
@@ -110,7 +115,7 @@ try:
         app=app,
         default_limits=["200 per hour", "30 per minute"],
         storage_uri=os.environ.get("REDIS_URL", "memory://"),
-        strategy="fixed-window",
+        strategy="fixed-window-elastic-expiry",
         headers_enabled=True,  # Adds X-RateLimit-* headers
     )
     RATE_LIMIT_EXPENSIVE = "20 per hour;5 per minute"
@@ -234,6 +239,32 @@ def lookup():
 
     if not nvd or "error" in nvd:
         return jsonify(nvd or {"error": "NVD lookup failed"}), 404
+
+    # Scope gate: DTVSS is for medical devices only. Reject non-medical
+    # CVEs (CMS, SCADA, SaaS) before any scoring. Without this, a user
+    # looking up e.g. CVE-2006-2331 (PHP-Fusion) would get a fake DTVSS
+    # Critical score for a 20-year-old website bug.
+    #
+    # User TGA override bypasses this gate — if someone explicitly sets
+    # tga_class, they're asserting this is a medical device, so we trust
+    # them. Useful for new devices not yet in our terminology list.
+    if not tga_override:
+        in_scope, reason = is_in_scope(
+            nvd.get("description", ""),
+            ics_advisory=nvd.get("ics_advisory", False),
+            ics_urls=nvd.get("ics_urls", []),
+        )
+        if not in_scope:
+            return jsonify({
+                "error": "CVE is outside DTVSS scope",
+                "cve_id": cve_id,
+                "scope_reason": reason,
+                "hint": "DTVSS scores medical-device vulnerabilities only. "
+                        "This CVE does not reference an ICSMA advisory or "
+                        "contain medical-device terminology. If this is a "
+                        "medical device we failed to recognise, retry with "
+                        "&tga_class=IIb or &tga_class=III.",
+            }), 400
 
     try:
         epss = epss_lookup([cve_id])
@@ -416,12 +447,19 @@ def _search_indexed(query: str, tga_override: str, max_results: int, indexed_cve
             "source": ic.get("source", "icsma"),
         })
 
+    # Scope filter: the ICSMA index SHOULD already be medical-only, but
+    # apply the filter as defense-in-depth. Also ensures consistency with
+    # the live-NVD path so the two sources never disagree on what counts
+    # as a medical-device CVE.
+    scored, scope_stats = filter_scored_results(scored)
+
     scored.sort(key=lambda x: (0 if x.get("kev_override") else 1, -x["score"]))
     return jsonify({
         "results": scored[:max_results],
         "count": len(scored),
         "query": query,
         "source": "CISA ICSMA index",
+        "scope_filter": scope_stats,
     })
 
 
@@ -539,12 +577,40 @@ def _search_live_nvd(query: str, tga_override: str, max_results: int):
         })
         scored.append(result)
 
+    # Scope filter — THIS IS THE CRITICAL FIX.
+    # Before this filter, searches for terms like "infusion" would return
+    # PHP-Fusion CMS, Wonderware InFusion SCADA, WordPress Infusionsoft,
+    # ZPanel, etc. — all scored as Critical Class IIb medical devices.
+    # filter_scored_results rejects them using word-boundary regex and an
+    # explicit non-medical blocklist.
+    scored, scope_stats = filter_scored_results(scored)
+
+    # If filtering removed everything, return an informative empty result
+    # rather than silently returning []. Users can see what happened.
+    if not scored:
+        return jsonify({
+            "results": [],
+            "count": 0,
+            "query": query,
+            "source": "NVD live search",
+            "scope_filter": scope_stats,
+            "note": (
+                f"No medical-device CVEs found for this query. "
+                f"{scope_stats['rejected_blocklist']} result(s) rejected as "
+                f"non-medical (CMS, SCADA, or other); "
+                f"{scope_stats['rejected_no_signal']} result(s) had no "
+                f"medical-device indicators. Try a more specific medical "
+                f"device name (e.g. 'Hospira LifeCare', 'Medfusion 4000')."
+            ),
+        })
+
     scored.sort(key=lambda x: (0 if x.get("kev_override") else 1, -x["score"], x["cve_id"]))
     return jsonify({
         "results": scored[:max_results],
         "count": len(scored),
         "query": query,
         "source": "NVD live search",
+        "scope_filter": scope_stats,
     })
 
 
