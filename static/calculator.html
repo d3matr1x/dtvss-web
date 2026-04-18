@@ -105,6 +105,11 @@ window.addEventListener('error', function(e) {
   }
 
   function App() {
+    // Tier gating — Tier 1 (this page) shows optional embodiments in a
+    // locked/disabled state as an upsell. Flip to false to unlock all
+    // features in a paid Tier 2+ build.
+    const TIER2_LOCKED = true;
+    
     const [B, setB] = useState(0);
     const [L, setL] = useState(0);
     const [tgaClass, setTgaClass] = useState("IIb");
@@ -160,12 +165,14 @@ window.addEventListener('error', function(e) {
     })();
     const halfLife = tgaClass === "III" ? 13.9 : 10;
     const lambda = Math.log(2) / halfLife;
-    const L_eff = decayEnabled && cveAge > 0 ? L * Math.exp(-lambda * cveAge) : L;
-    const B_adj = ztaEnabled ? B * 0.571 : B;
+    // When TIER2_LOCKED, force L_eff=L and B_adj=B so state manipulation via
+    // devtools can't activate locked Tier 2+ features.
+    const L_eff = (!TIER2_LOCKED && decayEnabled && cveAge > 0) ? L * Math.exp(-lambda * cveAge) : L;
+    const B_adj = (!TIER2_LOCKED && ztaEnabled) ? B * 0.571 : B;
     const result = computeDTVSS(B_adj, L_eff, H, kev);
     const tier = result.tier;
     const staticBaseline = Math.round((B_adj * H / 10) * 100) / 100;
-    const baseResult = (ztaEnabled || decayEnabled) ? computeDTVSS(B, L, H, kev) : null;
+    const baseResult = (!TIER2_LOCKED && (ztaEnabled || decayEnabled)) ? computeDTVSS(B, L, H, kev) : null;
 
     const computeF = (N) => {
       if (scalingFn === "log") return 1 + Math.log10(Math.max(N, 1));
@@ -330,19 +337,41 @@ window.addEventListener('error', function(e) {
           )
         ),
 
-        // Optional Embodiments label
-        e('div', { style: { fontFamily: mono, fontSize: "11px", color: "#6b7280", letterSpacing: "0.1em", textAlign: "center" } }, "OPTIONAL EMBODIMENTS"),
+        // DTVSS PRO heading + Tier 2 header
+        e('div', { style: { fontFamily: mono, fontSize: "11px", color: "#6b7280", letterSpacing: "0.14em", textAlign: "center", marginTop: "8px" } },
+          "DTVSS PRO"
+        ),
+        e('div', {
+          style: {
+            fontFamily: mono, fontSize: "12px", fontWeight: 600,
+            padding: "10px 14px", borderRadius: "999px",
+            border: "1px solid #d4b83244", background: "rgba(212,184,50,0.08)",
+            color: "#d4b832", textAlign: "center", letterSpacing: "0.05em",
+            display: "flex", justifyContent: "center", alignItems: "center", gap: "8px"
+          }
+        },
+          e('span', null, "🔒 TIER 2"),
+          e('span', { style: { color: "#6b7280", fontWeight: 400 } }, "·"),
+          e('a', {
+            href: "https://www.linkedin.com/in/andr3wbr0",
+            target: "_blank", rel: "noopener noreferrer",
+            style: { color: "#5b93f5", textDecoration: "none", fontWeight: 600 }
+          }, "request access →")
+        ),
 
         // Environment-Adjusted
-        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden" } },
+        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden", opacity: TIER2_LOCKED ? 0.5 : 1 } },
           e('button', {
-            onClick: () => setShowEnvAdj(!showEnvAdj),
-            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
+            onClick: () => { if (!TIER2_LOCKED) setShowEnvAdj(!showEnvAdj); },
+            disabled: TIER2_LOCKED,
+            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: TIER2_LOCKED ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
           },
-            e('span', { style: { color: ztaEnabled ? "#5b93f5" : "#6b7280", fontWeight: 600 } }, `ENVIRONMENT-ADJUSTED EXPLOITABILITY${ztaEnabled ? " · ACTIVE" : ""}`),
-            e('span', { style: { color: "#6b7280", transform: showEnvAdj ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
+            e('span', { style: { color: ztaEnabled ? "#5b93f5" : "#6b7280", fontWeight: 600 } },
+              (TIER2_LOCKED ? "🔒 " : "") + `ENVIRONMENT-ADJUSTED EXPLOITABILITY${ztaEnabled && !TIER2_LOCKED ? " · ACTIVE" : ""}`
+            ),
+            e('span', { style: { color: "#6b7280", transform: showEnvAdj && !TIER2_LOCKED ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
           ),
-          showEnvAdj && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
+          showEnvAdj && !TIER2_LOCKED && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
             e('div', { style: { color: "#6b7280", fontSize: "11px", lineHeight: 1.6, marginBottom: "10px" } }, "ZTA / network segmentation reduces B by factor 0.571 (Broglio 2024)."),
             e('button', {
               onClick: () => setZtaEnabled(!ztaEnabled),
@@ -352,15 +381,18 @@ window.addEventListener('error', function(e) {
         ),
 
         // Temporal Decay
-        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden" } },
+        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden", opacity: TIER2_LOCKED ? 0.5 : 1 } },
           e('button', {
-            onClick: () => setShowDecay(!showDecay),
-            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
+            onClick: () => { if (!TIER2_LOCKED) setShowDecay(!showDecay); },
+            disabled: TIER2_LOCKED,
+            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: TIER2_LOCKED ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
           },
-            e('span', { style: { color: decayEnabled ? "#a070e8" : "#6b7280", fontWeight: 600 } }, `TEMPORAL DECAY${decayEnabled ? " · ACTIVE" : ""}`),
-            e('span', { style: { color: "#6b7280", transform: showDecay ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
+            e('span', { style: { color: decayEnabled ? "#a070e8" : "#6b7280", fontWeight: 600 } },
+              (TIER2_LOCKED ? "🔒 " : "") + `TEMPORAL DECAY${decayEnabled && !TIER2_LOCKED ? " · ACTIVE" : ""}`
+            ),
+            e('span', { style: { color: "#6b7280", transform: showDecay && !TIER2_LOCKED ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
           ),
-          showDecay && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
+          showDecay && !TIER2_LOCKED && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
             e('div', { style: { color: "#6b7280", fontSize: "11px", lineHeight: 1.6, marginBottom: "10px" } },
               `L_eff = L(t) × exp(-λ × age). IIb: half-life 10yr. III: 13.9yr.${!cveId ? " Enter CVE ID above." : ""}`
             ),
@@ -373,15 +405,18 @@ window.addEventListener('error', function(e) {
         ),
 
         // ORS
-        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden" } },
+        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden", opacity: TIER2_LOCKED ? 0.5 : 1 } },
           e('button', {
-            onClick: () => setShowORS(!showORS),
-            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
+            onClick: () => { if (!TIER2_LOCKED) setShowORS(!showORS); },
+            disabled: TIER2_LOCKED,
+            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: TIER2_LOCKED ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
           },
-            e('span', { style: { color: showORS ? "#d4b832" : "#6b7280", fontWeight: 600 } }, "ORGANISATIONAL RISK SCALING · ORS(t)"),
-            e('span', { style: { color: "#6b7280", transform: showORS ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
+            e('span', { style: { color: showORS && !TIER2_LOCKED ? "#d4b832" : "#6b7280", fontWeight: 600 } },
+              (TIER2_LOCKED ? "🔒 " : "") + "ORGANISATIONAL RISK SCALING · ORS(t)"
+            ),
+            e('span', { style: { color: "#6b7280", transform: showORS && !TIER2_LOCKED ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
           ),
-          showORS && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
+          showORS && !TIER2_LOCKED && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
             e('div', { style: { color: "#6b7280", fontSize: "11px", lineHeight: 1.6, marginBottom: "10px" } }, "ORS(t) = DTVSS(t) × F(N). Does not modify base score."),
             e('div', { style: { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "10px" } },
               e('span', { style: { color: "#6b7280", fontSize: "11px" } }, "N ="),
@@ -409,9 +444,47 @@ window.addEventListener('error', function(e) {
           )
         ),
 
+        // Tier 3 pill
+        e('div', {
+          style: {
+            fontFamily: mono, fontSize: "12px", fontWeight: 600,
+            padding: "10px 14px", borderRadius: "999px",
+            border: "1px solid #5b93f544", background: "rgba(91,147,245,0.08)",
+            color: "#5b93f5", textAlign: "center", letterSpacing: "0.05em",
+            display: "flex", justifyContent: "center", alignItems: "center", gap: "8px",
+            marginTop: "6px"
+          }
+        },
+          e('span', null, "🔒 TIER 3"),
+          e('span', { style: { color: "#6b7280", fontWeight: 400 } }, "·"),
+          e('a', {
+            href: "https://www.linkedin.com/in/andr3wbr0",
+            target: "_blank", rel: "noopener noreferrer",
+            style: { color: "#5b93f5", textDecoration: "none", fontWeight: 600 }
+          }, "request pricing →")
+        ),
+
+        // Tier 4 pill
+        e('div', {
+          style: {
+            fontFamily: mono, fontSize: "12px", fontWeight: 600,
+            padding: "10px 14px", borderRadius: "999px",
+            border: "1px solid #a070e844", background: "rgba(160,112,232,0.08)",
+            color: "#a070e8", textAlign: "center", letterSpacing: "0.05em",
+            display: "flex", justifyContent: "center", alignItems: "center", gap: "8px"
+          }
+        },
+          e('span', null, "🔒 TIER 4"),
+          e('span', { style: { color: "#6b7280", fontWeight: 400 } }, "·"),
+          e('a', {
+            href: "https://www.linkedin.com/in/andr3wbr0",
+            target: "_blank", rel: "noopener noreferrer",
+            style: { color: "#a070e8", textDecoration: "none", fontWeight: 600 }
+          }, "request pricing →")
+        ),
+
         // Footer
         e('div', { style: { textAlign: "center", padding: "12px 0", fontFamily: mono, fontSize: "11px", color: "#6b7280", borderTop: "1px solid #1e2433", lineHeight: 1.8 } },
-          e('div', null, "DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10 · k=15 calibrated against 96 medical device CVEs"),
           e('div', { style: { marginTop: "4px" } }, "© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia"),
           e('div', { style: { marginTop: "2px", fontSize: "11px", color: "#b8bcc8" } }, "Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use"),
           e('div', { style: { marginTop: "8px" } },
@@ -422,11 +495,6 @@ window.addEventListener('error', function(e) {
             e('a', { href: "/calibration", style: { color: "#5b93f5", textDecoration: "none" } }, "Calibration"),
             " · ",
             e('a', { href: "/about", style: { color: "#5b93f5", textDecoration: "none" } }, "About")
-          ),
-          e('div', { style: { marginTop: "4px" } },
-            e('a', { href: "https://www.linkedin.com/in/andr3wbr0", target: "_blank", rel: "noopener noreferrer", style: { color: "#5b93f5", textDecoration: "none", fontWeight: 600 } },
-              "Reach out for information about Tier 2–4 offerings → LinkedIn"
-            )
           )
         ),
 
