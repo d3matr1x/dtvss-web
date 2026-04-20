@@ -5,7 +5,7 @@
       "commands": [
         "python -m venv /app/.venv",
         "/app/.venv/bin/pip install --upgrade pip",
-        "echo '=== DIAGNOSTIC: pwd ===' && pwd && echo '=== DIAGNOSTIC: ls -la ===' && ls -la && echo '=== DIAGNOSTIC: requirements files ===' && ls -la requirements* 2>&1 && echo '=== DIAGNOSTIC: end ===' && /app/.venv/bin/pip install --require-hashes -r requirements-lock.txt"
+        "/app/.venv/bin/pip install --require-hashes -r requirements-lock.txt"
       ]
     }
   }
