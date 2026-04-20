@@ -1,0 +1,353 @@
+# DTVSS Security Gates
+# =====================
+# Runs on every push, every PR, and weekly on a schedule. Fails the build
+# if any security control regresses. The point is to make sure none of the
+# protections shipped in PATCHES_v2.md can silently rot — a contributor
+# who downgrades a pinned dep, removes an XSS escape, or breaks a route
+# will get a red X on their PR before it merges.
+#
+# Per Fix #10 in PATCHES_v2.md.
+
+name: Security Gates
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Weekly Monday 06:00 UTC re-audit, so newly disclosed CVEs against
+    # currently-pinned deps get caught even if no code change has shipped.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:  # allow manual runs from the Actions tab
+
+# Minimal permissions per principle of least privilege. We only read the
+# repo and write check annotations; nothing else.
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Job 1: Dependency vulnerability scan
+  # ---------------------------------------------------------------------
+  pip-audit:
+    name: pip-audit (CVE scan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-audit
+        run: python -m pip install --upgrade pip pip-audit
+
+      - name: Audit pinned requirements.txt
+        # --strict makes pip-audit exit non-zero on any vulnerability
+        # found in the resolved dependency tree, including transitive ones.
+        run: pip-audit --strict -r requirements.txt
+
+      - name: Audit lockfile
+        # The hashed lockfile is what production actually installs, so
+        # audit it independently. If the two diverge (e.g. someone bumped
+        # requirements.txt without regenerating the lockfile), this job
+        # surfaces the inconsistency.
+        run: pip-audit --strict -r requirements-lock.txt
+
+  # ---------------------------------------------------------------------
+  # Job 2: Security regression test suite
+  # ---------------------------------------------------------------------
+  security-tests:
+    name: test_security.py (33 PoC tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install hashed dependencies
+        # Match production: install with --require-hashes from the lockfile.
+        # If a hash drift makes it into a PR, this job catches it before
+        # production ever sees it.
+        run: |
+          python -m pip install --upgrade pip
+          pip install --require-hashes -r requirements-lock.txt
+
+      - name: Run security test suite
+        # test_security.py exits non-zero if any of the 33 PoC tests fail.
+        # That is the gate — every fix in PATCHES_v2.md is verified here.
+        run: python test_security.py
+
+  # ---------------------------------------------------------------------
+  # Job 3: Hash-pinning consistency check
+  # ---------------------------------------------------------------------
+  lockfile-drift:
+    name: Lockfile drift check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-tools
+        run: python -m pip install --upgrade pip pip-tools
+
+      - name: Verify lockfile is in sync with requirements.txt
+        # Regenerate the lockfile in a tempfile and diff against the
+        # checked-in version. Any *content* difference means someone
+        # updated requirements.txt without running `pip-compile
+        # --generate-hashes`. That's the failure mode this job exists
+        # to catch.
+        #
+        # We strip leading comment lines from both files before diffing
+        # because the checked-in lockfile carries an explanatory header
+        # (Fix #7b) that pip-compile doesn't regenerate. The header is
+        # human documentation; what matters for security is the package
+        # list and the hashes, both of which pip-compile produces
+        # deterministically.
+        run: |
+          pip-compile --generate-hashes --quiet \
+            --output-file=/tmp/requirements-lock.regenerated.txt \
+            requirements.txt
+
+          # Strip leading comment-only lines (the documentation header)
+          # so the diff focuses on the actual lock content.
+          strip_header() {
+            # Skip lines until we hit one that doesn't start with #
+            awk 'started || !/^[[:space:]]*#/ { started=1; print }' "$1"
+          }
+
+          if ! diff -u <(strip_header requirements-lock.txt) \
+                       <(strip_header /tmp/requirements-lock.regenerated.txt); then
+            echo "::error::requirements-lock.txt content drift from requirements.txt"
+            echo "::error::Run: pip-compile --generate-hashes -o requirements-lock.txt requirements.txt"
+            echo "::error::Then commit both files together (preserving the header comment block)."
+            exit 1
+          fi
+          echo "✓ Lockfile content in sync with requirements.txt"
+
+  # ---------------------------------------------------------------------
+  # Job 4: App boot smoke test
+  # ---------------------------------------------------------------------
+  smoke-test:
+    name: App boot + route smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install hashed dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --require-hashes -r requirements-lock.txt
+
+      - name: Boot app and hit every public route
+        env:
+          DTVSS_ALLOW_EPHEMERAL: '1'
+        # Catches the Fix #1 class of bug: a contributor who renames an
+        # HTML file or moves it into a subfolder will see every route
+        # 404, and this job will fail loudly instead of letting the
+        # broken deploy reach production.
+        run: |
+          # Diagnostic: dump the working dir and static/ contents so any
+          # 404 failure is easy to debug from the log alone.
+          echo "=== DIAGNOSTIC: pwd ==="
+          pwd
+          echo "=== DIAGNOSTIC: repo root contents ==="
+          ls -la
+          echo "=== DIAGNOSTIC: static/ contents ==="
+          ls -la static/ 2>&1 || echo "static/ directory does not exist"
+          echo "=== DIAGNOSTIC: end ==="
+
+          python <<'EOF'
+          import sys
+          import os
+          import app
+          print(f"STATIC_DIR resolves to: {app.STATIC_DIR}")
+          print(f"STATIC_DIR exists: {os.path.isdir(app.STATIC_DIR)}")
+          if os.path.isdir(app.STATIC_DIR):
+              print(f"STATIC_DIR contents: {sorted(os.listdir(app.STATIC_DIR))[:15]}")
+          client = app.app.test_client()
+          paths = [
+              '/', '/calculator', '/calibration', '/about',
+              '/security-policy', '/.well-known/security.txt',
+              '/robots.txt', '/sitemap.xml', '/health',
+              '/api/device-classes', '/api/manufacturers',
+          ]
+          failures = []
+          for p in paths:
+              r = client.get(p)
+              status = '✓' if r.status_code == 200 else '✗'
+              print(f'  {status} {p:32s} -> {r.status_code}')
+              if r.status_code != 200:
+                  failures.append((p, r.status_code))
+          if failures:
+              print(f'\n{len(failures)} route(s) failed:')
+              for p, code in failures:
+                  print(f'  {p} -> {code}')
+              sys.exit(1)
+          print('\nAll routes 200 OK')
+          EOF
+
+  # ---------------------------------------------------------------------
+  # Job 5: Static security checks on the HTML
+  # ---------------------------------------------------------------------
+  html-xss-check:
+    name: HTML XSS sanitization grep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify escapeHtml/safeHref helpers still exist
+        # If someone removes the helpers (or renames them), every
+        # interpolation in static/index.html becomes an unsanitized template.
+        # This is a coarse but effective regression catch.
+        #
+        # Path note: HTML files live in static/ (the Flask static_folder).
+        # If you ever restructure to keep HTML at the repo root, update
+        # the path on every grep below.
+        run: |
+          set -e
+          INDEX=static/index.html
+          if [ ! -f "$INDEX" ]; then
+            echo "::error::Expected $INDEX to exist. Did the project layout change?"
+            ls -la
+            exit 1
+          fi
+          grep -q 'function escapeHtml' "$INDEX"
+          grep -q 'function safeHref' "$INDEX"
+          echo "✓ escapeHtml + safeHref helpers present in $INDEX"
+
+      - name: Verify no raw \${r.description} or \${r.cve_id} interpolations
+        # If a contributor introduces `${r.description}` (raw, no escape
+        # wrapper) into an innerHTML template, that's a fresh XSS vector.
+        # This grep catches the pattern.
+        #
+        # Escape hatch: append `// xss-ok: <reason>` to a line where the
+        # interpolation is genuinely safe (e.g. plain text going to
+        # navigator.clipboard.writeText, or a string concatenated for a
+        # log line). Forces the contributor to consciously acknowledge
+        # the choice rather than letting the linter encode it.
+        run: |
+          INDEX=static/index.html
+          # Look for ${r.<field>} that ISN'T inside escapeHtml() / safeHref()
+          # / encodeURIComponent() / .toFixed() / .slice() — those are the
+          # known-safe wrappers. Lines with a `xss-ok` comment are skipped.
+          violations=$(grep -nE '\$\{r\.[a-zA-Z_]+\}' "$INDEX" | \
+            grep -vE 'escapeHtml|safeHref|encodeURIComponent|toFixed|slice|xss-ok' || true)
+          if [ -n "$violations" ]; then
+            echo "::error::Possible unsanitized interpolation in $INDEX:"
+            echo "$violations"
+            echo "::error::Wrap upstream-sourced fields with escapeHtml() or use safeHref() for href values."
+            echo "::error::If the line is genuinely safe (e.g. plain text to clipboard), append // xss-ok: <reason>"
+            exit 1
+          fi
+          echo "✓ No raw \${r.X} interpolations found in $INDEX"
+
+  # ---------------------------------------------------------------------
+  # Job 6: railpack.json schema validation
+  # ---------------------------------------------------------------------
+  railpack-schema:
+    name: railpack.json schema validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install jsonschema
+        run: python -m pip install --upgrade pip jsonschema
+
+      - name: Validate railpack.json against schema.railpack.com
+        # If someone adds a non-schema-compliant field (like a `_comment`
+        # key) the Railway build will fail. Catch it here instead.
+        run: |
+          python <<'EOF'
+          import json
+          import sys
+          import urllib.request
+
+          with open('railpack.json') as f:
+              cfg = json.load(f)
+
+          try:
+              with urllib.request.urlopen('https://schema.railpack.com/', timeout=10) as r:
+                  schema = json.loads(r.read())
+          except Exception as e:
+              print(f'::warning::Could not fetch Railpack schema ({e}); skipping')
+              sys.exit(0)
+
+          import jsonschema
+          try:
+              jsonschema.validate(cfg, schema)
+              print('✓ railpack.json valid against Railpack schema')
+          except jsonschema.ValidationError as e:
+              print(f'::error::railpack.json invalid: {e.message}')
+              print(f'::error::path: {list(e.path)}')
+              sys.exit(1)
+          EOF
+
+  # ---------------------------------------------------------------------
+  # Job 7: Hash-mismatch resilience check
+  # ---------------------------------------------------------------------
+  hash-enforcement-check:
+    name: --require-hashes actually rejects unpinned deps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify pip --require-hashes rejects unpinned packages
+        # This is a meta-check: it confirms the security primitive itself
+        # (pip's --require-hashes mode) still behaves the way Fix #7b
+        # depends on. If a future pip release weakens this, we want to
+        # know immediately rather than discover it from a real incident.
+        #
+        # Implementation note: we use a name that is overwhelmingly
+        # unlikely to be installed in the runner image, so pip is forced
+        # to actually try the install (and reject it) rather than print
+        # "Requirement already satisfied" and exit 0. We run inside a
+        # fresh venv so PEP 668 ("externally-managed-environment") errors
+        # from the system Python don't masquerade as the test failing.
+        run: |
+          python -m venv /tmp/hashtest-venv
+          # `click` is a real PyPI package, but listed without an `==`
+          # pin. That's what triggers pip's "must have their versions
+          # pinned with ==" error (the security check we're verifying).
+          # A nonexistent package would error at the "find package"
+          # step before --require-hashes ever runs, which is the wrong
+          # failure mode to test.
+          echo "click" > /tmp/test-nohash.txt
+          if output=$(/tmp/hashtest-venv/bin/pip install \
+                        --require-hashes -r /tmp/test-nohash.txt 2>&1); then
+            echo "::error::pip install --require-hashes succeeded on an unpinned package!"
+            echo "::error::$output"
+            exit 1
+          fi
+          if echo "$output" | grep -q "must have their versions pinned"; then
+            echo "✓ --require-hashes correctly rejects unpinned packages"
+          else
+            echo "::error::--require-hashes failed but for the wrong reason:"
+            echo "$output"
+            exit 1
+          fi

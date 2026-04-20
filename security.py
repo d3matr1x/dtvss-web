@@ -75,9 +75,15 @@ BLOCKED_DOMAIN_SUFFIXES = (
 
 # CORS: origins permitted to call the API from browsers
 # Override via DTVSS_CORS_ORIGINS env var (comma-separated)
+#
+# Pentest finding (MEDIUM): the default allowlist previously used dtvss.app,
+# but the production deployment is at dtvss.io (matches sitemap.xml,
+# SECURITY.md, and security.txt Canonical). On any deploy that doesn't set
+# DTVSS_CORS_ORIGINS, browser API calls from the real frontend would have
+# been blocked by CORS. Defaults now match the canonical domain.
 DEFAULT_CORS_ORIGINS = [
-    "https://dtvss.app",
-    "https://www.dtvss.app",
+    "https://dtvss.io",
+    "https://www.dtvss.io",
 ]
 
 # Response size caps to prevent memory exhaustion
@@ -200,6 +206,14 @@ def safe_fetch_bytes(
         # The hard read-cap below would still catch oversized bodies, but
         # the early-exit benefit was lost. We now narrow the try to only
         # the int() conversion and check the bound outside it.
+        #
+        # Caveat: servers using Transfer-Encoding: chunked do not send
+        # Content-Length, so this early-exit branch is bypassed entirely
+        # for chunked responses. The hard read-cap below is the actual
+        # security boundary; the Content-Length check is a fast-path
+        # optimisation that saves the bandwidth of reading max_bytes+1
+        # when the server is honest about the response size up front.
+        # This is intentional, not a gap — see read-cap on line 215.
         content_length = resp.headers.get("Content-Length")
         if content_length:
             try:
@@ -210,8 +224,10 @@ def safe_fetch_bytes(
                 raise ValueError(
                     f"Response too large: {content_length} > {max_bytes}"
                 )
-        
+
         # Read with hard cap. Read one extra byte to detect overflow.
+        # This is the AUTHORITATIVE size enforcement — works for both
+        # Content-Length and chunked Transfer-Encoding responses.
         raw = resp.read(max_bytes + 1)
         if len(raw) > max_bytes:
             raise ValueError(f"Response exceeded {max_bytes} bytes")
@@ -265,12 +281,21 @@ def validate_cve_id(cve_id: str) -> Optional[str]:
     """
     Normalize and validate a CVE ID.
     Returns canonical form or None if invalid.
+
+    Order of operations matters: strip whitespace BEFORE the length check so
+    pasted CVE IDs with surrounding whitespace are accepted, but pathological
+    inputs (e.g. 30 KB of leading whitespace) are rejected by the pre-strip
+    bound below.
     """
     if not cve_id or not isinstance(cve_id, str):
         return None
-    if len(cve_id) > MAX_CVE_ID_LENGTH:
+    # Pre-strip bound: defends against pathological whitespace-padded inputs.
+    # Use a generous multiplier so a few extra spaces never reach strip().
+    if len(cve_id) > MAX_CVE_ID_LENGTH * 4:
         return None
     normalized = cve_id.strip().upper()
+    if len(normalized) > MAX_CVE_ID_LENGTH:
+        return None
     if not normalized.startswith("CVE-"):
         normalized = "CVE-" + normalized
     if not CVE_ID_RE.match(normalized):
@@ -342,7 +367,23 @@ def validate_int_param(
 _URL_RE = re.compile(r'https?://[^\s\'"<>]+')
 _KEY_RE = re.compile(r'\b[a-zA-Z0-9]{32,}\b')
 _PATH_RE = re.compile(r'(?:/[\w\-.]+){2,}')
-_HOME_RE = re.compile(r'/home/\w+|/root|/Users/\w+|C:\\Users\\\w+')
+# Pentest finding (LOW): the previous _HOME_RE missed container paths
+# (/mnt/..., /app/..., /workspace/...) and Railway/Docker conventions
+# (/data/..., /var/lib/...). _PATH_RE catches them generically as [PATH],
+# but listing the well-known sensitive prefixes here means they get tagged
+# as [HOME] (more accurate signal in logs) and ensures we don't accidentally
+# leak a deployment layout if _PATH_RE is ever loosened.
+_HOME_RE = re.compile(
+    r'/home/\w+'
+    r'|/root(?:/|\b)'
+    r'|/Users/\w+'
+    r'|C:\\Users\\\w+'
+    r'|/mnt/[\w\-]+'           # container mounts (e.g. /mnt/user-data)
+    r'|/app(?:/|\b)'           # Heroku/Docker app dir
+    r'|/workspace(?:/|\b)'     # GitHub Codespaces / Cloud Shell
+    r'|/data(?:/|\b)'          # Railway persistent volume convention
+    r'|/var/lib/\w+'           # systemd / packaged service data dirs
+)
 
 
 def sanitize_error(exc: Exception, max_len: int = 200) -> str:
@@ -459,14 +500,19 @@ def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
     except ImportError:
         log.warning("flask-cors not installed; CORS not configured")
     
-    # Request ID
+    # Request ID + per-request CSP nonce
     @app.before_request
     def _assign_request_id():
         g.request_id = (
             request.headers.get("X-Request-ID")
             or uuid.uuid4().hex
         )
-    
+        # Per-request nonce for CSP. Templates can opt in by emitting
+        # <script nonce="{{ g.csp_nonce }}">...</script> on inline scripts.
+        # Once all inline scripts/styles use the nonce, set
+        # DTVSS_CSP_STRICT=1 to drop 'unsafe-inline' from the CSP entirely.
+        g.csp_nonce = uuid.uuid4().hex
+
     # Security headers + request ID on every response
     @app.after_request
     def _security_headers(response):
@@ -483,21 +529,68 @@ def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains"
             )
-        
-        # CSP — relaxed for the HTML pages, strict for JSON
+
+        # CSP — strict for JSON; nonce-based for HTML.
+        # FIX #13: previously the HTML CSP allowed 'unsafe-inline' for both
+        # script-src and style-src, which defeated the main purpose of CSP
+        # (mitigating reflected/stored XSS). Now we emit a per-request
+        # nonce in g.csp_nonce that templates can use:
+        #   <script nonce="{{ g.csp_nonce }}"> ... </script>
+        # In strict mode (DTVSS_CSP_STRICT=1, opt-in), 'unsafe-inline' is
+        # dropped entirely. We default to a permissive policy that emits
+        # the nonce alongside 'unsafe-inline' so existing templates keep
+        # working while new templates migrate. Per spec, when a nonce or
+        # hash is present, modern browsers ignore 'unsafe-inline' anyway —
+        # so adding the nonce now is a no-regression hardening step.
         if response.mimetype == "application/json":
             response.headers["Content-Security-Policy"] = "default-src 'none'"
         else:
+            nonce = getattr(g, "csp_nonce", "")
+            # Strict CSP is now the default (Fix #11). Every inline event
+            # handler in the HTML was migrated to addEventListener / event
+            # delegation, and Fix #8 wired up nonce injection on the static-
+            # file path so every <script>/<style> block carries the per-
+            # request nonce.
+            #
+            # If a future contributor adds an inline onclick=/onmouseover=/
+            # etc. handler, strict CSP will break it visibly in the browser
+            # console — that's the desired feedback loop. Use the opt-out
+            # below ONLY as a temporary unblocker while migrating, never
+            # as a permanent setting.
+            #
+            # Opt-out: DTVSS_CSP_STRICT=0  (drops back to permissive
+            # 'unsafe-inline' behaviour). The Fix #11 inline-handler
+            # migration removed the legitimate need for this; please open a
+            # security advisory rather than disabling permanently.
+            strict = os.environ.get("DTVSS_CSP_STRICT", "1") != "0"
+            inline = "" if strict else " 'unsafe-inline'"
+            # style-src-attr governs inline `style="..."` attributes
+            # specifically (CSP Level 3). The Fix #11 inline-handler
+            # migration converted all event handlers to addEventListener,
+            # but the project still has hundreds of inline style attributes
+            # in its templates (e.g. dynamic per-tier colors). Migrating
+            # every one of them into a stylesheet would be a massive
+            # refactor with no real security benefit — inline style
+            # attributes can't load resources, can't execute expressions,
+            # and can't exfiltrate data. We allow them explicitly here so
+            # `style-src` can still be strict for <style> blocks (which
+            # ARE a real injection vector). Older browsers that don't
+            # understand style-src-attr fall back to style-src, which
+            # already includes 'unsafe-inline' when DTVSS_CSP_STRICT=0.
+            style_attr = " 'unsafe-inline'" if strict else ""
             response.headers["Content-Security-Policy"] = (
-                "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                "font-src 'self' https://fonts.gstatic.com; "
-                "img-src 'self' data:; "
-                "connect-src 'self'; "
-                "frame-ancestors 'none'; "
-                "base-uri 'self'; "
-                "form-action 'self'"
+                f"default-src 'self'; "
+                f"script-src 'self' 'nonce-{nonce}'{inline} "
+                f"https://cdnjs.cloudflare.com; "
+                f"style-src 'self' 'nonce-{nonce}'{inline} "
+                f"https://fonts.googleapis.com; "
+                f"style-src-attr{style_attr}; "
+                f"font-src 'self' https://fonts.gstatic.com; "
+                f"img-src 'self' data:; "
+                f"connect-src 'self'; "
+                f"frame-ancestors 'none'; "
+                f"base-uri 'self'; "
+                f"form-action 'self'"
             )
         
         return response

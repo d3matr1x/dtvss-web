@@ -73,6 +73,13 @@ def parse_cvss31_exploitability(vector: str) -> Optional[float]:
     v3.x: Exploitability = 8.22 × AV × AC × PR × UI
     v4.0: Uses same AV/AC/PR/UI components with AT mapped to AC equivalent.
     Returns None if vector cannot be parsed.
+
+    Precision: rounds to 3 decimals to match the FIRST.org CVSS v3.1
+    specification examples and the dataset-build path in build_dataset.py.
+    Previously rounded to 1 decimal here, which caused the live API path
+    and the calibration path to disagree on B for the same CVSS vector
+    (and therefore on DTVSS score, sometimes crossing the 8.0 Critical
+    threshold).
     """
     if not vector:
         return None
@@ -106,7 +113,7 @@ def parse_cvss31_exploitability(vector: str) -> Optional[float]:
         if None in (av, ac, pr, ui):
             return None
 
-        return round(8.22 * av * ac * pr * ui, 1)
+        return round(8.22 * av * ac * pr * ui, 3)
     except Exception:
         return None
 
@@ -168,11 +175,40 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
     return result
 
 
+def is_lookup_error(result: Optional[dict]) -> bool:
+    """
+    Helper: True if a *_lookup_cve result is an error sentinel.
+
+    Both nvd_lookup_cve() and mitre_lookup_cve() use the convention of
+    returning either a valid result dict, an error dict {"error": "..."},
+    or None. This helper centralises the "is this a real result?" check
+    so future callers don't accidentally treat an error dict as success
+    by writing `if result:` (which is True for both).
+
+    Usage:
+        result = mitre_lookup_cve(cve_id)
+        if is_lookup_error(result):
+            ...handle error...
+        else:
+            ...use result...
+    """
+    return result is None or (isinstance(result, dict) and "error" in result)
+
+
 def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
     """
     Fallback: look up CVE from MITRE CVE.org API when NVD hasn't enriched it.
     Extracts CVSS vector from CNA-provided metrics and computes exploitability.
     Addresses the NVD backlog where 72%+ of CVEs remain unenriched.
+
+    Returns:
+        - A populated dict with CVSS data on success.
+        - {"error": "..."} on any failure (network, no CNA data, etc.).
+        - Never returns None today, but typed Optional[dict] for forward
+          compatibility with future callers that may want to distinguish
+          "no result" from "error result".
+
+    Callers should use is_lookup_error() rather than a bare truthiness check.
     """
     url = f"{MITRE_CVE_URL}/{cve_id}"
 
@@ -455,14 +491,23 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
 def epss_lookup(cve_ids: list[str]) -> dict:
     """
     Batch lookup EPSS scores. Returns dict of cve_id -> {epss, percentile, date}.
-    
+
     FIXED: Now handles 100+ CVEs by processing in chunks of 100.
+    FIXED: Per-row error isolation — a single malformed row no longer discards
+           the rest of the batch (a KeyError used to bubble out of the for loop
+           into the outer except: pass).
+    FIXED: Logs failures instead of swallowing them silently. EPSS failure is
+           non-fatal for scoring (L defaults to 0.0) but operators need visible
+           signal when scores are silently degrading to static B*H/10.
     """
+    import logging
+    _log = logging.getLogger("dtvss.epss")
+
     if not cve_ids:
         return {}
 
     results = {}
-    
+
     # Process in chunks of 100 (EPSS API limit)
     for i in range(0, len(cve_ids), 100):
         chunk = cve_ids[i:i+100]
@@ -475,17 +520,33 @@ def epss_lookup(cve_ids: list[str]) -> dict:
                 headers={"Accept": "application/json", "User-Agent": "DTVSS/6.0"},
                 timeout=10,
             )
+        except Exception as e:
+            _log.warning(
+                "EPSS batch %d/%d failed (%d CVEs): %s — affected scores will "
+                "default to L=0.0 (static B*H/10).",
+                (i // 100) + 1, (len(cve_ids) + 99) // 100, len(chunk), e,
+            )
+            data = None
 
-            if data and data.get("data"):
-                for row in data["data"]:
-                    results[row["cve"]] = {
-                        "epss": float(row["epss"]),
-                        "percentile": float(row["percentile"]),
+        if data and isinstance(data.get("data"), list):
+            for row in data["data"]:
+                # Per-row try/except: previously a single malformed row took
+                # down the whole batch via the outer except: pass.
+                try:
+                    cve = row.get("cve")
+                    epss_val = row.get("epss")
+                    pct_val = row.get("percentile")
+                    if not cve or epss_val is None or pct_val is None:
+                        continue
+                    results[cve] = {
+                        "epss": float(epss_val),
+                        "percentile": float(pct_val),
                         "date": row.get("date", ""),
                     }
-        except Exception as e:
-            pass  # EPSS failure is non-fatal; L(t) defaults to 0.0
-        
+                except (TypeError, ValueError) as row_err:
+                    _log.debug("EPSS row skipped (%s): %r", row_err, row)
+                    continue
+
         # Rate limit between batches (be nice to EPSS API)
         if i + 100 < len(cve_ids):
             time.sleep(0.5)
@@ -563,22 +624,56 @@ def openfda_classify_device(device_name: str) -> Optional[dict]:
 # CISA KEV Catalog - Direct check (fallback when NVD hasn't enriched)
 # ═══════════════════════════════════════════════════════════════════════
 
-_kev_cache = {"data": None, "fetched_at": 0}
+_kev_cache = {"data": None, "fetched_at": 0, "last_failure_at": 0}
 KEV_CATALOG_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
-KEV_CACHE_TTL = 3600  # refresh hourly
+KEV_CACHE_TTL = 3600       # refresh hourly on success
+KEV_FAILURE_BACKOFF = 300  # after a failure or invalid catalog, wait 5 min
+                           # before retrying. Without this, every request after
+                           # an upstream outage triggers a fresh fetch attempt
+                           # and re-validation of ~1 MB of JSON.
 
 
 def cisa_kev_check(cve_id: str) -> Optional[dict]:
     """
-    Check if a CVE is in the CISA KEV catalog directly.
-    Caches the full catalog in memory, refreshes hourly.
-    Returns KEV details or None.
+    Check if a CVE is in the CISA KEV catalog.
+
+    Returns:
+        dict with keys {kev, kev_added, kev_due, kev_name, kev_action} when
+        the CVE IS in the catalog. The "kev" key is always True when present
+        (kept for backward compatibility with callers that may have relied
+        on it; truthiness of the dict alone is also a valid presence test).
+
+        None when the CVE is NOT in the catalog, OR when the catalog is
+        unavailable (cold start + network failure, structurally invalid
+        upstream response, etc.). Callers MUST treat None as "unknown",
+        not "definitely not KEV-listed", because a transient outage looks
+        identical to a genuine miss from a caller's perspective.
+
+    Caches the full catalog in memory, refreshes hourly, backs off
+    KEV_FAILURE_BACKOFF seconds on failure to avoid hammering upstream
+    during outages.
+
+    BUG FIX: previously, when validation failed or the fetch raised, the
+    function returned None without recording the failure time. Every
+    subsequent call within the cache TTL re-fetched and re-validated the
+    bad catalog, hammering CISA. Now uses last_failure_at + KEV_FAILURE_BACKOFF.
     """
     import time as _time
+    import logging as _logging
+    _log = _logging.getLogger("dtvss.kev")
     now = _time.time()
 
-    # Refresh cache if stale
-    if _kev_cache["data"] is None or (now - _kev_cache["fetched_at"]) > KEV_CACHE_TTL:
+    # Decide whether to attempt a refresh.
+    cache_empty = _kev_cache["data"] is None
+    cache_stale = (now - _kev_cache["fetched_at"]) > KEV_CACHE_TTL
+    in_failure_backoff = (now - _kev_cache["last_failure_at"]) < KEV_FAILURE_BACKOFF
+
+    # Attempt only when (empty OR stale) AND not currently in failure backoff.
+    # Earlier draft of this fix bypassed backoff when cache_empty, which meant
+    # repeated failures after a cold-start outage still hammered upstream.
+    should_refresh = (cache_empty or cache_stale) and not in_failure_backoff
+
+    if should_refresh:
         try:
             catalog = _fetch_json(
                 KEV_CATALOG_URL,
@@ -587,24 +682,28 @@ def cisa_kev_check(cve_id: str) -> Optional[dict]:
             )
 
             # M-1: Validate the refreshed catalog before trusting it.
-            # If the upstream response is structurally bad or suspiciously
-            # small (e.g., compromised CDN serving an empty list to hide
-            # active exploits), keep whatever we already had cached
-            # rather than overwriting good data with poisoned data.
             from security import validate_kev_catalog
             indexed = validate_kev_catalog(catalog)
             if indexed is None:
-                # Bad catalog - preserve prior cache rather than overwriting
+                _log.warning("KEV catalog validation failed; backing off %ds.",
+                             KEV_FAILURE_BACKOFF)
+                _kev_cache["last_failure_at"] = now
                 if _kev_cache["data"] is None:
                     return None
                 # Otherwise fall through to use stale-but-good cached data
             else:
                 _kev_cache["data"] = indexed
                 _kev_cache["fetched_at"] = now
-        except Exception:
-            # If fetch fails and we have stale data, use it
+                _kev_cache["last_failure_at"] = 0  # clear failure state
+        except Exception as e:
+            _log.warning("KEV catalog fetch failed (%s); backing off %ds.",
+                         e, KEV_FAILURE_BACKOFF)
+            _kev_cache["last_failure_at"] = now
             if _kev_cache["data"] is None:
                 return None
+
+    if _kev_cache["data"] is None:
+        return None
 
     entry = _kev_cache["data"].get(cve_id)
     if not entry:

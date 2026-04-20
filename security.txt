@@ -2,7 +2,7 @@
 # DTVSS Security Policy — security.txt (RFC 9116)
 # =============================================================================
 # This file tells security researchers how to report vulnerabilities in the
-# Dynamic Temporal Vulnerability Scoring System (DTVSS) deployed at dtvss.app.
+# Dynamic Temporal Vulnerability Scoring System (DTVSS) deployed at dtvss.io.
 #
 # Reports are received privately via GitHub Security Advisories so that fixes
 # can be coordinated before public disclosure.
@@ -11,7 +11,7 @@
 # Where to report a vulnerability (GitHub private vulnerability reporting).
 # Researchers click "Report a vulnerability" on the Security tab to open a
 # private advisory that only repository maintainers can see.
-Contact: https://github.com/OWNER/REPO/security/advisories/new
+Contact: https://github.com/d3matr1x/dtvss-web/security/advisories/new
 
 # When this policy expires and must be re-issued. RFC 9116 requires this
 # field and recommends a value less than 12 months. Calendar reminder
@@ -24,12 +24,12 @@ Preferred-Languages: en
 
 # The canonical URI for this file. If this file is mirrored elsewhere it
 # is only authoritative when served from the URI below.
-Canonical: https://dtvss.app/.well-known/security.txt
+Canonical: https://dtvss.io/.well-known/security.txt
 
 # Full vulnerability disclosure policy — scope, safe harbour, timelines,
 # and what to include in a report.
-Policy: https://dtvss.app/security-policy
+Policy: https://dtvss.io/security-policy
 
 # Public acknowledgements page. Researchers who report valid issues and
 # wish to be credited are listed here after the issue is remediated.
-Acknowledgments: https://github.com/OWNER/REPO/security/advisories
+Acknowledgments: https://github.com/d3matr1x/dtvss-web/security/advisories
