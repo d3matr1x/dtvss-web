@@ -13,7 +13,7 @@
 #   Service Settings → Build → Builder → Railpack → Save
 # The next deploy will use this railway.toml + railpack.json instead of the
 # old [build.nixpacksConfig.*] block.
-builder = "railpack"
+builder = "RAILPACK"
 
 [deploy]
 # gunicorn hardening (from INFO-02 in pentest):
