@@ -14,11 +14,17 @@ Run: python3 test_security.py
 
 import json
 import math
+import os
 import sys
 from io import BytesIO
 
-# Make security module importable
-sys.path.insert(0, "/home/claude")
+# Make project modules importable regardless of working directory.
+# Previously this hardcoded /home/claude paths from a sandbox layout, which
+# meant `python3 test_security.py` only worked if you happened to have that
+# exact directory structure. Now we anchor on this file's own location, so
+# the tests work on any machine, in any working directory, in CI, etc.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from security import (
     validate_external_url,
     validate_cve_id,
@@ -461,9 +467,8 @@ def test_kev_validation():
 def test_kev_cache_poisoning():
     section("M-1: KEV Cache Poisoning Resilience (cisa_kev_check)")
 
-    # api_clients lives in /home/claude/dtvss in this test environment
-    sys.path.insert(0, "/home/claude/dtvss")
-    sys.path.insert(0, "/home/claude")
+    # api_clients is on sys.path via the module-level insert at top of file;
+    # no further path manipulation needed.
     import api_clients
 
     poc("Cache holds a known KEV entry; upstream then returns an empty catalog")
@@ -480,6 +485,7 @@ def test_kev_cache_poisoning():
         }
     }
     api_clients._kev_cache["fetched_at"] = 0  # force refresh path
+    api_clients._kev_cache["last_failure_at"] = 0  # clear backoff state
 
     original_fetch = api_clients._fetch_json
     try:
@@ -495,6 +501,7 @@ def test_kev_cache_poisoning():
 
         # Scenario 2: structurally broken catalog (not a dict)
         api_clients._kev_cache["fetched_at"] = 0
+        api_clients._kev_cache["last_failure_at"] = 0  # clear backoff for fresh test
         api_clients._fetch_json = (
             lambda url, headers=None, timeout=15, max_bytes=None: "garbage string"
         )
@@ -507,6 +514,7 @@ def test_kev_cache_poisoning():
         # Scenario 3: cold start (no prior cache) + poisoned response → None
         api_clients._kev_cache["data"] = None
         api_clients._kev_cache["fetched_at"] = 0
+        api_clients._kev_cache["last_failure_at"] = 0
         api_clients._fetch_json = (
             lambda url, headers=None, timeout=15, max_bytes=None: {"vulnerabilities": []}
         )
@@ -516,9 +524,12 @@ def test_kev_cache_poisoning():
         else:
             fix_fail(f"Cold-start should return None but got: {r3!r}")
 
-        # Scenario 4: a legitimate refresh after recovery still updates the cache
+        # Scenario 4: a legitimate refresh after recovery still updates the cache.
+        # Reset last_failure_at to simulate post-backoff retry (in real life,
+        # KEV_FAILURE_BACKOFF seconds would have passed; here we fast-forward).
         api_clients._kev_cache["data"] = None
         api_clients._kev_cache["fetched_at"] = 0
+        api_clients._kev_cache["last_failure_at"] = 0
         good_catalog = {
             "vulnerabilities": [
                 {
@@ -555,6 +566,7 @@ def test_kev_cache_poisoning():
         # Reset cache so subsequent tests don't see leaked state
         api_clients._kev_cache["data"] = None
         api_clients._kev_cache["fetched_at"] = 0
+        api_clients._kev_cache["last_failure_at"] = 0
 
 
 # =============================================================================
@@ -665,8 +677,7 @@ def test_advisory_host_restriction():
 def test_response_size_cap():
     section("M-3: Response Size Cap (api_clients._fetch_json)")
 
-    sys.path.insert(0, "/home/claude/dtvss")
-    sys.path.insert(0, "/home/claude")
+    # api_clients is on sys.path via the module-level insert at top of file.
     import api_clients
     import urllib.request
     from security import safe_fetch_bytes, MAX_RESPONSE_BYTES
@@ -799,6 +810,7 @@ def test_response_size_cap():
     api_clients._fetch_json = stub
     api_clients._kev_cache["data"] = None
     api_clients._kev_cache["fetched_at"] = 0
+    api_clients._kev_cache["last_failure_at"] = 0  # clear any prior backoff
     api_clients._device_cache["keywords"] = {}
     api_clients._device_cache["fetched_at"] = 0
 

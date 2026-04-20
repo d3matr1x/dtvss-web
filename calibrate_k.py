@@ -242,10 +242,30 @@ def main():
         print(f"Lowest integer k satisfying all four criteria: k = {lowest_satisfying_k}")
     else:
         print("NO k in [1, 30] satisfies all four criteria.")
-        print("This indicates the dataset does not reproduce the patent's conditions.")
+        print("Diagnostics:")
+        # Specifically check which patent-frozen test CVEs are present.
+        # If they're missing, criteria (i)/(iii) score 0.0 at every k and the
+        # generic "no k satisfies" message can't distinguish that from
+        # genuine EPSS failure. Be explicit so operators can pinpoint why.
+        cve_present = {
+            "CVE-2017-12718": any(r["cve_id"] == "CVE-2017-12718" for r in rows),
+            "CVE-2020-11896": any(r["cve_id"] == "CVE-2020-11896" for r in rows),
+        }
+        if not cve_present["CVE-2017-12718"]:
+            print("  - CVE-2017-12718 (criterion i binding constraint) is MISSING")
+            print("    from the dataset. Criterion (i) cannot be evaluated.")
+        if not cve_present["CVE-2020-11896"]:
+            print("  - CVE-2020-11896 (criterion iii) is MISSING from the dataset.")
+        if all(cve_present.values()):
+            # Both test CVEs are present — failure is in their inputs.
+            row_i = next(r for r in rows if r["cve_id"] == "CVE-2017-12718")
+            print(f"  - CVE-2017-12718 inputs: B={row_i['B']}, H={row_i['H']}, "
+                  f"L={row_i['L']} (patent expects B=2.20, H=7.5, L=0.2577)")
         print("Most likely causes:")
         print("  - EPSS values in dataset.csv are all 0.0 (network failure during build)")
         print("  - Dataset composition differs materially from the patent's 96-CVE set")
+        print("  - build_dataset.py was run with --from-index against an index")
+        print("    that doesn't include the patent-frozen test CVEs")
         raise SystemExit(2)
 
     # Supplementary statistics at the chosen k

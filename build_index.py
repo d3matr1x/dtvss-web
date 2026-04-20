@@ -27,11 +27,36 @@ import sys
 import time
 import urllib.parse
 import urllib.request
-import xml.etree.ElementTree as ET
+# XXE-safe XML parsing for the ICSMA RSS feed. The runtime path in
+# index_loader.py was hardened to use defusedxml in an earlier patch, but
+# this build script kept the stdlib ElementTree, which still resolves
+# external entities on older Python and is vulnerable to billion-laughs
+# entity expansion on every Python version. defusedxml exposes a drop-in
+# ElementTree shim so the rest of the file doesn't need to change.
+# Hard-required: a build run that silently falls back to the stdlib parser
+# would re-introduce the vulnerability without warning.
+try:
+    from defusedxml import ElementTree as ET
+except ImportError as _e:
+    raise ImportError(
+        "defusedxml is required for build_index.py. "
+        "Install with: pip install defusedxml"
+    ) from _e
 from datetime import datetime, timezone
 
 NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
-OUTPUT_FILE = os.path.join(os.path.dirname(__file__), "static", "data", "mdm_index.json")
+# Output path: prefer the legacy static/data/ layout if that directory
+# already exists (production deploys with a real /static dir), otherwise
+# write to the repo root alongside the seed copy that ships with the repo.
+# This mirrors index_loader.py so the writer and reader always agree on
+# where the index lives. Override with DTVSS_INDEX_PATH for custom layouts.
+_BUILD_HERE = os.path.dirname(os.path.abspath(__file__))
+_LEGACY_OUTPUT = os.path.join(_BUILD_HERE, "static", "data", "mdm_index.json")
+_ROOT_OUTPUT = os.path.join(_BUILD_HERE, "mdm_index.json")
+OUTPUT_FILE = os.environ.get("DTVSS_INDEX_PATH") or (
+    _LEGACY_OUTPUT if os.path.isdir(os.path.dirname(_LEGACY_OUTPUT))
+    else _ROOT_OUTPUT
+)
 
 CSAF_API_URL = "https://api.github.com/repos/cisagov/CSAF/git/trees/develop?recursive=1"
 CSAF_RAW_URL = "https://raw.githubusercontent.com/cisagov/CSAF/develop/"

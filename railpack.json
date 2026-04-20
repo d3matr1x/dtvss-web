@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "steps": {
+    "install": {
+      "commands": [
+        "python -m pip install --upgrade pip",
+        "pip install --require-hashes -r requirements-lock.txt"
+      ]
+    }
+  }
+}

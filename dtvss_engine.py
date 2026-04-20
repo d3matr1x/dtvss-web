@@ -102,7 +102,10 @@ def classify_device(description: str, use_openfda: bool = True) -> tuple[str | N
     if use_openfda:
         try:
             from api_clients import refresh_device_keywords
-            dynamic = refresh_device_keywords()
+            # Snapshot the dict to avoid iteration races with concurrent
+            # refresh threads that may rebuild _device_cache["keywords"]
+            # under us. dict() is a shallow copy, fine for str->str data.
+            dynamic = dict(refresh_device_keywords())
             for keyword in sorted(dynamic.keys(), key=len, reverse=True):
                 if keyword in desc_lower:
                     return dynamic[keyword], "openfda_cache"
@@ -123,14 +126,46 @@ def classify_device(description: str, use_openfda: bool = True) -> tuple[str | N
     return None, "manual"
 
 
-def compute_dtvss(B: float, L: float, H: float, kev: bool = False) -> dict:
+def compute_dtvss(B: float, L: float, H: float, kev: bool = False,
+                  strict: bool = True) -> dict:
     """
     DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10
     KEV override forces 10.0 Critical.
+
+    Args:
+        B: CVSS exploitability sub-score, [0, 10]
+        L: EPSS probability, [0, 1]
+        H: TGA harm weighting, [0, 10]
+        kev: True if CVE is in CISA KEV catalog
+        strict: If True (default), raise ValueError on out-of-range or
+                non-finite inputs. If False, clamp silently (legacy behavior;
+                use only at trusted callsites that have already validated).
+
+    Raises:
+        ValueError: in strict mode, when any input is non-finite or
+                    outside its declared range.
     """
-    B = max(0.0, min(10.0, B))
-    L = max(0.0, min(1.0, L))
-    H = max(0.0, min(10.0, H))
+    import math as _math
+
+    def _check(name, value, lo, hi):
+        try:
+            v = float(value)
+        except (TypeError, ValueError):
+            raise ValueError(f"{name} must be numeric, got {value!r}")
+        if _math.isnan(v) or _math.isinf(v):
+            raise ValueError(f"{name} must be finite, got {v}")
+        if not (lo <= v <= hi):
+            if strict:
+                raise ValueError(
+                    f"{name}={v} out of range [{lo}, {hi}]. "
+                    f"Pass strict=False to clamp silently (not recommended)."
+                )
+            return max(lo, min(hi, v))
+        return v
+
+    B = _check("B", B, 0.0, 10.0)
+    L = _check("L", L, 0.0, 1.0)
+    H = _check("H", H, 0.0, 10.0)
 
     if kev:
         return {

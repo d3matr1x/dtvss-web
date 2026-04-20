@@ -138,6 +138,11 @@ a:hover{text-decoration:underline}
   padding:10px 12px;background:var(--s1);border:1px solid var(--bd);border-radius:8px;cursor:pointer;
   transition:all .15s;font-family:var(--mono);font-size:12px}
 .result-row:hover{border-color:var(--acc);background:var(--s2)}
+/* Hover behaviour for the top-10 result cards (Fix #11): replaces the
+   inline onmouseover/onmouseout handlers that strict CSP blocks. The
+   border colour is set inline on the element from JS (the per-tier
+   color is dynamic), so :hover overrides it via !important. */
+.result-card-top:hover{border-color:var(--acc) !important}
 .result-strip{width:4px;height:100%;border-radius:2px;min-height:28px}
 .result-rank{color:var(--dim);text-align:center}
 .result-cve{color:var(--hd);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -246,16 +251,15 @@ a:hover{text-decoration:underline}
   <!-- Search -->
   <div class="search-box">
     <div class="search-row">
-      <input class="search-input" id="searchInput" placeholder="CVE-2017-12725 or infusion pump"
-             onkeydown="if(event.key==='Enter')doSearch()">
-      <button class="search-btn" id="searchBtn" onclick="doSearch()">SCORE</button>
+      <input class="search-input" id="searchInput" placeholder="CVE-2017-12725 or infusion pump">
+      <button class="search-btn" id="searchBtn">SCORE</button>
     </div>
     <div class="search-hint">
       Enter a <span>CVE ID</span>, <span>device name</span>, or select a <span>manufacturer</span> below. Data fetched live from NVD, EPSS, and CISA KEV.
     </div>
     <div style="margin-top:12px">
       <label style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.06em">MANUFACTURER (CISA ICSMA):</label>
-      <select id="mdmSelect" onchange="selectMDM(this.value)" style="
+      <select id="mdmSelect" style="
         margin-left:8px;background:var(--s1);border:1px solid var(--bd);border-radius:6px;
         padding:6px 10px;color:var(--hd);font-family:var(--mono);font-size:12px;outline:none;cursor:pointer;
       ">
@@ -295,7 +299,7 @@ a:hover{text-decoration:underline}
     <div id="flags"></div>
     <div class="guidance" id="guidance"></div>
     <div class="baseline" id="baseline"></div>
-    <button id="copyBtn" onclick="copyScoreSummary()" style="
+    <button id="copyBtn" style="
       margin-top:8px;font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:4px;
       cursor:pointer;border:1px solid var(--bd);background:var(--s1);color:var(--dim);
       transition:all .15s;letter-spacing:.04em
@@ -331,6 +335,47 @@ a:hover{text-decoration:underline}
 </div>
 
 <script>
+// -----------------------------------------------------------------------------
+// XSS helpers (Pentest Fix #6)
+// -----------------------------------------------------------------------------
+// CVE descriptions, vendor names, and ICS-CERT URLs are sourced from upstream
+// feeds (NVD, MITRE, CISA) that are themselves populated by third-party CNAs.
+// They are NOT trusted-server-rendered strings. Several `innerHTML` templates
+// below previously interpolated those fields raw, which would let a poisoned
+// CVE description (`<img src=x onerror=...>`) execute script in the user's
+// browser. escapeHtml() must wrap every interpolation of upstream data in any
+// `${...}` inside a template literal that's fed to .innerHTML.
+//
+// safeHref() additionally rejects javascript: / data: / vbscript: schemes
+// for any URL we drop into an href attribute. The CSP would catch most of
+// these in modern browsers, but this is defence-in-depth — the upstream
+// pentest report calls out that the CSP currently allows 'unsafe-inline'
+// for compatibility, so script-src protection is weaker than ideal.
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function safeHref(u) {
+  // Returns a sanitized URL or '#' if the URL would execute script.
+  // Allow http/https/relative; reject everything else (javascript:, data:,
+  // vbscript:, file:, etc.).
+  if (!u) return '#';
+  const trimmed = String(u).trim();
+  // Relative URLs are fine
+  if (trimmed.startsWith('/') || trimmed.startsWith('#') || trimmed.startsWith('?')) {
+    return escapeHtml(trimmed);
+  }
+  // Only allow http(s)
+  if (/^https?:\/\//i.test(trimmed)) {
+    return escapeHtml(trimmed);
+  }
+  return '#';
+}
 const TIER_COLOR = {Critical:'var(--crit)',High:'var(--high)',Medium:'var(--med)',Low:'var(--low)'};
 const TIER_BG = {Critical:'rgba(217,79,79,.08)',High:'rgba(217,124,42,.08)',Medium:'rgba(201,180,40,.08)',Low:'rgba(76,175,122,.08)'};
 const TIER_BD = {Critical:'rgba(217,79,79,.25)',High:'rgba(217,124,42,.25)',Medium:'rgba(201,180,40,.25)',Low:'rgba(76,175,122,.25)'};
@@ -414,7 +459,89 @@ async function loadManufacturers() {
   }
   _populateFallbackMDMs(' - Select manufacturer -');
 }
-loadManufacturers();
+// -----------------------------------------------------------------------------
+// Event handler wireup (Fix #11 — strict-CSP compatibility)
+// -----------------------------------------------------------------------------
+// Every interactive element used to use inline onclick/onchange/onkeydown/
+// onmouseover attributes. Strict CSP (DTVSS_CSP_STRICT=1) blocks ALL inline
+// handlers — nonces only authorise <script>/<style> tags, not on* attributes.
+// We now attach every handler in one wireUp() pass:
+//   - Static elements (search input, SCORE button, MDM select, copy button)
+//     get direct addEventListener calls by id.
+//   - Dynamically-rendered elements (search results, pagination, back button)
+//     use event delegation on a parent container, dispatching by data-action.
+//
+// To wire a new action, give the rendered element data-action="my-action"
+// (plus any data-* arguments it needs), then add a case to the switch in
+// the document-level click delegator below.
+
+function wireUp() {
+  // --- Static handlers ---
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doSearch();
+    });
+  }
+  const searchBtn = document.getElementById('searchBtn');
+  if (searchBtn) searchBtn.addEventListener('click', doSearch);
+
+  const mdmSelect = document.getElementById('mdmSelect');
+  if (mdmSelect) {
+    mdmSelect.addEventListener('change', (e) => selectMDM(e.target.value));
+  }
+
+  const copyBtn = document.getElementById('copyBtn');
+  if (copyBtn) copyBtn.addEventListener('click', copyScoreSummary);
+
+  // --- Document-level delegated click handler ---
+  // Walks up from the click target looking for the nearest element with
+  // data-action. Lets us attach exactly one listener and still respond to
+  // clicks on dynamically-rendered cards/buttons/rows.
+  document.addEventListener('click', (e) => {
+    // First: any ancestor that wants to stop propagation (e.g. ICS link
+    // inside a result card — we want the link to navigate, not to also
+    // trigger the card's lookupCVE).
+    const stopper = e.target.closest('[data-stop-propagation]');
+    if (stopper && stopper !== e.currentTarget) {
+      e.stopPropagation();
+      // Don't return — the link's default navigation should still happen.
+    }
+
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    const action = el.dataset.action;
+    switch (action) {
+      case 'lookup-cve':
+        if (el.dataset.cve) lookupCVE(el.dataset.cve);
+        break;
+      case 'back-to-results':
+        backToResults();
+        break;
+      case 'goto-page': {
+        const p = parseInt(el.dataset.page, 10);
+        if (!isNaN(p) && lastSearchData) showSearchResults(lastSearchData, p);
+        break;
+      }
+      default:
+        // Unknown data-action — log but don't throw, so a future renderer
+        // bug doesn't take down all click handling.
+        console.warn('Unknown data-action:', action);
+    }
+  });
+}
+
+// Run wireUp() and load manufacturers as soon as the DOM is parsed. We use
+// DOMContentLoaded rather than waiting for full window load because the
+// script tag is at the bottom of <body>, so the DOM is already ready, but
+// guarding with the event listener makes the code robust to future moves
+// of the script tag (e.g. into <head>).
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => { wireUp(); loadManufacturers(); });
+} else {
+  wireUp();
+  loadManufacturers();
+}
 
 function selectMDM(nvdTerm) {
   if (!nvdTerm) return;
@@ -535,7 +662,7 @@ function showSingleResult(r) {
   let flags = '';
   if (r.kev_override) flags += '<span class="flag flag-kev">KEV</span>';
   if (r.ics_advisory && r.ics_urls && r.ics_urls.length) {
-    flags += `<a href="${r.ics_urls[0]}" target="_blank" rel="noopener noreferrer" style="text-decoration:none"><span class="flag flag-ics" style="cursor:pointer">ICS-CERT →</span></a>`;
+    flags += `<a href="${safeHref(r.ics_urls[0])}" target="_blank" rel="noopener noreferrer" style="text-decoration:none"><span class="flag flag-ics" style="cursor:pointer">ICS-CERT →</span></a>`;
   } else if (r.ics_advisory) {
     flags += '<span class="flag flag-ics">ICS</span>';
   }
@@ -567,28 +694,28 @@ function showSingleResult(r) {
 
   // Detail panel
   const jurisHTML = r.jurisdictions ? Object.entries(r.jurisdictions).map(([k,v]) =>
-    `<div class="juris-cell"><div class="juris-label">${k}</div><div class="juris-val" style="color:${color}">${v}</div></div>`
+    `<div class="juris-cell"><div class="juris-label">${escapeHtml(k)}</div><div class="juris-val" style="color:${color}">${escapeHtml(v)}</div></div>`
   ).join('') : '';
 
   // Back button (only if we came from a multi-result search)
-  const backBtn = lastSearchData ? `<button onclick="backToResults()" style="font-family:var(--mono);font-size:11px;font-weight:600;padding:6px 14px;border-radius:4px;cursor:pointer;border:1px solid var(--bd);background:var(--s1);color:var(--acc);margin-bottom:10px">← Back to ${lastSearchData.count} results for "${lastSearchData.query}"</button>` : '';
+  const backBtn = lastSearchData ? `<button data-action="back-to-results" style="font-family:var(--mono);font-size:11px;font-weight:600;padding:6px 14px;border-radius:4px;cursor:pointer;border:1px solid var(--bd);background:var(--s1);color:var(--acc);margin-bottom:10px">← Back to ${lastSearchData.count} results for "${escapeHtml(lastSearchData.query)}"</button>` : '';
 
   document.getElementById('detail').innerHTML = `
     ${backBtn}
-    <div style="font-size:12px;color:var(--hd);font-weight:600">${r.cve_id}</div>
-    <div class="desc">${r.description || '-'}</div>
+    <div style="font-size:12px;color:var(--hd);font-weight:600">${escapeHtml(r.cve_id)}</div>
+    <div class="desc">${escapeHtml(r.description) || '-'}</div>
     <div class="detail-grid">
       <div class="df"><div class="df-label">B (Exploitability)</div><div class="df-val">${r.B.toFixed(3)}</div></div>
       <div class="df"><div class="df-label">L(t) (EPSS)</div><div class="df-val">${r.L.toFixed(4)}</div></div>
       <div class="df"><div class="df-label">H (Patient Harm)</div><div class="df-val">${r.H.toFixed(1)}</div></div>
-      <div class="df"><div class="df-label">TGA Class</div><div class="df-val" style="color:${color}">${r.tga_class}${r.classify_source === 'default' ? ' <span style="color:var(--high);font-size:11px" title="Could not auto-detect - defaulted to IIb">⚠ defaulted</span>' : r.classify_source === 'user' ? ' <span style="color:var(--acc);font-size:11px">manual</span>' : ''}</div></div>
-      <div class="df"><div class="df-label">CVSS Version</div><div class="df-val">${r.cvss_version}</div></div>
+      <div class="df"><div class="df-label">TGA Class</div><div class="df-val" style="color:${color}">${escapeHtml(r.tga_class)}${r.classify_source === 'default' ? ' <span style="color:var(--high);font-size:11px" title="Could not auto-detect - defaulted to IIb">⚠ defaulted</span>' : r.classify_source === 'user' ? ' <span style="color:var(--acc);font-size:11px">manual</span>' : ''}</div></div>
+      <div class="df"><div class="df-label">CVSS Version</div><div class="df-val">${escapeHtml(r.cvss_version)}</div></div>
       <div class="df"><div class="df-label">EPSS Percentile</div><div class="df-val">${r.epss_percentile ? (r.epss_percentile*100).toFixed(1)+'%' : '-'}</div></div>
-      <div class="df"><div class="df-label">Published</div><div class="df-val">${(r.published||'').slice(0,10)}</div></div>
-      <div class="df"><div class="df-label">Impact Score</div><div class="df-val">${r.impact_score}</div></div>
+      <div class="df"><div class="df-label">Published</div><div class="df-val">${escapeHtml((r.published||'').slice(0,10))}</div></div>
+      <div class="df"><div class="df-label">Impact Score</div><div class="df-val">${escapeHtml(String(r.impact_score))}</div></div>
     </div>
-    ${r.kev_override ? `<div class="df" style="margin-top:8px"><div class="df-label">KEV - Confirmed Exploitation</div><div class="df-val" style="color:var(--crit)">${r.kev_name || 'Listed in CISA KEV catalog'}${r.kev_due ? ' · Due: '+r.kev_due : ''}</div></div>` : ''}
-    ${r.ics_advisory && r.ics_urls && r.ics_urls.length ? `<div class="df" style="margin-top:8px"><div class="df-label">ICS-CERT Medical Advisory</div><div class="df-val">${r.ics_urls.map(u => `<a href="${u}" target="_blank" rel="noopener noreferrer" style="color:var(--high);text-decoration:none;display:block;margin-top:2px">${u.split('/').pop() || 'View Advisory'} →</a>`).join('')}</div></div>` : ''}
+    ${r.kev_override ? `<div class="df" style="margin-top:8px"><div class="df-label">KEV - Confirmed Exploitation</div><div class="df-val" style="color:var(--crit)">${escapeHtml(r.kev_name) || 'Listed in CISA KEV catalog'}${r.kev_due ? ' · Due: '+escapeHtml(r.kev_due) : ''}</div></div>` : ''}
+    ${r.ics_advisory && r.ics_urls && r.ics_urls.length ? `<div class="df" style="margin-top:8px"><div class="df-label">ICS-CERT Medical Advisory</div><div class="df-val">${r.ics_urls.map(u => `<a href="${safeHref(u)}" target="_blank" rel="noopener noreferrer" style="color:var(--high);text-decoration:none;display:block;margin-top:2px">${escapeHtml(u.split('/').pop() || 'View Advisory')} →</a>`).join('')}</div></div>` : ''}
     ${jurisHTML ? `<div class="juris-grid">${jurisHTML}</div><div class="juris-note">H produces equivalent results across all jurisdictions · Medsafe (NZ) recognises TGA under Trans-Tasman MRA</div>` : ''}
   `;
   document.getElementById('detail').classList.add('visible');
@@ -611,7 +738,7 @@ function showSearchResults(data, page) {
   data.results.forEach(r => { counts[r.risk_level] = (counts[r.risk_level]||0) + 1; });
   const kevCount = data.results.filter(r => r.kev_override).length;
 
-  let html = `<div class="results-header">${totalResults} CVEs · "${data.query}" · showing ${startIdx+1}–${endIdx}</div>`;
+  let html = `<div class="results-header">${totalResults} CVEs · "${escapeHtml(data.query)}" · showing ${startIdx+1}–${endIdx}</div>`;
 
   // Severity summary bar
   html += `<div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;margin-bottom:4px;font-family:var(--mono);font-size:11px;align-items:center">`;
@@ -636,41 +763,44 @@ function showSearchResults(data, page) {
     const flags = [
       r.kev_override ? '<span class="flag flag-kev">KEV</span>' : '',
       r.ics_advisory && r.ics_urls && r.ics_urls.length
-        ? `<a href="${r.ics_urls[0]}" target="_blank" rel="noopener noreferrer" style="text-decoration:none" onclick="event.stopPropagation()"><span class="flag flag-ics" style="cursor:pointer">ICS →</span></a>`
+        ? `<a href="${safeHref(r.ics_urls[0])}" target="_blank" rel="noopener noreferrer" style="text-decoration:none" data-stop-propagation="1"><span class="flag flag-ics" style="cursor:pointer">ICS →</span></a>`
         : r.ics_advisory ? '<span class="flag flag-ics">ICS</span>' : '',
     ].filter(Boolean).join('');
 
     if (globalIdx < 10) {
-      // Expanded preview card for top 10
+      // Expanded preview card for top 10. Hover behaviour replaced by a
+      // CSS class (.result-card-hover) toggled from the delegated handler;
+      // strict CSP forbids inline event handlers and inline `style=` writes
+      // from script.
       html += `
-        <div onclick="lookupCVE('${r.cve_id}')" style="padding:12px 14px;background:linear-gradient(135deg,${tierBg},var(--s2));border:1px solid ${TIER_BD[r.risk_level]};border-radius:8px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='${TIER_BD[r.risk_level]}'">
+        <div class="result-card-top" data-action="lookup-cve" data-cve="${escapeHtml(r.cve_id)}" data-default-border="${TIER_BD[r.risk_level]}" style="padding:12px 14px;background:linear-gradient(135deg,${tierBg},var(--s2));border:1px solid ${TIER_BD[r.risk_level]};border-radius:8px;cursor:pointer;transition:border-color .15s">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <div style="font-family:var(--mono);font-size:28px;font-weight:900;color:${color};line-height:1">${r.score.toFixed(2)}</div>
             <div style="flex:1;min-width:140px">
-              <div style="font-family:var(--mono);font-size:11px;color:var(--hd);font-weight:600">${r.cve_id}</div>
-              <div style="font-family:var(--sans);font-size:11px;color:var(--dim);margin-top:2px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${r.description || '-'}</div>
+              <div style="font-family:var(--mono);font-size:11px;color:var(--hd);font-weight:600">${escapeHtml(r.cve_id)}</div>
+              <div style="font-family:var(--sans);font-size:11px;color:var(--dim);margin-top:2px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(r.description) || '-'}</div>
             </div>
-            <div style="font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 8px;border-radius:3px;background:${tierBg};color:${color};border:1px solid ${TIER_BD[r.risk_level]}">${r.risk_level}${flags ? ' '+flags : ''}</div>
+            <div style="font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 8px;border-radius:3px;background:${tierBg};color:${color};border:1px solid ${TIER_BD[r.risk_level]}">${escapeHtml(r.risk_level)}${flags ? ' '+flags : ''}</div>
           </div>
           <div style="display:flex;gap:14px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--dim)">
             <span><span style="color:var(--acc)">B</span> ${r.B.toFixed(2)}</span>
             <span><span style="color:var(--purple)">L</span> ${r.L.toFixed(4)}</span>
-            <span><span style="color:var(--high)">H</span> ${r.H.toFixed(1)} · ${r.tga_class}</span>
-            <span style="margin-left:auto">${(r.published||'').slice(0,4)||''}</span>
+            <span><span style="color:var(--high)">H</span> ${r.H.toFixed(1)} · ${escapeHtml(r.tga_class)}</span>
+            <span style="margin-left:auto">${escapeHtml((r.published||'').slice(0,4))||''}</span>
           </div>
         </div>`;
     } else {
       // Compact row for remaining results
       html += `
-        <div class="result-row" onclick="lookupCVE('${r.cve_id}')">
+        <div class="result-row" data-action="lookup-cve" data-cve="${escapeHtml(r.cve_id)}">
           <div class="result-strip" style="background:${color}"></div>
           <div class="result-rank">${globalIdx+1}</div>
-          <div class="result-cve">${r.cve_id}</div>
-          <div class="result-desc">${r.description || '-'}</div>
-          <div class="result-year">${(r.published||'').slice(0,4)||'-'}</div>
+          <div class="result-cve">${escapeHtml(r.cve_id)}</div>
+          <div class="result-desc">${escapeHtml(r.description) || '-'}</div>
+          <div class="result-year">${escapeHtml((r.published||'').slice(0,4))||'-'}</div>
           <div class="result-b" style="color:var(--acc)">${r.B.toFixed(2)}</div>
           <div class="result-score" style="color:${color}">${r.score.toFixed(2)}</div>
-          <div class="result-tier"><span class="tier-sm" style="background:${tierBg};color:${color}">${r.risk_level}${flags ? ' '+flags : ''}</span></div>
+          <div class="result-tier"><span class="tier-sm" style="background:${tierBg};color:${color}">${escapeHtml(r.risk_level)}${flags ? ' '+flags : ''}</span></div>
         </div>`;
     }
   });
@@ -679,14 +809,14 @@ function showSearchResults(data, page) {
   if (totalPages > 1) {
     html += '<div style="display:flex;gap:6px;justify-content:center;align-items:center;padding:12px 0;font-family:var(--mono);font-size:11px">';
     if (currentPage > 1) {
-      html += `<button onclick="showSearchResults(lastSearchData,${currentPage-1})" style="padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1);color:var(--acc);cursor:pointer;font-family:var(--mono);font-size:11px">← Prev</button>`;
+      html += `<button data-action="goto-page" data-page="${currentPage-1}" style="padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1);color:var(--acc);cursor:pointer;font-family:var(--mono);font-size:11px">← Prev</button>`;
     }
     for (let p = 1; p <= totalPages; p++) {
       const active = p === currentPage;
-      html += `<button onclick="showSearchResults(lastSearchData,${p})" style="padding:4px 8px;border-radius:4px;border:1px solid ${active?'var(--acc)':'var(--bd)'};background:${active?'rgba(79,142,247,0.15)':'var(--s1)'};color:${active?'var(--acc)':'var(--dim)'};cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:${active?'600':'400'}">${p}</button>`;
+      html += `<button data-action="goto-page" data-page="${p}" style="padding:4px 8px;border-radius:4px;border:1px solid ${active?'var(--acc)':'var(--bd)'};background:${active?'rgba(79,142,247,0.15)':'var(--s1)'};color:${active?'var(--acc)':'var(--dim)'};cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:${active?'600':'400'}">${p}</button>`;
     }
     if (currentPage < totalPages) {
-      html += `<button onclick="showSearchResults(lastSearchData,${currentPage+1})" style="padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1);color:var(--acc);cursor:pointer;font-family:var(--mono);font-size:11px">Next →</button>`;
+      html += `<button data-action="goto-page" data-page="${currentPage+1}" style="padding:4px 10px;border-radius:4px;border:1px solid var(--bd);background:var(--s1);color:var(--acc);cursor:pointer;font-family:var(--mono);font-size:11px">Next →</button>`;
     }
     html += '</div>';
   }
@@ -715,15 +845,19 @@ function lookupCVE(cveId) {
 function copyScoreSummary() {
   if (!lastSingleResult) return;
   const r = lastSingleResult;
+  // Plain text built for navigator.clipboard.writeText() — never touches the
+  // DOM, so escapeHtml is unnecessary. The // xss-ok markers tell the CI
+  // grep in .github/workflows/security.yml that these interpolations are
+  // intentionally raw text, not HTML.
   const text = [
     `DTVSS Score: ${r.score.toFixed(2)} (${r.risk_level})`,
-    `CVE: ${r.cve_id}`,
+    `CVE: ${r.cve_id}`,                                          // xss-ok: clipboard text, not HTML
     `B (Exploitability): ${r.B.toFixed(3)}`,
     `L(t) (EPSS): ${r.L.toFixed(4)}`,
-    `H (Patient Harm): ${r.H.toFixed(1)} (${r.tga_class})`,
+    `H (Patient Harm): ${r.H.toFixed(1)} (${r.tga_class})`,      // xss-ok: clipboard text, not HTML
     r.kev_override ? `KEV: Confirmed active exploitation` : `Static baseline: ${r.static_baseline.toFixed(2)} · Temporal lift: +${(r.score - r.static_baseline).toFixed(2)}`,
-    `CVSS: ${r.cvss_version} · ${r.severity}`,
-    `Guidance: ${r.guidance}`,
+    `CVSS: ${r.cvss_version} · ${r.severity}`,                   // xss-ok: clipboard text, not HTML
+    `Guidance: ${r.guidance}`,                                   // xss-ok: clipboard text, not HTML
     `Source: dtvss.io · ${new Date().toISOString().slice(0,10)}`,
   ].join('\n');
   navigator.clipboard.writeText(text).then(() => {
