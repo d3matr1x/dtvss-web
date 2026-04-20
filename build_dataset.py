@@ -26,6 +26,7 @@ import argparse
 import csv
 import json
 import os
+import re
 import sys
 import time
 import urllib.parse
@@ -136,10 +137,30 @@ CLASS_III_CARDIAC_VENDORS = {
     "boston scientific", "biotronik",
 }
 
+# Kept for backward compatibility with anything that imported the old name.
 MEDTRONIC_CLASS_III_KEYWORDS = (
     "pacemaker", "icd", "crt", "implantable cardioverter",
     "defibrillator", "carelink", "conexus",
 )
+
+# BUG FIX: previously a plain substring search on these keywords matched
+# "icd-10" and other false-positive substrings, silently inflating H from
+# 7.5 to 10.0 for non-cardiac Medtronic CVEs. Use stricter boundaries that
+# also exclude hyphens — Python's \b treats `-` as a word boundary, so
+# r"\bicd\b" still matches inside "icd-10". (?<![-\w]) ... (?![-\w])
+# requires neither a hyphen nor a word character on either side, so "icd"
+# only matches as a standalone token.
+_MEDTRONIC_CLASS_III_PATTERNS = [
+    re.compile(p, re.IGNORECASE) for p in (
+        r"(?<![-\w])pacemaker(?![-\w])",
+        r"(?<![-\w])icd(?![-\w])",
+        r"(?<![-\w])crt(?![-\w])",
+        r"(?<![-\w])implantable\s+cardioverter(?![-\w])",
+        r"(?<![-\w])defibrillator(?![-\w])",
+        r"(?<![-\w])carelink(?![-\w])",
+        r"(?<![-\w])conexus(?![-\w])",
+    )
+]
 
 OUT_OF_SCOPE_VENDORS = {
     "alivecor", "ossur", "illumina", "oxford nanopore technologies",
@@ -162,7 +183,7 @@ def assign_h_live(vendor_key: str, cve_id: str, description: str) -> tuple[float
     if v in CLASS_III_CARDIAC_VENDORS:
         return (10.0, "III")
     if v == "medtronic":
-        if any(kw in desc for kw in MEDTRONIC_CLASS_III_KEYWORDS):
+        if any(p.search(desc) for p in _MEDTRONIC_CLASS_III_PATTERNS):
             return (10.0, "III")
         return (7.5, "IIb")
     return (7.5, "IIb")

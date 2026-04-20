@@ -46,7 +46,20 @@ from security import safe_parse_xml, safe_fetch_bytes, MAX_HTML_PAGE_BYTES, MAX_
 # On first boot with a configured persistent path, if that path doesn't yet
 # contain an index, we seed it from the in-repo copy so the app has data from
 # cold start.
-_REPO_DEFAULT = os.path.join(os.path.dirname(__file__), "static", "data", "mdm_index.json")
+# Resolve the in-repo seed path. Pentest finding (HIGH): historically this
+# only looked in static/data/, but the project ships mdm_index.json at the
+# repo root, so on a fresh deploy without DTVSS_DATA_DIR the loader silently
+# came up empty (manufacturer dropdown blank, every search falling through
+# to live NVD). We now prefer static/data/mdm_index.json if it exists
+# (production-style layout) and fall back to the repo root copy that the
+# project actually ships.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_LEGACY_REPO_DEFAULT = os.path.join(_HERE, "static", "data", "mdm_index.json")
+_ROOT_REPO_DEFAULT = os.path.join(_HERE, "mdm_index.json")
+_REPO_DEFAULT = (
+    _LEGACY_REPO_DEFAULT if os.path.exists(_LEGACY_REPO_DEFAULT)
+    else _ROOT_REPO_DEFAULT
+)
 
 if os.environ.get("DTVSS_INDEX_PATH"):
     INDEX_FILE = os.environ["DTVSS_INDEX_PATH"]
@@ -112,6 +125,12 @@ KNOWN_VENDORS = [
 
 _index = {"manufacturers": {}}
 _lock = threading.Lock()
+# Separate lock for file I/O. Without this, two concurrent _save_index calls
+# can both pass the (released) data lock and race their atomic_write_json +
+# .bak rotation, potentially clobbering the backup. Today only one background
+# thread calls _save_index, but a future signal handler or admin endpoint
+# could trigger this — cheap insurance.
+_save_lock = threading.Lock()
 
 
 # --- Public API ---
@@ -295,14 +314,16 @@ def _nvd_enrich_cve(cve_id):
 def _save_index():
     try:
         # M-4: atomic write — either the full new file lands or the old
-        # file remains intact. The previous open()+json.dump() left a
-        # truncated/half-written file on crash, which would brick the
-        # next cold start. atomic_write_json also makes a .bak of the
+        # file remains intact. atomic_write_json also makes a .bak of the
         # previous version automatically.
+        # Snapshot under data lock, then write under separate save lock so
+        # concurrent _save_index calls serialize their .bak rotation rather
+        # than racing.
         from security import atomic_write_json
         with _lock:
             snap = json.loads(json.dumps(_index, default=str))
-        atomic_write_json(INDEX_FILE, snap, indent=2)
+        with _save_lock:
+            atomic_write_json(INDEX_FILE, snap, indent=2)
     except Exception as e:
         print(f"  [Hourly] Index save failed: {e}")
 

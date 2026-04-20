@@ -1,5 +1,19 @@
 [build]
-builder = "NIXPACKS"
+# Railpack is Railway's current builder. Nixpacks (the previous default) was
+# placed in maintenance mode and is no longer the default for new services —
+# this config explicitly opts into Railpack so behaviour is the same whether
+# this service is brand new or migrated from a Nixpacks deploy.
+#
+# The custom install command lives in railpack.json (config-as-code), not
+# here. Railpack does not honour the [build.nixpacksConfig.*] block that the
+# Nixpacks builder used; the equivalent is railpack.json's `steps.install`
+# section. See railpack.json in the repo root for the hashed-install override.
+#
+# Migrating an existing Railway service from Nixpacks to Railpack:
+#   Service Settings → Build → Builder → Railpack → Save
+# The next deploy will use this railway.toml + railpack.json instead of the
+# old [build.nixpacksConfig.*] block.
+builder = "RAILPACK"
 
 [deploy]
 # gunicorn hardening (from INFO-02 in pentest):

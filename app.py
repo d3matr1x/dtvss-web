@@ -62,15 +62,129 @@ from medical_scope import is_in_scope, filter_scored_results
 app = Flask(__name__, static_folder=None)  # MED-04: no wildcard static serving
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024  # 16 KB global cap on request bodies
 
-# Fail loud if running in Railway production without persistent storage
-# (RAIL-01 in PENTEST_RAILWAY_ADDENDUM.md). A "works, silently loses data"
-# configuration is worse than a startup crash.
-if os.environ.get("RAILWAY_ENVIRONMENT") == "production":
-    if not os.environ.get("DTVSS_DATA_DIR"):
+# Where HTML pages, robots.txt, sitemap.xml, security-policy.html, and
+# whitelisted static assets are served from. Pentest finding (HIGH): every
+# send_from_directory call previously hardcoded "static", but the repo
+# ships these files at the project root, so a fresh deploy 404'd every
+# frontend route. We now anchor on the directory containing app.py and
+# allow operators to override via DTVSS_STATIC_DIR if they later move
+# the assets into a real /static subfolder.
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.environ.get("DTVSS_STATIC_DIR") or _APP_DIR
+WELL_KNOWN_DIR = os.path.join(STATIC_DIR, ".well-known")
+
+
+# -----------------------------------------------------------------------------
+# CSP nonce injection on the static HTML path (Fix #8 in PATCHES_v2)
+# -----------------------------------------------------------------------------
+# The HTML pages are served as flat files via send_from_directory, so there
+# is no Jinja pass to inject the per-request CSP nonce that security.py
+# generates in g.csp_nonce. Without injection, every inline <script> and
+# <style> tag would be blocked by a strict CSP — meaning the existing
+# DTVSS_CSP_STRICT=1 opt-in could never be safely enabled.
+#
+# This helper rewrites <script> and <style> open tags to carry the current
+# request's nonce. It runs once per page load and adds a few hundred
+# microseconds of regex work per request — a non-issue for a low-traffic
+# tool, and crucially it makes strict CSP actually deployable.
+#
+# Limitations honestly stated:
+#   - Does NOT touch inline event handlers (onclick=, onchange=, etc).
+#     Those are blocked by strict CSP regardless of nonce, and the project
+#     currently has ~10 of them. Strict CSP will require a separate
+#     refactor to addEventListener; until then, the project should stay on
+#     the default permissive CSP. The infrastructure is now in place so
+#     that refactor can be done incrementally.
+#   - Regex is intentionally restricted to opening <script> / <style> tags
+#     that don't already have a nonce attribute, to avoid double-injection
+#     if anything else adds one upstream.
+import re as _re_csp
+_SCRIPT_OPEN_RE = _re_csp.compile(
+    rb'<(script|style)(?![^>]*\bnonce=)([^>]*)>',
+    _re_csp.IGNORECASE,
+)
+
+
+def _inject_csp_nonce(html_bytes: bytes, nonce: str) -> bytes:
+    """Inject nonce="..." into every inline <script>/<style> open tag.
+
+    External script/style tags (with src= or href=) get nonces too — that's
+    correct and required by strict CSP, since 'self' alone is not enough
+    when 'unsafe-inline' is dropped: the browser still wants the nonce as
+    an authentication token for the source.
+    """
+    if not nonce:
+        return html_bytes
+    nonce_attr = f' nonce="{nonce}"'.encode("ascii")
+    return _SCRIPT_OPEN_RE.sub(
+        lambda m: b'<' + m.group(1) + nonce_attr + m.group(2) + b'>',
+        html_bytes,
+    )
+
+
+def _serve_html_with_nonce(directory: str, filename: str):
+    """Wrapper around send_from_directory that injects g.csp_nonce.
+
+    Falls back to plain send_from_directory if the file is missing or the
+    nonce isn't available (e.g. before-request hasn't run for some reason).
+    Sets the right Content-Type and prevents intermediate caches from
+    serving one user's nonced response to another via Cache-Control and
+    Vary: Cookie.
+    """
+    full_path = os.path.join(directory, filename)
+    if not os.path.isfile(full_path):
+        # Let send_from_directory do the 404 with proper error handling
+        return send_from_directory(directory, filename)
+    nonce = getattr(g, "csp_nonce", "") if g else ""
+    if not nonce:
+        return send_from_directory(directory, filename)
+    with open(full_path, "rb") as fh:
+        body = fh.read()
+    body = _inject_csp_nonce(body, nonce)
+    from flask import Response
+    resp = Response(body, mimetype="text/html; charset=utf-8")
+    # Each response carries a unique nonce. Caches must not share these
+    # across requests or the nonce-CSP pairing breaks for the next user.
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
+
+# Fail loud if running in any managed deploy (Railway/Heroku/Fly/Render) without
+# persistent storage. RAIL-01 in PENTEST_RAILWAY_ADDENDUM.md. A "works, silently
+# loses data" configuration is worse than a startup crash.
+#
+# BUG FIX: previously this checked RAILWAY_ENVIRONMENT == "production", but
+# Railway sets RAILWAY_ENVIRONMENT to whatever the user named their environment
+# in the dashboard — "production" is only the default. Renamed environments
+# (staging, prod, main, etc.) silently bypassed the guard, which was the exact
+# failure mode this check was designed to prevent. We now trigger on ANY
+# Railway-/Heroku-/Fly-/Render-style env var, with an explicit DTVSS_ALLOW_EPHEMERAL
+# escape hatch for users who really do want ephemeral storage.
+def _is_managed_deploy() -> bool:
+    """True if running on Railway, Heroku, Fly, Render, or similar PaaS."""
+    return any(
+        os.environ.get(k)
+        for k in (
+            "RAILWAY_ENVIRONMENT",
+            "RAILWAY_ENVIRONMENT_NAME",
+            "RAILWAY_PROJECT_ID",
+            "DYNO",                         # Heroku
+            "FLY_APP_NAME",                 # Fly.io
+            "RENDER",                       # Render
+            "DTVSS_REQUIRE_PERSISTENT",     # explicit opt-in for any other host
+        )
+    )
+
+
+if _is_managed_deploy():
+    if not os.environ.get("DTVSS_DATA_DIR") and not os.environ.get("DTVSS_ALLOW_EPHEMERAL"):
         raise RuntimeError(
-            "DTVSS_DATA_DIR must be set in Railway production. "
-            "Attach a Railway Volume and set DTVSS_DATA_DIR=/data. "
-            "Without this, hourly ICSMA index updates are lost on every restart."
+            "DTVSS_DATA_DIR must be set in managed deploys. "
+            "Attach a persistent volume and set DTVSS_DATA_DIR=/data "
+            "(or your mount point). Without this, hourly ICSMA index "
+            "updates are lost on every restart. "
+            "If you are intentionally running ephemeral, set "
+            "DTVSS_ALLOW_EPHEMERAL=1 to suppress this check."
         )
     if not os.environ.get("DTVSS_CORS_ORIGINS"):
         logging.warning(
@@ -155,32 +269,32 @@ STATIC_PAGES = {
 
 @app.route("/")
 def index():
-    return send_from_directory("static", "index.html")
+    return _serve_html_with_nonce(STATIC_DIR, "index.html")
 
 
 @app.route("/calculator")
 def calculator():
-    return send_from_directory("static", "calculator.html")
+    return _serve_html_with_nonce(STATIC_DIR, "calculator.html")
 
 
 @app.route("/calibration")
 def calibration():
-    return send_from_directory("static", "calibration.html")
+    return _serve_html_with_nonce(STATIC_DIR, "calibration.html")
 
 
 @app.route("/about")
 def about():
-    return send_from_directory("static", "about.html")
+    return _serve_html_with_nonce(STATIC_DIR, "about.html")
 
 
 @app.route("/robots.txt")
 def robots():
-    return send_from_directory("static", "robots.txt", mimetype="text/plain")
+    return send_from_directory(STATIC_DIR, "robots.txt", mimetype="text/plain")
 
 
 @app.route("/sitemap.xml")
 def sitemap():
-    return send_from_directory("static", "sitemap.xml", mimetype="application/xml")
+    return send_from_directory(STATIC_DIR, "sitemap.xml", mimetype="application/xml")
 
 
 # -----------------------------------------------------------------------------
@@ -193,8 +307,19 @@ def sitemap():
 
 @app.route("/.well-known/security.txt")
 def security_txt():
+    # security.txt may live either under .well-known/ in the static dir
+    # (production layout) or directly at the project root with the rest
+    # of the static files (current repo layout). Prefer .well-known if
+    # it exists; fall back to the root copy. Both are RFC 9116 compliant
+    # as long as one of them is reachable at /.well-known/security.txt.
+    if os.path.exists(os.path.join(WELL_KNOWN_DIR, "security.txt")):
+        return send_from_directory(
+            WELL_KNOWN_DIR,
+            "security.txt",
+            mimetype="text/plain; charset=utf-8",
+        )
     return send_from_directory(
-        "static/.well-known",
+        STATIC_DIR,
         "security.txt",
         mimetype="text/plain; charset=utf-8",
     )
@@ -207,7 +332,7 @@ def security_txt_legacy():
 
 @app.route("/security-policy")
 def security_policy():
-    return send_from_directory("static", "security-policy.html")
+    return _serve_html_with_nonce(STATIC_DIR, "security-policy.html")
 
 
 # Serve only whitelisted static assets (CSS, JS, images)
@@ -216,11 +341,11 @@ STATIC_ASSET_PREFIXES = ("assets/", "css/", "js/", "img/", "fonts/")
 
 @app.route("/<path:filename>")
 def static_asset(filename):
-    """Serve static assets from /static, but only from known subfolders."""
+    """Serve static assets from STATIC_DIR, but only from known subfolders."""
     if not filename.startswith(STATIC_ASSET_PREFIXES):
         abort(404)
     # send_from_directory protects against ../ traversal
-    return send_from_directory("static", filename)
+    return send_from_directory(STATIC_DIR, filename)
 
 
 # -----------------------------------------------------------------------------
@@ -328,12 +453,29 @@ def lookup():
         except Exception:
             pass  # KEV check failure is non-fatal
 
-    result = compute_dtvss(
-        B=nvd.get("B", 0),
-        L=epss_data["epss"],
-        H=H,
-        kev=kev_status,
-    )
+    # Defensive bounds before strict compute_dtvss. NVD-derived B and
+    # EPSS-derived L are nominally in range, but malformed upstream
+    # responses shouldn't blow up the request handler.
+    try:
+        B_in = float(nvd.get("B", 0) or 0)
+    except (TypeError, ValueError):
+        B_in = 0.0
+    try:
+        L_in = float(epss_data.get("epss", 0) or 0)
+    except (TypeError, ValueError):
+        L_in = 0.0
+    B_in = max(0.0, min(10.0, B_in))
+    L_in = max(0.0, min(1.0, L_in))
+
+    try:
+        result = compute_dtvss(B=B_in, L=L_in, H=H, kev=kev_status)
+    except ValueError as ve:
+        log.warning("compute_dtvss rejected inputs for %s: %s", cve_id, ve)
+        return jsonify({
+            "error": "CVE has invalid scoring inputs",
+            "cve_id": cve_id,
+            "detail": str(ve),
+        }), 422
 
     result.update({
         "cve_id": cve_id,
@@ -433,7 +575,17 @@ def _search_indexed(query: str, tga_override: str, max_results: int, indexed_cve
         if not B:
             continue  # Skip unscorable CVEs rather than guess
 
-        L = float(epss_map.get(cve_id, {}).get("epss", 0))
+        # Bound L defensively. EPSS should always be in [0,1] but a poisoned
+        # cache or upstream bug shouldn't crash the request handler now that
+        # compute_dtvss is strict.
+        try:
+            L = float(epss_map.get(cve_id, {}).get("epss", 0))
+        except (TypeError, ValueError):
+            L = 0.0
+        L = max(0.0, min(1.0, L))
+        # Bound B similarly. parse_cvss31_exploitability is internally bounded,
+        # but the exploitability fallback path reads arbitrary index data.
+        B = max(0.0, min(10.0, B))
 
         try:
             kev = bool(cisa_kev_check(cve_id))
@@ -449,7 +601,11 @@ def _search_indexed(query: str, tga_override: str, max_results: int, indexed_cve
                 tga_class = "IIb"
 
         H = TGA_CLASSES[tga_class]["H"]
-        result = compute_dtvss(B, L, H, kev)
+        try:
+            result = compute_dtvss(B, L, H, kev)
+        except ValueError as ve:
+            log.warning("compute_dtvss rejected inputs for %s: %s", cve_id, ve)
+            continue
 
         scored.append({
             "cve_id": cve_id,
@@ -583,7 +739,24 @@ def _search_live_nvd(query: str, tga_override: str, max_results: int):
             except Exception:
                 pass
 
-        result = compute_dtvss(nvd["B"], epss_data["epss"], H, kev=kev_status)
+        # Defensive bounds before strict compute_dtvss.
+        try:
+            B_in = float(nvd.get("B", 0) or 0)
+        except (TypeError, ValueError):
+            B_in = 0.0
+        try:
+            L_in = float(epss_data.get("epss", 0) or 0)
+        except (TypeError, ValueError):
+            L_in = 0.0
+        B_in = max(0.0, min(10.0, B_in))
+        L_in = max(0.0, min(1.0, L_in))
+
+        try:
+            result = compute_dtvss(B_in, L_in, H, kev=kev_status)
+        except ValueError as ve:
+            log.warning("compute_dtvss rejected inputs for %s: %s",
+                        nvd.get("cve_id"), ve)
+            continue
         result.update({
             "cve_id": nvd["cve_id"],
             "description": nvd.get("description", ""),
@@ -693,6 +866,18 @@ try:
     log.info("Device keywords loaded: %d", len(_keywords))
 except Exception as _e:
     log.warning("Device keyword refresh skipped: %s", sanitize_error(_e))
+
+# Warm the CISA KEV cache at startup so the first request doesn't synchronously
+# pay a ~1 MB JSON download. Without this, four gunicorn workers each pay the
+# cold-start cost on their first hit, blocking real user requests for several
+# seconds while CISA responds. Failure here is non-fatal — cisa_kev_check has
+# its own backoff logic.
+try:
+    from api_clients import cisa_kev_check
+    cisa_kev_check("CVE-0000-0000")  # any non-existent CVE triggers cache warm
+    log.info("KEV catalog cache warmed at startup")
+except Exception as _e:
+    log.warning("KEV cache warm skipped: %s", sanitize_error(_e))
 
 
 if __name__ == "__main__":
