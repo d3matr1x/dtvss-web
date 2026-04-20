@@ -1,4 +1,4 @@
-# DTVSS dependency lockfile (Fix #7b in PATCHES_v2.md)
+# Dependency lockfile (Fix #7b in PATCHES_v2.md)
 # =====================================================
 # Reproducible, hash-pinned install for production deploys.
 #
