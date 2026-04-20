@@ -162,9 +162,24 @@ jobs:
         # 404, and this job will fail loudly instead of letting the
         # broken deploy reach production.
         run: |
+          # Diagnostic: dump the working dir and static/ contents so any
+          # 404 failure is easy to debug from the log alone.
+          echo "=== DIAGNOSTIC: pwd ==="
+          pwd
+          echo "=== DIAGNOSTIC: repo root contents ==="
+          ls -la
+          echo "=== DIAGNOSTIC: static/ contents ==="
+          ls -la static/ 2>&1 || echo "static/ directory does not exist"
+          echo "=== DIAGNOSTIC: end ==="
+
           python <<'EOF'
           import sys
+          import os
           import app
+          print(f"STATIC_DIR resolves to: {app.STATIC_DIR}")
+          print(f"STATIC_DIR exists: {os.path.isdir(app.STATIC_DIR)}")
+          if os.path.isdir(app.STATIC_DIR):
+              print(f"STATIC_DIR contents: {sorted(os.listdir(app.STATIC_DIR))[:15]}")
           client = app.app.test_client()
           paths = [
               '/', '/calculator', '/calibration', '/about',
@@ -198,13 +213,23 @@ jobs:
 
       - name: Verify escapeHtml/safeHref helpers still exist
         # If someone removes the helpers (or renames them), every
-        # interpolation in index.html becomes an unsanitized template.
+        # interpolation in static/index.html becomes an unsanitized template.
         # This is a coarse but effective regression catch.
+        #
+        # Path note: HTML files live in static/ (the Flask static_folder).
+        # If you ever restructure to keep HTML at the repo root, update
+        # the path on every grep below.
         run: |
           set -e
-          grep -q 'function escapeHtml' index.html
-          grep -q 'function safeHref' index.html
-          echo "✓ escapeHtml + safeHref helpers present in index.html"
+          INDEX=static/index.html
+          if [ ! -f "$INDEX" ]; then
+            echo "::error::Expected $INDEX to exist. Did the project layout change?"
+            ls -la
+            exit 1
+          fi
+          grep -q 'function escapeHtml' "$INDEX"
+          grep -q 'function safeHref' "$INDEX"
+          echo "✓ escapeHtml + safeHref helpers present in $INDEX"
 
       - name: Verify no raw \${r.description} or \${r.cve_id} interpolations
         # If a contributor introduces `${r.description}` (raw, no escape
@@ -217,19 +242,20 @@ jobs:
         # log line). Forces the contributor to consciously acknowledge
         # the choice rather than letting the linter encode it.
         run: |
+          INDEX=static/index.html
           # Look for ${r.<field>} that ISN'T inside escapeHtml() / safeHref()
           # / encodeURIComponent() / .toFixed() / .slice() — those are the
           # known-safe wrappers. Lines with a `xss-ok` comment are skipped.
-          violations=$(grep -nE '\$\{r\.[a-zA-Z_]+\}' index.html | \
+          violations=$(grep -nE '\$\{r\.[a-zA-Z_]+\}' "$INDEX" | \
             grep -vE 'escapeHtml|safeHref|encodeURIComponent|toFixed|slice|xss-ok' || true)
           if [ -n "$violations" ]; then
-            echo "::error::Possible unsanitized interpolation in index.html:"
+            echo "::error::Possible unsanitized interpolation in $INDEX:"
             echo "$violations"
             echo "::error::Wrap upstream-sourced fields with escapeHtml() or use safeHref() for href values."
             echo "::error::If the line is genuinely safe (e.g. plain text to clipboard), append // xss-ok: <reason>"
             exit 1
           fi
-          echo "✓ No raw \${r.X} interpolations found"
+          echo "✓ No raw \${r.X} interpolations found in $INDEX"
 
   # ---------------------------------------------------------------------
   # Job 6: railpack.json schema validation
