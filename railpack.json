@@ -3,7 +3,9 @@
   "steps": {
     "install": {
       "commands": [
-        "set -e; echo '=== DIAGNOSTIC START ==='; echo 'pwd:'; pwd; echo 'ls -la:'; ls -la; echo 'requirements files:'; ls -la requirements* 2>&1 || echo NONE; echo '=== DIAGNOSTIC END ==='; python -m pip install --upgrade pip; pip install --require-hashes -r requirements-lock.txt"
+        "python -m venv /app/.venv",
+        "/app/.venv/bin/pip install --upgrade pip",
+        "/app/.venv/bin/pip install --require-hashes -r requirements-lock.txt"
       ]
     }
   }
