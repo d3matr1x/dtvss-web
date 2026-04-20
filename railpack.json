@@ -3,12 +3,7 @@
   "steps": {
     "install": {
       "commands": [
-        "echo '=== DIAGNOSTIC: working directory ===' && pwd",
-        "echo '=== DIAGNOSTIC: full file listing ===' && ls -la",
-        "echo '=== DIAGNOSTIC: requirements files visible to build ===' && ls -la requirements* 2>&1 || echo 'no requirements* match'",
-        "echo '=== DIAGNOSTIC: end ==='",
-        "python -m pip install --upgrade pip",
-        "pip install --require-hashes -r requirements-lock.txt"
+        "set -e; echo '=== DIAGNOSTIC START ==='; echo 'pwd:'; pwd; echo 'ls -la:'; ls -la; echo 'requirements files:'; ls -la requirements* 2>&1 || echo NONE; echo '=== DIAGNOSTIC END ==='; python -m pip install --upgrade pip; pip install --require-hashes -r requirements-lock.txt"
       ]
     }
   }
