@@ -6,9 +6,8 @@
   "steps": {
     "install": {
       "commands": [
-        "python -m venv /app/.venv",
-        "/app/.venv/bin/pip install --upgrade pip",
-        "echo '=== pip install attempt ===' && /app/.venv/bin/pip install --require-hashes -r requirements-lock.txt 2>&1 || (echo '=== pip exited non-zero, dumping context ===' && echo 'pwd:' && pwd && echo 'python version:' && /app/.venv/bin/python --version && echo 'pip version:' && /app/.venv/bin/pip --version && echo 'lockfile head:' && head -3 requirements-lock.txt && exit 1)"
+        "python -m pip install --upgrade pip",
+        "pip install --require-hashes -r requirements-lock.txt"
       ]
     }
   }

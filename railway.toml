@@ -24,7 +24,7 @@ builder = "RAILPACK"
 #   --limit-request-fields — reject header-bomb DoS
 #   --access-logfile -     — send access logs to stdout (Railway captures)
 #   --error-logfile -      — send error logs to stdout (Railway captures)
-startCommand = "/app/.venv/bin/gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 30 --limit-request-line 2048 --limit-request-fields 50 --access-logfile - --error-logfile -"
+startCommand = "gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 30 --limit-request-line 2048 --limit-request-fields 50 --access-logfile - --error-logfile -"
 
 # Use the dedicated /health endpoint added by app_HARDENED.py
 # Reason: decouples health checks from business logic and keeps health
