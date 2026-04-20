@@ -63,14 +63,16 @@ app = Flask(__name__, static_folder=None)  # MED-04: no wildcard static serving
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024  # 16 KB global cap on request bodies
 
 # Where HTML pages, robots.txt, sitemap.xml, security-policy.html, and
-# whitelisted static assets are served from. Pentest finding (HIGH): every
-# send_from_directory call previously hardcoded "static", but the repo
-# ships these files at the project root, so a fresh deploy 404'd every
-# frontend route. We now anchor on the directory containing app.py and
-# allow operators to override via DTVSS_STATIC_DIR if they later move
-# the assets into a real /static subfolder.
+# whitelisted static assets are served from.
+#
+# CORRECTION (2026-04-20): the project ships HTML pages in a `static/`
+# subfolder (matches the original send_from_directory("static", ...)
+# pattern). An earlier patch incorrectly resolved STATIC_DIR to the repo
+# root, which was based on a misread of the file layout in a snapshot
+# delivered to me — the live repo has always had `static/`. The fix here
+# preserves the env-var override for operators who restructure later.
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_DIR = os.environ.get("DTVSS_STATIC_DIR") or _APP_DIR
+STATIC_DIR = os.environ.get("DTVSS_STATIC_DIR") or os.path.join(_APP_DIR, "static")
 WELL_KNOWN_DIR = os.path.join(STATIC_DIR, ".well-known")
 
 
