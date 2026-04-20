@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<!--
+  DTVSS Security Policy Page
+  Copyright © 2026 Andrew Broglio. All rights reserved.
+  Patent Pending - IP Australia | Licensed under BSL 1.1
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Policy - DTVSS</title>
+<meta name="description" content="Vulnerability disclosure policy for DTVSS. Report security issues privately via GitHub Security Advisories. RFC 9116 compliant security.txt available at /.well-known/security.txt.">
+<meta name="keywords" content="DTVSS security, vulnerability disclosure, security.txt, RFC 9116, responsible disclosure, coordinated disclosure, GitHub Security Advisories">
+<meta name="author" content="Andrew Broglio">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://dtvss.io/security-policy">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Security Policy - DTVSS">
+<meta property="og:description" content="How to report security vulnerabilities in DTVSS. Coordinated disclosure via GitHub Security Advisories.">
+<meta property="og:url" content="https://dtvss.io/security-policy">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
+  --tx:#b8bcc8; --dim:#6b7280; --hd:#e2e6f0;
+  --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e05252; --low:#48b878; --med:#d4b832;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.header{border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.container{max-width:740px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:28px}
+h2{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--hd);letter-spacing:0.02em}
+h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
+.section{padding:22px;background:var(--s1);border:1px solid var(--bd);border-radius:10px}
+.highlight{color:var(--acc)}
+.code-inline{font-family:var(--mono);font-size:12px;color:var(--hd);background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--bd)}
+.callout{font-family:var(--mono);font-size:12px;color:var(--hd);padding:14px;background:var(--bg);border-radius:6px;margin:12px 0;border:1px solid var(--bd);word-break:break-all}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid;letter-spacing:.04em;vertical-align:baseline;white-space:nowrap}
+.pill-crit{color:var(--crit);background:rgba(224,82,82,0.10);border-color:rgba(224,82,82,0.30)}
+.pill-high{color:var(--high);background:rgba(224,138,58,0.10);border-color:rgba(224,138,58,0.30)}
+.pill-med{color:var(--med);background:rgba(212,184,50,0.10);border-color:rgba(212,184,50,0.30)}
+.pill-low{color:var(--low);background:rgba(72,184,120,0.10);border-color:rgba(72,184,120,0.30)}
+ul{margin:8px 0 0 20px;padding:0}
+li{margin-bottom:6px}
+.timeline-row{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--bd);gap:16px}
+.timeline-row:last-child{border-bottom:none}
+.timeline-label{font-family:var(--mono);font-size:12px;color:var(--hd);font-weight:600}
+.timeline-value{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:right}
+.footer{text-align:center;padding:24px 0 8px;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="/" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--hd);letter-spacing:0.04em;text-decoration:none">DTVSS</a>
+  <span style="font-size:13px;color:var(--dim)">Security Policy</span>
+  <span style="margin-left:auto;font-size:13px;display:flex;gap:20px">
+    <a href="/" style="color:var(--dim);text-decoration:none">Search</a>
+    <a href="/calculator" style="color:var(--dim);text-decoration:none">Calculator</a>
+    <a href="/calibration" style="color:var(--dim);text-decoration:none">Calibration</a>
+    <a href="/about" style="color:var(--dim);text-decoration:none">About</a>
+    <a href="/security-policy" style="color:var(--acc);text-decoration:none">Security</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <div>
+    <h2>Security Policy</h2>
+    <p style="margin-top:10px;color:var(--dim)">
+      How to report vulnerabilities in DTVSS, what is in scope, and what to expect after you report. This policy is published in machine-readable form at <a href="/.well-known/security.txt" class="highlight">/.well-known/security.txt</a> in line with <a href="https://www.rfc-editor.org/rfc/rfc9116.html" class="highlight">RFC 9116</a>.
+    </p>
+  </div>
+
+  <!-- Reporting -->
+  <div class="section">
+    <h3>How to Report a Vulnerability</h3>
+    <p>
+      Report vulnerabilities <span class="highlight">privately</span> through GitHub Security Advisories. Open the Security tab of the DTVSS repository and choose <strong style="color:var(--hd)">Report a vulnerability</strong>. Only repository maintainers will see the report.
+    </p>
+    <div class="callout">
+      Contact: <a href="https://github.com/d3matr1x/dtvss-web/security/advisories/new" class="highlight">github.com/d3matr1x/dtvss-web/security/advisories/new</a>
+    </div>
+    <p style="margin-top:10px;color:var(--dim);font-size:13px">
+      Please do not open public GitHub issues, post on social media, or share proof-of-concept code publicly until a fix has shipped and we have agreed on a disclosure date.
+    </p>
+  </div>
+
+  <!-- What to Include -->
+  <div class="section">
+    <h3>What to Include in a Report</h3>
+    <ul>
+      <li>A clear description of the issue and the security impact.</li>
+      <li>Steps to reproduce, ideally with a minimal proof of concept.</li>
+      <li>The affected commit, deployed URL, or version.</li>
+      <li>Your name or handle if you want to be credited.</li>
+    </ul>
+    <p style="margin-top:12px;color:var(--dim);font-size:13px">
+      A working exploit is not required. A credible explanation of impact is enough to start triage.
+    </p>
+  </div>
+
+  <!-- Scope -->
+  <div class="section">
+    <h3>Scope</h3>
+    <p style="margin-bottom:12px"><span class="pill pill-low">IN SCOPE</span></p>
+    <ul>
+      <li>The DTVSS web application at <span class="code-inline">https://dtvss.io</span> and any subdomains we operate.</li>
+      <li>The Flask application (<span class="code-inline">app.py</span>), security-hardening module (<span class="code-inline">security.py</span>), scoring engine (<span class="code-inline">dtvss_engine.py</span>), API clients, and index loader.</li>
+      <li>The deployment configuration (<span class="code-inline">railway.toml</span>, <span class="code-inline">Procfile</span>, <span class="code-inline">requirements.txt</span>).</li>
+    </ul>
+
+    <p style="margin:18px 0 12px"><span class="pill pill-crit">OUT OF SCOPE</span></p>
+    <ul>
+      <li>Vulnerabilities in upstream data sources we consume but do not control: NVD, EPSS / FIRST.org, the CISA KEV catalogue, and CISA CSAF / ICSMA feeds. Report those upstream.</li>
+      <li>Vulnerabilities in third-party Python packages. Report to the package maintainer; we will pick up the fix on release.</li>
+      <li>Missing best-practice headers without demonstrable impact - a hardened header set is already applied in <span class="code-inline">security.py</span>.</li>
+      <li>Rate-limit bypasses that only achieve what a regular user could already do.</li>
+      <li>Volumetric denial of service. The production deployment sits behind Railway's edge and application-level rate limiting; please do not load-test it.</li>
+      <li>Social engineering of project maintainers.</li>
+    </ul>
+  </div>
+
+  <!-- Safe Harbour -->
+  <div class="section">
+    <h3>Safe Harbour</h3>
+    <p>We will not pursue legal action against researchers who:</p>
+    <ul>
+      <li>Make a good-faith effort to avoid privacy violations, data destruction, service degradation, or disruption to other users.</li>
+      <li>Test only against accounts and data they own, or against scoped test accounts we provide on request.</li>
+      <li>Report the issue privately and allow a reasonable window for a fix before public disclosure.</li>
+      <li>Do not exploit the issue beyond the minimum needed to demonstrate it.</li>
+    </ul>
+    <p style="margin-top:12px;color:var(--dim);font-size:13px">
+      If in doubt, ask first via a private advisory.
+    </p>
+  </div>
+
+  <!-- Disclosure Timeline -->
+  <div class="section">
+    <h3>Coordinated Disclosure Timeline</h3>
+    <div style="margin-top:8px">
+      <div class="timeline-row">
+        <span class="timeline-label">Acknowledgement</span>
+        <span class="timeline-value">Within 5 business days</span>
+      </div>
+      <div class="timeline-row">
+        <span class="timeline-label">Triage &amp; severity assessment</span>
+        <span class="timeline-value">Within 10 business days</span>
+      </div>
+      <div class="timeline-row">
+        <span class="timeline-label">Fix or mitigation</span>
+        <span class="timeline-value">Within 90 days for high &amp; critical</span>
+      </div>
+      <div class="timeline-row">
+        <span class="timeline-label">Public disclosure</span>
+        <span class="timeline-value">By mutual agreement</span>
+      </div>
+    </div>
+    <p style="margin-top:14px;color:var(--dim);font-size:13px">
+      If we go quiet for more than 14 days without explanation, you may escalate by re-pinging the advisory or, as a last resort, disclosing publicly with reasonable notice.
+    </p>
+  </div>
+
+  <!-- Acknowledgements -->
+  <div class="section">
+    <h3>Acknowledgements</h3>
+    <p>
+      Researchers who report valid issues and want public credit are listed in the closed advisories on the GitHub Security tab.
+    </p>
+    <div class="callout" style="margin-top:14px">
+      <a href="https://github.com/d3matr1x/dtvss-web/security/advisories" class="highlight">github.com/d3matr1x/dtvss-web/security/advisories</a>
+    </div>
+  </div>
+
+  <!-- Policy Metadata -->
+  <div class="section" style="background:transparent;border:1px solid rgba(79,142,247,0.15)">
+    <h3>Policy Metadata</h3>
+    <p style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.8">
+      Last updated: 20 April 2026<br>
+      Policy expires: 20 April 2027<br>
+      Machine-readable: <a href="/.well-known/security.txt" class="highlight">/.well-known/security.txt</a><br>
+      Standard: RFC 9116<br>
+      Preferred languages: English
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia</div>
+    <div style="margin-top:4px;font-size:12px;color:var(--tx)">Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use</div>
+    <div style="margin-top:8px;font-size:13px">
+      <a href="/">Search</a> · <a href="/calculator">Calculator</a> · <a href="/calibration">Calibration</a> · <a href="/about">About</a> · <a href="/security-policy">Security</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
