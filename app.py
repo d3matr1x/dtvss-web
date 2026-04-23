@@ -844,10 +844,18 @@ def score():
     if not isinstance(data, dict):
         return jsonify({"error": "Expected JSON object body"}), 400
 
+    required = ("B", "L", "H")
+    missing = [k for k in required if k not in data]
+    if missing:
+        return jsonify({
+            "error": f"Missing required field(s): {', '.join(missing)}",
+            "required": list(required),
+        }), 400
+    
     try:
-        B = validate_float_param(data.get("B", 0), "B", 0.0, 10.0)
-        L = validate_float_param(data.get("L", 0), "L", 0.0, 1.0)
-        H = validate_float_param(data.get("H", 7.5), "H", 0.0, 10.0)
+        B = validate_float_param(data["B"], "B", 0.0, 10.0)
+        L = validate_float_param(data["L"], "L", 0.0, 1.0)
+        H = validate_float_param(data["H"], "H", 0.0, 10.0)
         kev = bool(data.get("kev", False))
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
