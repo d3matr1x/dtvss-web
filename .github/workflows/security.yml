@@ -351,3 +351,36 @@ jobs:
             echo "$output"
             exit 1
           fi
+
+  # ---------------------------------------------------------------------
+  # Job 8: Upstream API fuzzing (F-02b in audit report)
+  # ---------------------------------------------------------------------
+  upstream-fuzzing:
+    name: Upstream API fuzzing (poisoned response regressions)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install hashed dependencies
+        # Match production: install with --require-hashes from the lockfile.
+        run: |
+          python -m pip install --upgrade pip
+          pip install --require-hashes -r requirements-lock.txt
+
+      - name: Run upstream fuzzing fixture
+        # test_upstream_fuzzing.py monkey-patches api_clients._fetch_json
+        # with 6 poisoned payloads (XSS in description, Unicode homoglyph,
+        # oversized description, KEV catalog size boundary, EPSS out-of-range,
+        # NaN exploitabilityScore) and asserts the scoring pipeline rejects
+        # each one cleanly. Exits non-zero on any regression.
+        #
+        # Without this job, a future refactor that (say) removes the
+        # validate_kev_catalog floor, drops the NaN guard in api_clients,
+        # or loosens the compute_dtvss strict mode would silently ship
+        # to production.
+        run: python test_upstream_fuzzing.py
