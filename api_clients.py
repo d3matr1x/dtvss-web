@@ -10,6 +10,7 @@ FIXED: EPSS batch processing bug - now handles 100+ CVE batches correctly
 """
 
 import json
+import math
 import os
 import time
 import urllib.parse
@@ -382,6 +383,21 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
         ""
     )
 
+    # F-02d: Guard against NaN/inf from upstream. Python's float("NaN")
+    # succeeds silently, and NaN propagates through max()/min() clamps
+    # because NaN comparisons always return False. Without this guard, a
+    # poisoned NVD response with exploitabilityScore="NaN" would produce
+    # a NaN B that only gets caught at strict compute_dtvss (as a 422).
+    # Defence in depth: stop it at the parser.
+    def _safe_float(value, default=0.0):
+        try:
+            v = float(value)
+        except (TypeError, ValueError):
+            return default
+        if math.isnan(v) or math.isinf(v):
+            return default
+        return v
+
     B = 0.0
     cvss_ver = cvss_vec = sev = ""
     impact = 0.0
@@ -394,15 +410,15 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
 
     if m.get("cvssMetricV31"):
         x = pick_best(m["cvssMetricV31"])
-        B = float(x.get("exploitabilityScore", 0))
-        impact = float(x.get("impactScore", 0))
+        B = _safe_float(x.get("exploitabilityScore", 0))
+        impact = _safe_float(x.get("impactScore", 0))
         cvss_ver = "3.1"
         cvss_vec = x.get("cvssData", {}).get("vectorString", "")
         sev = x.get("cvssData", {}).get("baseSeverity", "")
     elif m.get("cvssMetricV30"):
         x = pick_best(m["cvssMetricV30"])
-        B = float(x.get("exploitabilityScore", 0))
-        impact = float(x.get("impactScore", 0))
+        B = _safe_float(x.get("exploitabilityScore", 0))
+        impact = _safe_float(x.get("impactScore", 0))
         cvss_ver = "3.0"
         cvss_vec = x.get("cvssData", {}).get("vectorString", "")
         sev = x.get("cvssData", {}).get("baseSeverity", "")
@@ -418,15 +434,15 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
         # No approximation - if the vector can't be parsed, B stays 0
         # and the CVE is flagged as unscorable rather than guessing
 
-        impact = float(x.get("cvssData", {}).get("baseScore", 0)) - B if B else 0.0
+        impact = _safe_float(x.get("cvssData", {}).get("baseScore", 0)) - B if B else 0.0
     elif m.get("cvssMetricV2"):
         # v2.0 - compute exploitability from vector if available
         x = pick_best(m["cvssMetricV2"])
         cvss_ver = "2.0"
         cvss_vec = x.get("cvssData", {}).get("vectorString", "")
         sev = x.get("cvssData", {}).get("baseSeverity", "")
-        B = float(x.get("exploitabilityScore", 0))
-        impact = float(x.get("impactScore", 0))
+        B = _safe_float(x.get("exploitabilityScore", 0))
+        impact = _safe_float(x.get("impactScore", 0))
 
         # v2.0 exploitabilityScore is on 0-10 scale already
         if B:

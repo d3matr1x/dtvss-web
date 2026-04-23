@@ -18,6 +18,7 @@ Copyright 2026 Andrew Broglio. All rights reserved.
 """
 
 import re
+import unicodedata
 
 # -----------------------------------------------------------------------------
 # Layer 1: BLOCKLIST — definitely not medical
@@ -177,6 +178,32 @@ _MEDICAL_PATTERNS = [re.compile(p, re.IGNORECASE) for p in MEDICAL_TERMS]
 # Public API
 # -----------------------------------------------------------------------------
 
+def _normalize_for_matching(text: str) -> str:
+    """
+    Apply Unicode NFKC normalization before regex matching.
+
+    Pentest finding (F-02a): Unicode homograph attacks can bypass the
+    blocklist. 'wοrdpress' with a Greek omicron (U+03BF) is visually
+    identical to 'wordpress' but the blocklist regex, operating on raw
+    bytes, would not match.
+
+    NFKC (Compatibility Decomposition, followed by Canonical Composition)
+    maps many visually-equivalent characters to a canonical form. It
+    catches full-width ASCII (WordPress → WordPress), ligatures, and
+    compatibility forms. It does NOT catch Cyrillic/Greek lookalikes
+    that have no NFKC decomposition (e.g. Cyrillic 'а' U+0430 remains
+    distinct from Latin 'a'), but it substantially raises the bar.
+
+    Defence in depth: escapeHtml() on the client escapes HTML special
+    characters but does not normalise Unicode. NFKC here plus the
+    existing default-deny policy (is_in_scope returns False when no
+    medical term matches) combine to close most homograph bypass paths.
+    """
+    if not text:
+        return ""
+    return unicodedata.normalize("NFKC", text)
+
+
 def is_blocklisted(description: str) -> tuple[bool, str]:
     """
     Return (True, matched_pattern) if description matches the non-medical
@@ -184,8 +211,9 @@ def is_blocklisted(description: str) -> tuple[bool, str]:
     """
     if not description:
         return (False, "")
+    normalized = _normalize_for_matching(description)
     for pat in _BLOCKLIST_PATTERNS:
-        m = pat.search(description)
+        m = pat.search(normalized)
         if m:
             return (True, m.group(0))
     return (False, "")
@@ -198,8 +226,9 @@ def has_medical_term(description: str) -> tuple[bool, str]:
     """
     if not description:
         return (False, "")
+    normalized = _normalize_for_matching(description)
     for pat in _MEDICAL_PATTERNS:
-        m = pat.search(description)
+        m = pat.search(normalized)
         if m:
             return (True, m.group(0))
     return (False, "")

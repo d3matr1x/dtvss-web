@@ -464,12 +464,23 @@ def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
     from werkzeug.middleware.proxy_fix import ProxyFix
     from werkzeug.exceptions import HTTPException
     
-    # ProxyFix: trust exactly one hop of X-Forwarded-* headers
+    # ProxyFix: trust N hops of X-Forwarded-* headers.
+    #
+    # Default is 1 hop (client → Railway edge → gunicorn), which matches
+    # Railway's documented edge topology at time of writing. If Railway
+    # changes to a multi-hop architecture (e.g. CDN in front of edge, or
+    # separate LB + proxy), set DTVSS_PROXY_HOPS=N on the deploy.
+    #
+    # UNDERCOUNTING HOPS: trusts attacker-forged XFF values (security issue).
+    # OVERCOUNTING HOPS: collapses rate-limit buckets (availability issue).
+    # Getting this right requires empirical verification against the actual
+    # edge — see the F-03 verification procedure in the audit report.
+    _hops = int(os.environ.get("DTVSS_PROXY_HOPS", "1"))
     app.wsgi_app = ProxyFix(
         app.wsgi_app,
-        x_for=1,
-        x_proto=1,
-        x_host=1,
+        x_for=_hops,
+        x_proto=_hops,
+        x_host=_hops,
         x_port=0,
         x_prefix=0,
     )
@@ -531,17 +542,18 @@ def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
             )
 
         # CSP — strict for JSON; nonce-based for HTML.
-        # FIX #13: previously the HTML CSP allowed 'unsafe-inline' for both
-        # script-src and style-src, which defeated the main purpose of CSP
-        # (mitigating reflected/stored XSS). Now we emit a per-request
-        # nonce in g.csp_nonce that templates can use:
-        #   <script nonce="{{ g.csp_nonce }}"> ... </script>
-        # In strict mode (DTVSS_CSP_STRICT=1, opt-in), 'unsafe-inline' is
-        # dropped entirely. We default to a permissive policy that emits
-        # the nonce alongside 'unsafe-inline' so existing templates keep
-        # working while new templates migrate. Per spec, when a nonce or
-        # hash is present, modern browsers ignore 'unsafe-inline' anyway —
-        # so adding the nonce now is a no-regression hardening step.
+        #
+        # Strict CSP is default-on. DTVSS_CSP_STRICT=0 opts out (permissive
+        # with 'unsafe-inline' as a fallback for <script>/<style> blocks)
+        # but this should only be used as a temporary unblocker while
+        # migrating code — please open a security advisory rather than
+        # disabling permanently.
+        #
+        # In strict mode (default), 'unsafe-inline' is absent from
+        # script-src and style-src; nonce-based authorisation is the real
+        # control. Inline style="..." attributes are permitted via
+        # style-src-attr by explicit design (see rationale on lines
+        # ~560-572 below).
         if response.mimetype == "application/json":
             response.headers["Content-Security-Policy"] = "default-src 'none'"
         else:
@@ -632,7 +644,17 @@ def get_real_client_ip():
         return ip
     except ValueError:
         # Fallback to a hash-based key so requests without valid IP
-        # still get bucketed, just into one shared bucket
+        # still get bucketed, just into one shared bucket.
+        #
+        # Logged at WARNING so operators can detect when Railway's edge
+        # (or any upstream proxy) emits a malformed or missing XFF value.
+        # Without this telemetry, a misconfigured edge could silently
+        # collapse every request into one shared rate-limit bucket and
+        # we'd have no signal until rate limits stopped working.
+        log.warning(
+            "get_real_client_ip fell back to 'invalid-ip'; original remote_addr=%r",
+            request.remote_addr,
+        )
         return "invalid-ip"
 
 

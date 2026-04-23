@@ -824,7 +824,23 @@ def _search_live_nvd(query: str, tga_override: str, max_results: int):
 @require_max_body_size(MAX_JSON_BODY_BYTES)
 def score():
     """Manual scoring. POST {B, L, H, kev}."""
-    data = request.get_json(silent=True)
+    # ASVS V13.2.5: enforce application/json on JSON endpoints.
+    # request.is_json checks Content-Type is application/json (or a
+    # recognised JSON subtype). Rejecting other types with 415 gives
+    # clients a clear error instead of the misleading "Expected JSON
+    # object body" 400 that get_json(silent=True) would otherwise produce.
+    if not request.is_json:
+        return jsonify({
+            "error": "Content-Type must be application/json",
+        }), 415
+
+    # silent=False: malformed JSON returns 400 with a descriptive message
+    # via the global error handler, rather than silently returning None.
+    try:
+        data = request.get_json()
+    except Exception:
+        return jsonify({"error": "Malformed JSON body"}), 400
+
     if not isinstance(data, dict):
         return jsonify({"error": "Expected JSON object body"}), 400
 
