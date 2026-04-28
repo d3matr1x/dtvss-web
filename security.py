@@ -53,6 +53,18 @@ def _sanitize_for_log(value: Any) -> str:
     return "".join(ch for ch in s if ch >= " " and ch != "\x7f")
 
 
+def _log_safe_value(value: Any) -> str:
+    """
+    Return a log-safe representation of untrusted input.
+
+    1) Remove control characters that can alter log structure.
+    2) Encode remaining bytes as unicode escapes so unusual characters are
+       represented safely and unambiguously in log output.
+    """
+    cleaned = _sanitize_for_log(value)
+    return cleaned.encode("unicode_escape", errors="backslashreplace").decode("ascii")
+
+
 # =============================================================================
 # CONSTANTS
 log = logging.getLogger("dtvss.security")
@@ -187,7 +199,7 @@ def validate_and_resolve_external_url(
     hostname = (parsed.hostname or "").lower()
     if not hostname:
         return None
-    safe_hostname = _sanitize_for_log(hostname)
+    safe_hostname = _log_safe_value(hostname)
 
     # Block internal/private DNS suffixes before DNS lookup.
     # Catches Railway private networking, mDNS, and corporate intranets.
