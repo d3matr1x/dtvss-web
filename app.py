@@ -393,7 +393,10 @@ def lookup():
         nvd = nvd_lookup_cve(cve_id, api_key=NVD_API_KEY)
     except Exception as e:
         log.exception("NVD lookup failed for %s", cve_id)
-        return jsonify({"error": "Upstream lookup failed", "detail": sanitize_error(e)}), 502
+        return jsonify({
+            "error": "Upstream lookup failed",
+            "request_id": getattr(g, "request_id", None),
+        }), 502
 
     if not nvd or "error" in nvd:
         return jsonify(nvd or {"error": "NVD lookup failed"}), 404
@@ -533,8 +536,11 @@ def search():
         max_results = validate_int_param(
             request.args.get("max", 50), "max", 1, 100,
         )
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+    except ValueError:
+        return jsonify({
+            "error": "Invalid 'max' parameter",
+            "hint": "Must be an integer between 1 and 100",
+        }), 400
 
     log.info("search q_hash=%s max=%d", _query_hash(query), max_results)
 
@@ -856,13 +862,42 @@ def score():
             "required": list(required),
         }), 400
     
+    # Validate each parameter individually so we can return a specific,
+    # safe error message naming which parameter failed and its valid range.
+    # We deliberately don't echo str(e) to the client — CodeQL flags any
+    # exception object flow into responses (py/stack-trace-exposure), and
+    # keeping our error messages hard-coded here makes the safety property
+    # locally obvious to both reviewers and static analysis.
+    _PARAM_BOUNDS = {
+        "B": (0.0, 10.0, "CVSS Base sub-score"),
+        "L": (0.0, 1.0, "EPSS probability"),
+        "H": (0.0, 10.0, "TGA harm weighting"),
+    }
     try:
-        B = validate_float_param(data["B"], "B", 0.0, 10.0)
-        L = validate_float_param(data["L"], "L", 0.0, 1.0)
-        H = validate_float_param(data["H"], "H", 0.0, 10.0)
+        B = validate_float_param(data["B"], "B", *_PARAM_BOUNDS["B"][:2])
+        L = validate_float_param(data["L"], "L", *_PARAM_BOUNDS["L"][:2])
+        H = validate_float_param(data["H"], "H", *_PARAM_BOUNDS["H"][:2])
         kev = bool(data.get("kev", False))
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+    except ValueError:
+        # Identify which param failed by re-validating with abort-on-first.
+        # Keeps the response message constructed from our own (safe) bounds
+        # rather than from the exception string.
+        failed = None
+        for name in ("B", "L", "H"):
+            lo, hi, _desc = _PARAM_BOUNDS[name]
+            try:
+                validate_float_param(data.get(name), name, lo, hi)
+            except ValueError:
+                failed = name
+                break
+        if failed is None:
+            # Should not happen — defence in depth
+            return jsonify({"error": "Invalid score parameters"}), 400
+        lo, hi, desc = _PARAM_BOUNDS[failed]
+        return jsonify({
+            "error": f"Invalid '{failed}' parameter",
+            "hint": f"{desc} must be a finite number in [{lo}, {hi}]",
+        }), 400
 
     return jsonify(compute_dtvss(B, L, H, kev))
 
