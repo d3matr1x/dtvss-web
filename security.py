@@ -128,6 +128,20 @@ def validate_and_resolve_external_url(
     if not url or not isinstance(url, str):
         return None
 
+    # Defence in depth: reject control characters, NUL bytes, CRLF, and
+    # backslashes anywhere in the original URL string BEFORE urlparse has
+    # a chance to silently strip or reassign them. urlparse will, for
+    # example, swallow CRLF in the path silently, and put a backslash in
+    # the hostname rather than rejecting it. Catching these at the raw
+    # string level is more reliable.
+    for ch in url:
+        if ord(ch) < 0x20 or ord(ch) == 0x7F:
+            log.warning("SSRF: rejected URL with control char")
+            return None
+    if "\\" in url:
+        log.warning("SSRF: rejected URL with backslash")
+        return None
+
     try:
         parsed = urllib.parse.urlparse(url)
     except Exception:
@@ -136,6 +150,26 @@ def validate_and_resolve_external_url(
     # Scheme check
     if parsed.scheme not in ALLOWED_SCHEMES:
         log.warning("SSRF: rejected scheme %s for %s", parsed.scheme, _redact_url(url))
+        return None
+
+    # Path-traversal check: ".." as a discrete path segment is never
+    # legitimate in our API URLs and is the canonical path-injection vector.
+    # Use parsed.path so that ".." inside a longer name (e.g. "..foo") is
+    # not falsely flagged.
+    if ".." in parsed.path.split("/"):
+        log.warning("SSRF: rejected URL with path traversal segment")
+        return None
+
+    # ASCII-only check: any non-ASCII in the URL must be percent-encoded
+    # before reaching us. Raw Unicode in the path/query is suspicious and
+    # not used by any of our legitimate upstreams.
+    try:
+        target = (parsed.path or "/")
+        if parsed.query:
+            target = f"{target}?{parsed.query}"
+        target.encode("ascii")
+    except UnicodeEncodeError:
+        log.warning("SSRF: rejected URL with non-ASCII in path/query")
         return None
 
     # Host check
@@ -234,6 +268,24 @@ def safe_fetch_bytes(
     allowlisted hostname could flip the answer between validation and
     connection. SNI and certificate validation still use the original
     hostname so TLS works correctly.
+
+    Caller contract - URL construction safety:
+        Callers MUST construct the URL such that any user-controlled
+        substring is properly encoded for the position it occupies:
+
+          OK:  Query parameter values - use urllib.parse.urlencode(...)
+          OK:  Path segments - use urllib.parse.quote(value, safe='')
+          BAD: NEVER interpolate raw user input directly into a path with
+               f-string/format unless the value passes a strict regex first
+               (see validate_cve_id for an example of acceptable practice).
+
+        safe_fetch_bytes does defence-in-depth checks (rejects path
+        traversal, control bytes, CRLF, backslash, non-ASCII) but those
+        are a safety net, not a substitute for correct URL construction
+        at the call site. The host allowlist is a hard boundary; the
+        path safety check is conservative; if a caller bypasses the
+        validator entirely (e.g. by calling urllib.request directly)
+        none of these protections apply.
     """
     pinned_ip = validate_and_resolve_external_url(url, extra_allowed_hosts)
     if pinned_ip is None:
