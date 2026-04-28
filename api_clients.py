@@ -12,7 +12,6 @@ FIXED: EPSS batch processing bug - now handles 100+ CVE batches correctly
 import json
 import logging
 import math
-import os
 import time
 import urllib.parse
 import urllib.request
@@ -529,7 +528,6 @@ def epss_lookup(cve_ids: list[str]) -> dict:
            non-fatal for scoring (L defaults to 0.0) but operators need visible
            signal when scores are silently degrading to static B*H/10.
     """
-    import logging
     _log = logging.getLogger("dtvss.epss")
 
     if not cve_ids:

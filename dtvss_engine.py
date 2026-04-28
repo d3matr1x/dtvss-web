@@ -109,7 +109,9 @@ def classify_device(description: str, use_openfda: bool = True) -> tuple[str | N
             for keyword in sorted(dynamic.keys(), key=len, reverse=True):
                 if keyword in desc_lower:
                     return dynamic[keyword], "openfda_cache"
-        except Exception:
+        except Exception:  # noqa: BLE001
+            # Layer 2 (openfda_cache) failure is non-fatal — fall through
+            # to Layer 3 (live openFDA lookup) below.
             pass
 
     # Layer 3: openFDA single-device API lookup
@@ -119,7 +121,9 @@ def classify_device(description: str, use_openfda: bool = True) -> tuple[str | N
             fda_result = openfda_classify_device(description)
             if fda_result and fda_result.get("tga_class"):
                 return fda_result["tga_class"], "openfda"
-        except Exception:
+        except Exception:  # noqa: BLE001
+            # Layer 3 (openFDA live) failure is non-fatal — fall through
+            # to Layer 4 ("manual" / unclassifiable) below.
             pass
 
     # Layer 4: unclassifiable

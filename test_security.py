@@ -12,12 +12,9 @@ Each test has two parts:
 Run: python3 test_security.py
 """
 
-import json
-import math
 import os
 import sys
 import urllib.parse
-from io import BytesIO
 
 # Make project modules importable regardless of working directory.
 # Previously this hardcoded /home/claude paths from a sandbox layout, which
@@ -364,7 +361,6 @@ def test_error_sanitization():
         print(f"  {C.GREEN}Output:{C.RESET}   {sanitized}")
         
         # Check that sensitive patterns were redacted
-        raw_str = str(exc)
         leaked_patterns = []
         if "abc123def456" in sanitized:
             leaked_patterns.append("API key")
