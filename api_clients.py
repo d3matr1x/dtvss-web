@@ -10,6 +10,7 @@ FIXED: EPSS batch processing bug - now handles 100+ CVE batches correctly
 """
 
 import json
+import logging
 import math
 import os
 import time
@@ -20,6 +21,8 @@ from datetime import date
 from typing import Optional
 
 from security import safe_fetch_bytes
+
+log = logging.getLogger("dtvss.api_clients")
 
 NVD_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 EPSS_URL = "https://api.first.org/data/v1/epss"
@@ -143,12 +146,16 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
 
     try:
         data = _fetch_json(url, headers=headers, timeout=15)
-    except Exception as e:
+    except Exception:
+        # Log server-side for operator diagnosis; return a hardcoded
+        # error message so no exception/stack-trace text flows up to
+        # callers (and thence to clients via /api/cve).
+        log.exception("NVD lookup failed for %s", cve_id)
         # NVD unreachable - try MITRE fallback
         mitre = mitre_lookup_cve(cve_id)
         if mitre and "error" not in mitre:
             return mitre
-        return {"error": f"NVD API error: {str(e)}"}
+        return {"error": "NVD API unavailable"}
 
     vulns = data.get("vulnerabilities", [])
     if not vulns:
@@ -217,8 +224,10 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
         data = _fetch_json(url, headers={
             "Accept": "application/json", "User-Agent": "DTVSS/6.0"
         }, timeout=15)
-    except Exception as e:
-        return {"error": f"MITRE CVE API error: {str(e)}"}
+    except Exception:
+        # Log server-side; hardcoded message avoids exception-data flow to clients.
+        log.exception("MITRE CVE API lookup failed for %s", cve_id)
+        return {"error": "MITRE CVE API unavailable"}
 
     cna = data.get("containers", {}).get("cna", {})
     if not cna:
