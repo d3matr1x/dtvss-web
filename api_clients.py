@@ -20,7 +20,7 @@ import urllib.error
 from datetime import date
 from typing import Optional
 
-from security import safe_fetch_bytes
+from security import safe_fetch_bytes, _log_safe_value
 
 log = logging.getLogger("dtvss.api_clients")
 
@@ -150,7 +150,7 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
         # Log server-side for operator diagnosis; return a hardcoded
         # error message so no exception/stack-trace text flows up to
         # callers (and thence to clients via /api/cve).
-        log.exception("NVD lookup failed for %s", cve_id)
+        log.exception("NVD lookup failed for %s", _log_safe_value(cve_id))
         # NVD unreachable - try MITRE fallback
         mitre = mitre_lookup_cve(cve_id)
         if mitre and "error" not in mitre:
@@ -226,7 +226,7 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
         }, timeout=15)
     except Exception:
         # Log server-side; hardcoded message avoids exception-data flow to clients.
-        log.exception("MITRE CVE API lookup failed for %s", cve_id)
+        log.exception("MITRE CVE API lookup failed for %s", _log_safe_value(cve_id))
         return {"error": "MITRE CVE API unavailable"}
 
     cna = data.get("containers", {}).get("cna", {})
@@ -407,9 +407,13 @@ def _parse_nvd_cve(cve: dict) -> Optional[dict]:
             return default
         return v
 
-    B = 0.0
-    cvss_ver = cvss_vec = sev = ""
-    impact = 0.0
+    # Note: B, impact, cvss_ver, cvss_vec, sev are assigned in every elif
+    # branch below. The else branch returns early. We deliberately don't
+    # pre-initialise them — that pattern was flagged by CodeQL
+    # py/multiple-definition (correctly: the values were always overwritten
+    # before use). Future contributors adding a new elif branch must
+    # assign all five — Python will raise UnboundLocalError immediately
+    # in testing if any are missed, which is the correct failure mode.
     m = cve.get("metrics", {})
 
     # Helper: prefer "Primary" (NVD-assigned) over "Secondary" (CNA-assigned)
@@ -549,7 +553,8 @@ def epss_lookup(cve_ids: list[str]) -> dict:
             _log.warning(
                 "EPSS batch %d/%d failed (%d CVEs): %s — affected scores will "
                 "default to L=0.0 (static B*H/10).",
-                (i // 100) + 1, (len(cve_ids) + 99) // 100, len(chunk), e,
+                (i // 100) + 1, (len(cve_ids) + 99) // 100, len(chunk),
+                _log_safe_value(e),
             )
             data = None
 
@@ -722,7 +727,7 @@ def cisa_kev_check(cve_id: str) -> Optional[dict]:
                 _kev_cache["last_failure_at"] = 0  # clear failure state
         except Exception as e:
             _log.warning("KEV catalog fetch failed (%s); backing off %ds.",
-                         e, KEV_FAILURE_BACKOFF)
+                         _log_safe_value(e), KEV_FAILURE_BACKOFF)
             _kev_cache["last_failure_at"] = now
             if _kev_cache["data"] is None:
                 return None
