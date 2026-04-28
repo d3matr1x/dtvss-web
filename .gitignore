@@ -234,3 +234,5 @@ temp/
 # OS-specific lock files
 *.pid
 *.lock
+dtvss_pentest/
+reqdiff.txt

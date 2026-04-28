@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<!--
+  DTVSS Tiers - Commercial Licensing
+  Copyright © 2026 Andrew Broglio. All rights reserved.
+  Patent Pending - IP Australia | Licensed under BSL 1.1
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiers - DTVSS Commercial Licensing</title>
+<meta name="description" content="DTVSS commercial tiers. Tier 3 white-glove agent-assisted classification and triage for medical device fleets. Tier 4 self-operated platform with login, dashboard, and agent integration. Patent-aligned, reproducibility-preserving.">
+<meta name="keywords" content="DTVSS tiers, medical device cybersecurity managed service, ICSMA advisory triage, TGA classification assistance, healthcare vulnerability scoring platform, Andrew Broglio">
+<meta name="author" content="Andrew Broglio">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://dtvss.io/tiers">
+
+<!-- Open Graph -->
+<meta property="og:title" content="DTVSS Commercial Tiers - White-Glove and Platform">
+<meta property="og:description" content="Tier 3 white-glove agent-assisted classification and triage. Tier 4 self-operated platform with login and dashboard. Patent-aligned, reproducibility-preserving.">
+<meta property="og:url" content="https://dtvss.io/tiers">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
+  --tx:#b8bcc8; --dim:#6b7280; --hd:#e2e6f0;
+  --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e05252; --low:#48b878; --med:#d4b832;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.header{border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.container{max-width:740px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:28px}
+h2{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--hd);letter-spacing:0.02em}
+h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
+.section{padding:22px;background:var(--s1);border:1px solid var(--bd);border-radius:10px}
+.footer{text-align:center;padding:24px 0 8px;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
+
+/* Tier columns */
+.tier-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width: 720px){ .tier-grid{grid-template-columns:1fr} }
+.tier-col{padding:22px;background:var(--s1);border:1px solid var(--bd);border-radius:10px;display:flex;flex-direction:column;gap:14px}
+.tier-col.t3{border-top:2px solid var(--acc)}
+.tier-col.t4{border-top:2px solid var(--purple)}
+.tier-tag{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.tier-tag .badge{padding:2px 8px;border-radius:4px;border:1px solid}
+.t3 .tier-tag .badge{color:var(--acc);border-color:rgba(91,147,245,0.30);background:rgba(91,147,245,0.08)}
+.t4 .tier-tag .badge{color:var(--purple);border-color:rgba(160,112,232,0.30);background:rgba(160,112,232,0.08)}
+.tier-tag .status-now{color:var(--low)}
+.tier-tag .status-soon{color:var(--high)}
+.tier-title{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--hd);letter-spacing:0.02em}
+.tier-blurb{font-size:13px;color:var(--tx);line-height:1.7}
+.tier-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;font-size:13px}
+.tier-list li{padding-left:18px;position:relative;color:var(--tx);line-height:1.6}
+.tier-list li::before{content:"";position:absolute;left:0;top:9px;width:8px;height:1px;background:var(--dim)}
+.tier-list li b{color:var(--hd);font-weight:600}
+.tier-cta{margin-top:auto;padding:10px 14px;border-radius:999px;text-align:center;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:0.05em;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;transition:transform .12s, border-color .12s}
+.tier-cta:hover{transform:translateY(-1px);text-decoration:none}
+.t3 .tier-cta{color:var(--acc);border:1px solid rgba(91,147,245,0.30);background:rgba(91,147,245,0.08)}
+.t4 .tier-cta{color:var(--purple);border:1px solid rgba(160,112,232,0.30);background:rgba(160,112,232,0.08)}
+.tier-cta .sep{color:var(--dim);font-weight:400}
+
+/* Boundary box */
+.boundary{padding:16px 18px;border:1px solid rgba(72,184,120,0.25);border-radius:8px;background:rgba(72,184,120,0.05)}
+.boundary .label{font-family:var(--mono);font-size:10px;color:var(--low);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+.boundary p{font-size:13px;color:var(--tx);line-height:1.7}
+.boundary p + p{margin-top:8px}
+
+/* Capability cards */
+.cap-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:6px}
+@media (max-width: 720px){ .cap-grid{grid-template-columns:1fr} }
+.cap{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px}
+.cap .cap-h{font-family:var(--mono);font-size:10px;color:var(--acc);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;font-weight:600}
+.cap .cap-t{color:var(--hd);font-size:13px;font-weight:600;line-height:1.3;margin-bottom:6px}
+.cap .cap-d{color:var(--tx);font-size:12px;line-height:1.5}
+
+/* Tier 1 / Tier 2 reference strip */
+.refstrip{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width: 720px){ .refstrip{grid-template-columns:1fr} }
+.refstrip .ref{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px}
+.refstrip .ref .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.refstrip .ref.t1 .lbl{color:var(--low)}
+.refstrip .ref.t2 .lbl{color:var(--med)}
+.refstrip .ref .name{color:var(--hd);font-size:13px;font-weight:600;margin-bottom:4px}
+.refstrip .ref .desc{color:var(--tx);font-size:12px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="/" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--hd);letter-spacing:0.04em;text-decoration:none">DTVSS</a>
+  <span style="font-size:13px;color:var(--dim)">Tiers</span>
+  <span style="margin-left:auto;font-size:13px;display:flex;gap:20px">
+    <a href="/" style="color:var(--dim);text-decoration:none">Search</a>
+    <a href="/calculator" style="color:var(--dim);text-decoration:none">Calculator</a>
+    <a href="/calibration" style="color:var(--dim);text-decoration:none">Calibration</a>
+    <a href="/about" style="color:var(--dim);text-decoration:none">About</a>
+    <a href="/tiers" style="color:var(--acc);text-decoration:none">Tiers</a>
+    <a href="/security-policy" style="color:var(--dim);text-decoration:none">Security</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <!-- Intro -->
+  <div>
+    <h2>Commercial tiers</h2>
+    <p style="margin-top:10px;color:var(--dim)">
+      DTVSS is offered in four tiers. Tier 1 is the public research preview at this site. Tier 2 unlocks the optional patent embodiments under a commercial licence. Tier 3 is a white-glove managed service operated on the customer's behalf. Tier 4 is a self-operated platform with login, dashboard, and agent integration. This page covers Tier 3 and Tier 4.
+    </p>
+  </div>
+
+  <!-- T1/T2 reference strip -->
+  <div class="refstrip">
+    <div class="ref t1">
+      <div class="lbl">Tier 1 - Available now</div>
+      <div class="name">Public research preview</div>
+      <div class="desc">Search, score, calibrate. Free. Non-commercial. The full deterministic engine over public sources.</div>
+    </div>
+    <div class="ref t2">
+      <div class="lbl">Tier 2 - Available now</div>
+      <div class="name">Patent embodiments unlocked</div>
+      <div class="desc">Environment-adjusted exploitability (claim 8), temporal decay L_eff (claim 9), organisational risk scaling ORS (claim 11). Same deterministic engine, more of it.</div>
+    </div>
+  </div>
+
+  <!-- Reproducibility boundary -->
+  <div class="boundary">
+    <div class="label">Reproducibility boundary</div>
+    <p>
+      Across every tier, the DTVSS score itself is computed by the deterministic engine described in the patent specification, from publicly available data sources, without operator configuration. Two independent implementations will produce the same score for the same CVE on the same day.
+    </p>
+    <p>
+      In Tier 3 and Tier 4, AI agents prepare <i>inputs</i> to the engine. Examples include proposing a TGA class for a newly published device, summarising an ICSMA advisory, and drafting a remediation brief. A human approves before any value is written to the index. Agents do not compute, modify, or override DTVSS scores. The patent's reproducibility claim is preserved.
+    </p>
+  </div>
+
+  <!-- T3 and T4 columns -->
+  <div class="tier-grid">
+
+    <!-- Tier 3 -->
+    <div class="tier-col t3">
+      <div class="tier-tag">
+        <span class="badge">Tier 3</span>
+        <span class="status-now">Available now - white-glove</span>
+      </div>
+      <div class="tier-title">Managed agent service</div>
+      <p class="tier-blurb">
+        DTVSS operated on your behalf. New ICSMA advisories are triaged, classifications are proposed and validated against regulator databases, and prioritised briefs are delivered to your clinical engineering and risk management teams. No infrastructure to deploy. No accounts to manage. Includes everything in Tier 1 and Tier 2.
+      </p>
+
+      <ul class="tier-list">
+        <li><b>H-classification assistance.</b> Each newly published device is matched to TGA / Medsafe / EU MDR / MHRA / FDA classification with citations to the regulator entry. Class proposed; you sign off.</li>
+        <li><b>Advisory triage briefs.</b> Each ICSMA advisory affecting a tracked device produces a one-page brief with the DTVSS score, KEV / EPSS context, affected models, mitigations, and SLA recommendation per the published thresholds.</li>
+        <li><b>Patent embodiments included.</b> ZTA exploitability adjustment, temporal decay, and organisational risk scaling applied where appropriate to the customer's fleet. Computation deterministic; parameters disclosed.</li>
+        <li><b>Delivery channel of your choice.</b> Email, secure download, or PDF delivery. No customer-side login or integration required.</li>
+        <li><b>Human-in-the-loop on every write.</b> No agent output is published or scored without inventor sign-off.</li>
+      </ul>
+
+      <a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer" class="tier-cta">
+        Tier 3 <span class="sep">·</span> request pricing &rarr;
+      </a>
+    </div>
+
+    <!-- Tier 4 -->
+    <div class="tier-col t4">
+      <div class="tier-tag">
+        <span class="badge">Tier 4</span>
+        <span class="status-soon">Design partners - early access</span>
+      </div>
+      <div class="tier-title">Self-operated platform</div>
+      <p class="tier-blurb">
+        Everything in Tier 3, but operated by your team inside a tenant you control. Login, dashboard, agent integration, and an API for pulling DTVSS scores into your own workflows. Available to design partners under early-access terms while the platform is built out.
+      </p>
+
+      <ul class="tier-list">
+        <li><b>Authenticated dashboard.</b> Per-tenant view of the customer's fleet, advisory feed filtered to tracked devices, classification queue, brief archive, and scoring history.</li>
+        <li><b>Agent integration in-tenant.</b> H-classification and triage agents run in the customer's tenant against the customer's fleet, with the same human-in-the-loop approval gate.</li>
+        <li><b>API access.</b> Programmatic DTVSS lookup, fleet-aware ORS computation, and webhook notifications for KEV matches against tracked devices. Score computation remains deterministic; the API exposes the engine, not the agents.</li>
+        <li><b>Audit trail.</b> Every classification decision, every score recomputation, every agent proposal and human approval recorded for ISO 14971 alignment.</li>
+        <li><b>Design partner terms.</b> Reduced fee for early-access partners in exchange for feedback on the dashboard and agent UX. Limited cohort.</li>
+      </ul>
+
+      <a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer" class="tier-cta">
+        Tier 4 <span class="sep">·</span> request pricing &rarr;
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Capabilities deep dive -->
+  <div class="section">
+    <h3>Tier 3 capabilities in detail</h3>
+    <p style="color:var(--dim);font-size:13px;margin-bottom:14px">Three operational capabilities sit on top of the deterministic scoring engine, with explicit human approval gates.</p>
+    <div class="cap-grid">
+      <div class="cap">
+        <div class="cap-h">Capability 1</div>
+        <div class="cap-t">H-classification</div>
+        <div class="cap-d">Maps an affected device from an ICSMA advisory to its TGA / FDA / MDR / MHRA / Medsafe classification. Output: proposed H value (2.0 / 5.0 / 7.5 / 10.0) with regulator-database citation. Human approves before write.</div>
+      </div>
+      <div class="cap">
+        <div class="cap-h">Capability 2</div>
+        <div class="cap-t">Advisory triage</div>
+        <div class="cap-d">Composes a one-page brief per relevant advisory: device, vendor, DTVSS score, KEV / EPSS context, affected models, mitigations, recommended SLA tier. Brief is reviewed before delivery.</div>
+      </div>
+      <div class="cap">
+        <div class="cap-h">Capability 3</div>
+        <div class="cap-t">Fleet prioritisation</div>
+        <div class="cap-d">Applies the optional organisational scaling step from the patent (ORS = DTVSS &times; F(N)) to the customer's fleet, producing a ranked queue. Computation deterministic; F(N) and N disclosed.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- What's not included -->
+  <div class="section">
+    <h3>What Tier 3 and Tier 4 do not change</h3>
+    <ul class="tier-list">
+      <li><b>The DTVSS formula.</b> No tier modifies the multiplicative scoring function from claim 3, the calibration of k = 15, or the KEV override.</li>
+      <li><b>The H spacing.</b> Class I = 2.0, IIa = 5.0, IIb = 7.5, III = 10.0 are fixed per the patent and apply identically across tiers.</li>
+      <li><b>The data sources.</b> CVE discovery from CISA ICSMA. Scoring inputs from NVD / MITRE / CISA Vulnrichment, EPSS, and the KEV catalog. No proprietary feeds in the scoring path.</li>
+      <li><b>Reproducibility.</b> A second implementation of DTVSS, given the same CVE on the same day and the same H, will produce the same score regardless of tier.</li>
+    </ul>
+  </div>
+
+  <!-- Engagement model -->
+  <div class="section">
+    <h3>Engagement model</h3>
+    <p>
+      Both Tier 3 and Tier 4 begin with a discovery conversation to scope the customer's fleet, regulatory jurisdictions, and delivery requirements. A statement of work follows. Tier 3 onboarding is typically two weeks. Tier 4 design-partner onboarding is staged against the platform roadmap.
+    </p>
+    <p style="margin-top:10px">
+      Pricing is set per engagement. Both tiers require a commercial licence under the Business Source License 1.1 terms.
+    </p>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <a href="https://www.linkedin.com/in/andr3wbr0" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono);font-size:11px;font-weight:600;padding:8px 14px;border-radius:6px;border:1px solid var(--bd);background:var(--s2);color:var(--acc)">
+        Start a conversation &rarr;
+      </a>
+    </div>
+  </div>
+
+  <!-- IP -->
+  <div class="section" style="background:transparent;border:1px solid rgba(79,142,247,0.15)">
+    <h3>Intellectual Property</h3>
+    <p style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.8">
+      Patent Pending - IP Australia<br>
+      DTVSS&trade; - Trademark pending<br>
+      &copy; 2026 Andrew Broglio. All rights reserved.<br>
+      Licensed under Business Source License 1.1 (BSL 1.1)<br>
+      Non-commercial use permitted. Commercial licence required for production use.
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>&copy; 2026 Andrew Broglio &middot; DTVSS&trade; &middot; Patent Pending - IP Australia</div>
+    <div style="margin-top:4px;font-size:12px;color:var(--tx)">Licensed under BSL 1.1 &middot; Non-commercial use permitted &middot; Commercial licence required for production use</div>
+    <div style="margin-top:8px;font-size:13px">
+      <a href="/">Search</a> &middot; <a href="/calculator">Calculator</a> &middot; <a href="/calibration">Calibration</a> &middot; <a href="/about">About</a> &middot; <a href="/tiers">Tiers</a> &middot; <a href="/security-policy">Security</a>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div style="padding:14px 18px;margin-top:-16px;border:1px solid rgba(224,82,82,0.25);border-radius:8px;background:rgba(224,82,82,0.05);font-family:var(--mono);font-size:11px;color:var(--tx);line-height:1.8;text-align:center;margin-bottom:24px">
+    <span style="color:var(--crit);font-weight:600">RESEARCH PREVIEW</span> - Tier 1 is a non-commercial research demonstration. Not a certified medical device risk management tool. Commercial licence required for production use.
+  </div>
+
+</div>
+</body>
+</html>

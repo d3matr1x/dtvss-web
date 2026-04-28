@@ -266,8 +266,12 @@ STATIC_PAGES = {
     "calculator": "calculator.html",
     "calibration": "calibration.html",
     "about": "about.html",
+    "tiers": "tiers.html",
 }
 
+@app.route("/tiers")
+def tiers():
+    return _serve_html_with_nonce(STATIC_DIR, "tiers.html")
 
 @app.route("/")
 def index():
