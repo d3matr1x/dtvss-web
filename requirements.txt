@@ -24,6 +24,11 @@ defusedxml==0.7.1          # CRIT-01: XXE-safe XML parsing (HARD REQUIREMENT)
 # resets on restart) — safe for local dev, not production.
 redis>=5.0.0
 
-# HTTP is handled by stdlib urllib.request throughout the codebase; we do not
-# depend on `requests`. No `urllib3` pin is needed because the stdlib ships
-# its own implementation and we don't re-export anything over it.
+# urllib3 — DNS-pinned HTTPS for SSRF guard in security.py.
+# The stdlib urllib.request does its own DNS resolution at connection time,
+# which left a TOCTOU window between validate_external_url's resolution and
+# urlopen's connect. CodeQL alert #20 (py/partial-ssrf) flagged this.
+# urllib3.connection.HTTPSConnection takes server_hostname (SNI) and
+# assert_hostname (cert validation) as separate kwargs, so we connect to
+# the validator-returned IP while TLS still validates against the hostname.
+urllib3==2.6.3
