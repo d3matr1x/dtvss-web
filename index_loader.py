@@ -1,501 +1,939 @@
 """
-DTVSS Index Loader - CISA ICSMA Runtime
-========================================
-Loads pre-built index from static/data/mdm_index.json.
-Hourly background thread checks ICSMA RSS for new advisories
-and enriches new CVEs with CVSS data from NVD.
+DTVSS Security Hardening Module
+================================
+Drop-in security hardening for the DTVSS Flask application.
 
-NVD is used for scoring enrichment only, not CVE discovery.
-All CVE discovery comes from CISA ICSMA advisories.
+This module centralizes security controls identified in the penetration test:
+  - XXE-safe XML parsing
+  - SSRF protection for URL fetching
+  - CORS allowlist
+  - Security headers
+  - Input validation helpers
+  - Safe JSON fetching with size limits
+  - Error message sanitization
+  - Atomic file writes
 
-FIXED: Race condition in search functions
-FIXED: Case-insensitive partial matching
+USAGE:
+  from security import apply_hardening, safe_fetch_json, validate_external_url
+  
+  app = Flask(__name__)
+  apply_hardening(app)  # Adds headers, CORS, ProxyFix
 
 Copyright 2026 Andrew Broglio. All rights reserved.
-Patent Pending - IP Australia | Licensed under BSL 1.1
 """
 
+from __future__ import annotations
+
+import ipaddress
 import json
+import logging
+import math
 import os
 import re
-import shutil
-import threading
-import time
+import socket
+import ssl
+import tempfile
+import urllib.error
 import urllib.parse
 import urllib.request
-import urllib.error
-from datetime import datetime, timezone
+import urllib3
+import urllib3.connection
+import urllib3.exceptions
+import uuid
+from typing import Any, Optional
+from functools import wraps
 
-# M-2: XXE-safe XML parsing + SSRF-guarded fetching for the RSS poller.
-# Replaces direct stdlib xml.etree.ElementTree (vulnerable to XXE on older
-# Python versions) and raw urlopen calls (no SSRF policy enforcement).
-from security import safe_parse_xml, safe_fetch_bytes, MAX_HTML_PAGE_BYTES, MAX_RSS_BYTES
-
-# ---------------------------------------------------------------------------
-# INDEX_FILE resolution
-# ---------------------------------------------------------------------------
-# The MDM index must survive container restarts so the hourly RSS top-up is
-# not lost. Resolution order:
-#
-#   1. DTVSS_INDEX_PATH env var (explicit override, any location)
-#   2. DTVSS_DATA_DIR env var + "mdm_index.json"
-#      (recommended on Railway: set DTVSS_DATA_DIR=/data and mount a Volume at /data)
-#   3. Legacy in-repo path static/data/mdm_index.json
-#      (used for local dev and as the baked-in seed on first boot after deploy)
-#
-# On first boot with a configured persistent path, if that path doesn't yet
-# contain an index, we seed it from the in-repo copy so the app has data from
-# cold start.
-# Resolve the in-repo seed path. Pentest finding (HIGH): historically this
-# only looked in static/data/, but the project ships mdm_index.json at the
-# repo root, so on a fresh deploy without DTVSS_DATA_DIR the loader silently
-# came up empty (manufacturer dropdown blank, every search falling through
-# to live NVD). We now prefer static/data/mdm_index.json if it exists
-# (production-style layout) and fall back to the repo root copy that the
-# project actually ships.
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_LEGACY_REPO_DEFAULT = os.path.join(_HERE, "static", "data", "mdm_index.json")
-_ROOT_REPO_DEFAULT = os.path.join(_HERE, "mdm_index.json")
-_REPO_DEFAULT = (
-    _LEGACY_REPO_DEFAULT if os.path.exists(_LEGACY_REPO_DEFAULT)
-    else _ROOT_REPO_DEFAULT
-)
-
-if os.environ.get("DTVSS_INDEX_PATH"):
-    INDEX_FILE = os.environ["DTVSS_INDEX_PATH"]
-elif os.environ.get("DTVSS_DATA_DIR"):
-    INDEX_FILE = os.path.join(os.environ["DTVSS_DATA_DIR"], "mdm_index.json")
-else:
-    INDEX_FILE = _REPO_DEFAULT
-
-
-def _seed_persistent_from_repo():
+def _sanitize_for_log(value: Any) -> str:
     """
-    If INDEX_FILE points at a persistent volume that hasn't been seeded yet,
-    copy the baked-in repo index into it so we have data on cold start.
-    No-op if the persistent index already exists or INDEX_FILE == repo default.
+    Sanitize untrusted values before logging to prevent log injection.
+    Replaces CR/LF/tab with spaces and strips remaining control characters.
     """
-    if INDEX_FILE == _REPO_DEFAULT:
-        return
-    if os.path.exists(INDEX_FILE):
-        return
-    if not os.path.exists(_REPO_DEFAULT):
-        return
-    try:
-        os.makedirs(os.path.dirname(INDEX_FILE), exist_ok=True)
-        shutil.copy2(_REPO_DEFAULT, INDEX_FILE)
-        print(f"  Seeded persistent index from repo: {_REPO_DEFAULT} -> {INDEX_FILE}")
-    except Exception as e:
-        print(f"  Persistent seed failed ({e}); will read from repo default")
+    if value is None:
+        return ""
+    s = str(value).replace("\r", " ").replace("\n", " ").replace("\t", " ")
+    s = "".join(ch for ch in s if (" " <= ch <= "~") or ch >= "\u00a0")
+    return s[:512]
 
 
-NVD_API_KEY = os.environ.get("NVD_API_KEY", "")
-NVD_DELAY = 0.7 if NVD_API_KEY else 6.0
-ICSMA_RSS_URL = "https://www.cisa.gov/cybersecurity-advisories/ics-medical-advisories.xml"
-NVD_CVE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+def _log_safe_value(value: Any) -> str:
+    """
+    Return a log-safe representation of untrusted input.
 
-EXCLUDED_DEVICES = ["wheelchair", "power chair", "electric chair", "fitness", "wearable", "smart watch"]
+    1) Remove control characters that can alter log structure.
+    2) Encode remaining bytes as unicode escapes so unusual characters are
+       represented safely and unambiguously in log output.
+    """
+    cleaned = _sanitize_for_log(value)
+    return cleaned.encode("unicode_escape", errors="backslashreplace").decode("ascii")
 
 
-VENDOR_ALIASES = {
-    "phillips": "Philips", "philips": "Philips",
-    "b. braun": "B. Braun", "b. braun medical": "B. Braun", "b. braun melsungen ag": "B. Braun",
-    "ge healthcare": "GE Healthcare", "general electric (ge)": "GE Healthcare",
-    "fujifilm": "FUJIFILM", "fujifilm healthcare americas corporation": "FUJIFILM",
-    "hillrom": "Hillrom", "hillrom and eli, baxter international inc.": "Hillrom",
-    "silex technology and ge healthcare": "GE Healthcare",
-    "natus medical, inc. (natus)": "Natus Medical",
-    "becton, dickinson and company (bd)": "BD (Becton Dickinson)",
-    "abbott laboratories": "Abbott", "roche diagnostics": "Roche",
-    "hamilton medical ag": "Hamilton Medical",
-    "sooil developments co, ltd.": "SOOIL",
-    "bmc medical, 3b medical": "BMC Medical",
+# =============================================================================
+# CONSTANTS
+log = logging.getLogger("dtvss.security")
+
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+# SSRF: hosts the server is permitted to fetch from
+ALLOWED_EXTERNAL_HOSTS = {
+    "services.nvd.nist.gov",
+    "cveawg.mitre.org",
+    "api.first.org",
+    "www.cisa.gov",
+    "cisa.gov",
+    "api.fda.gov",
+    "raw.githubusercontent.com",
+    "api.github.com",
 }
 
-KNOWN_VENDORS = [
-    "B. Braun", "Boston Scientific", "GE Healthcare", "GE HealthCare",
-    "Becton, Dickinson", "Becton Dickinson", "BD ",
-    "St. Jude Medical", "ICU Medical", "Smiths Medical",
-    "Hamilton Medical", "Cook Medical", "Cardinal Health",
-    "Nihon Kohden", "Karl Storz", "Welch Allyn",
-    "Fresenius Kabi", "Tandem Diabetes", "Siemens Healthineers",
-    "Contec Health", "Hillrom", "Spacelabs", "Oxford Nanopore",
-    "FUJIFILM Healthcare",
+ALLOWED_SCHEMES = {"https"}
+
+# Hostname suffixes to block even before DNS resolution.
+# Catches Railway private networking (*.railway.internal) and similar
+# internal TLDs. The post-DNS IP check also catches these via is_private,
+# but blocking at the hostname level is faster and avoids unnecessary DNS.
+BLOCKED_DOMAIN_SUFFIXES = (
+    ".railway.internal",  # Railway private networking
+    ".internal",          # General internal TLD convention
+    ".local",             # mDNS / Bonjour
+    ".localhost",         # Loopback alias
+    ".lan",               # Home / office LANs
+    ".intranet",          # Corporate intranets
+)
+
+# CORS: origins permitted to call the API from browsers
+# Override via DTVSS_CORS_ORIGINS env var (comma-separated)
+#
+# Pentest finding (MEDIUM): the default allowlist previously used dtvss.app,
+# but the production deployment is at dtvss.io (matches sitemap.xml,
+# SECURITY.md, and security.txt Canonical). On any deploy that doesn't set
+# DTVSS_CORS_ORIGINS, browser API calls from the real frontend would have
+# been blocked by CORS. Defaults now match the canonical domain.
+DEFAULT_CORS_ORIGINS = [
+    "https://dtvss.io",
+    "https://www.dtvss.io",
 ]
 
-_index = {"manufacturers": {}}
-_lock = threading.Lock()
-# Separate lock for file I/O. Without this, two concurrent _save_index calls
-# can both pass the (released) data lock and race their atomic_write_json +
-# .bak rotation, potentially clobbering the backup. Today only one background
-# thread calls _save_index, but a future signal handler or admin endpoint
-# could trigger this — cheap insurance.
-_save_lock = threading.Lock()
+# Response size caps to prevent memory exhaustion
+MAX_RESPONSE_BYTES = 10 * 1024 * 1024    # 10 MB for JSON APIs
+MAX_HTML_PAGE_BYTES = 2 * 1024 * 1024    # 2 MB for HTML advisory pages
+MAX_RSS_BYTES = 5 * 1024 * 1024          # 5 MB for RSS feeds
+
+# Query / input caps
+MAX_QUERY_LENGTH = 100
+MAX_CVE_ID_LENGTH = 30       # "CVE-YYYY-NNNNNNN" maxes around 20
+MAX_JSON_BODY_BYTES = 1024   # /api/score body is tiny
 
 
-# --- Public API ---
+# =============================================================================
+# SSRF PROTECTION
+# =============================================================================
 
-def get_manufacturer_dropdown():
-    """Return manufacturers for the dropdown, sorted by CVE count."""
-    with _lock:
-        # Make a shallow copy of the dict to avoid holding lock during processing
-        mdms = dict(_index.get("manufacturers", {}))
-
-    result = []
-    for key, mdm in mdms.items():
-        if mdm.get("status") != "has_cves":
-            continue
-        cve_count = len(mdm.get("cves", []))
-        if cve_count == 0:
-            continue
-        result.append({
-            "name": mdm["display_name"],
-            "nvd": mdm["display_name"],
-            "cve_count": cve_count,
-            "status": "ready",
-        })
-
-    result.sort(key=lambda x: (-x["cve_count"], x["name"]))
-    return result
-
-
-def search_manufacturer_cves(manufacturer_name):
+def validate_and_resolve_external_url(
+    url: str, extra_allowed_hosts: Optional[set] = None
+) -> Optional[str]:
     """
-    Return pre-indexed CVEs for a manufacturer.
-    
-    FIXED: Holds lock for entire operation
-    FIXED: Case-insensitive partial matching (both directions)
-    FIXED: Returns deep copy to prevent mutation outside lock
+    Return a verified public IP if the URL is safe to fetch server-side,
+    or None if rejected.
+
+    Blocks:
+      - Non-HTTPS schemes (file://, gopher://, ftp://)
+      - Hosts not in allowlist
+      - Private/loopback/link-local/reserved IPs (after DNS resolution)
+      - Cloud metadata endpoints
+      - Path traversal segments, control bytes, CRLF, backslash, non-ASCII
+
+    The returned IP is the address the caller MUST connect to (DNS pinning)
+    to close the TOCTOU window: a second DNS lookup at connection time could
+    otherwise resolve to a different (internal) address. See safe_fetch_bytes
+    for the pinning implementation. Closes CodeQL alert #20 (py/partial-ssrf).
     """
-    if not manufacturer_name:
-        return []
-    
-    key = manufacturer_name.lower().strip()
-    
-    with _lock:
-        mdms = _index.get("manufacturers", {})
-        
-        # Strategy 1: Exact match on normalized key
-        if key in mdms:
-            return list(mdms[key].get("cves", []))
+    if not url or not isinstance(url, str):
+        return None
 
-        # Strategy 2: Partial match on display_name (bidirectional, case-insensitive)
-        for mkey, mdm in mdms.items():
-            display_name = mdm.get("display_name", "").lower()
-            
-            # Check if search query is substring of vendor name OR vice versa
-            # This handles both "Baxter" → "Baxter International" 
-            # and "Baxter International" → "Baxter"
-            if key in display_name or display_name in key:
-                return list(mdm.get("cves", []))
-
-    return []
-
-
-def get_cpe_search_terms(manufacturer_name):
-    """
-    Return search terms for live NVD queries.
-    
-    FIXED: Holds lock for entire operation
-    """
-    if not manufacturer_name:
-        return [manufacturer_name]
-    
-    key = manufacturer_name.lower().strip()
-    
-    with _lock:
-        mdms = _index.get("manufacturers", {})
-        
-        mdm = mdms.get(key)
-        if not mdm:
-            # Try partial match
-            for mkey, m in mdms.items():
-                display_name = m.get("display_name", "").lower()
-                if key in display_name or display_name in key:
-                    mdm = m
-                    break
-
-    if not mdm:
-        return [manufacturer_name]
-
-    return [mdm["display_name"]]
-
-
-def get_advisory_urls(manufacturer_name):
-    """
-    Return ICSMA advisory URLs for a manufacturer.
-    
-    FIXED: Holds lock for entire operation
-    """
-    if not manufacturer_name:
-        return []
-    
-    key = manufacturer_name.lower().strip()
-    
-    with _lock:
-        mdms = _index.get("manufacturers", {})
-        
-        mdm = mdms.get(key)
-        if not mdm:
-            # Try partial match
-            for mkey, m in mdms.items():
-                display_name = m.get("display_name", "").lower()
-                if key in display_name or display_name in key:
-                    mdm = m
-                    break
-
-    if not mdm:
-        return []
-
-    return mdm.get("advisory_urls", [])
-
-
-# --- Helpers ---
-
-def _extract_vendor(title):
-    clean = re.sub(r'\s*\(Update [A-Z]\)', '', title).strip()
-    for vendor in KNOWN_VENDORS:
-        if clean.lower().startswith(vendor.lower()):
-            return vendor
-    words = clean.split()
-    if len(words) >= 2 and words[1].lower() in ("healthcare", "medical", "diabetes", "scientific"):
-        return f"{words[0]} {words[1]}"
-    return words[0] if words else ""
-
-
-def _normalise_vendor(raw_name):
-    key = raw_name.lower().strip()
-    return VENDOR_ALIASES.get(key, raw_name)
-
-
-def _nvd_enrich_cve(cve_id):
-    """Query NVD for CVSS data for a single CVE."""
-    hdrs = {"Accept": "application/json", "User-Agent": "DTVSS/3.0"}
-    if NVD_API_KEY:
-        hdrs["apiKey"] = NVD_API_KEY
-    try:
-        # M-3: use the centralized SSRF-guarded JSON fetcher.
-        # Lazy import to avoid an import cycle at module load time
-        # (api_clients imports nothing from index_loader, but keeping
-        # the import lazy here matches the pattern used elsewhere).
-        from api_clients import _fetch_json
-        params = urllib.parse.urlencode({"cveId": cve_id})
-        data = _fetch_json(f"{NVD_CVE_URL}?{params}", headers=hdrs, timeout=15)
-
-        vulns = data.get("vulnerabilities", [])
-        if not vulns:
+    # Defence in depth: reject control characters, NUL bytes, CRLF, and
+    # backslashes anywhere in the original URL string BEFORE urlparse has
+    # a chance to silently strip or reassign them. urlparse will, for
+    # example, swallow CRLF in the path silently, and put a backslash in
+    # the hostname rather than rejecting it. Catching these at the raw
+    # string level is more reliable.
+    for ch in url:
+        if ord(ch) < 0x20 or ord(ch) == 0x7F:
+            log.warning("SSRF: rejected URL with control char")
             return None
+    if "\\" in url:
+        log.warning("SSRF: rejected URL with backslash")
+        return None
 
-        cve_obj = vulns[0].get("cve", {})
-        desc = next((d["value"] for d in cve_obj.get("descriptions", []) if d.get("lang") == "en"), "")
-
-        m = cve_obj.get("metrics", {})
-        bs = sev = cv = ""
-        for vk, vl in [("cvssMetricV31","3.1"),("cvssMetricV30","3.0"),
-                        ("cvssMetricV40","4.0"),("cvssMetricV2","2.0")]:
-            if m.get(vk):
-                entry = next((e for e in m[vk] if e.get("type") == "Primary"), m[vk][0])
-                bs = entry.get("cvssData",{}).get("baseScore",0)
-                sev = entry.get("cvssData",{}).get("baseSeverity","")
-                cv = vl
-                break
-
-        return {
-            "description": desc[:300],
-            "cvss_version": cv,
-            "base_score": bs,
-            "severity": sev,
-            "published": cve_obj.get("published","")[:10],
-        }
+    try:
+        parsed = urllib.parse.urlparse(url)
     except Exception:
         return None
 
+    # Scheme check
+    if parsed.scheme not in ALLOWED_SCHEMES:
+        log.warning("SSRF: rejected scheme %s for %s",
+                    _log_safe_value(parsed.scheme),
+                    _log_safe_value(_redact_url(url)))
+        return None
 
-def _save_index():
+    # Path-traversal check: ".." as a discrete path segment is never
+    # legitimate in our API URLs and is the canonical path-injection vector.
+    # Use parsed.path so that ".." inside a longer name (e.g. "..foo") is
+    # not falsely flagged.
+    if ".." in parsed.path.split("/"):
+        log.warning("SSRF: rejected URL with path traversal segment")
+        return None
+
+    # ASCII-only check: any non-ASCII in the URL must be percent-encoded
+    # before reaching us. Raw Unicode in the path/query is suspicious and
+    # not used by any of our legitimate upstreams.
     try:
-        # M-4: atomic write — either the full new file lands or the old
-        # file remains intact. atomic_write_json also makes a .bak of the
-        # previous version automatically.
-        # Snapshot under data lock, then write under separate save lock so
-        # concurrent _save_index calls serialize their .bak rotation rather
-        # than racing.
-        from security import atomic_write_json
-        with _lock:
-            snap = json.loads(json.dumps(_index, default=str))
-        with _save_lock:
-            atomic_write_json(INDEX_FILE, snap, indent=2)
-    except Exception as e:
-        print(f"  [Hourly] Index save failed: {e}")
+        target = (parsed.path or "/")
+        if parsed.query:
+            target = f"{target}?{parsed.query}"
+        target.encode("ascii")
+    except UnicodeEncodeError:
+        log.warning("SSRF: rejected URL with non-ASCII in path/query")
+        return None
+
+    # Host check
+    hostname = (parsed.hostname or "").lower()
+    safe_hostname = _log_safe_value(hostname).replace("\r", "").replace("\n", "")
+    if not hostname:
+        return None
+
+    # Block internal/private DNS suffixes before DNS lookup.
+    # Catches Railway private networking, mDNS, and corporate intranets.
+    for suffix in BLOCKED_DOMAIN_SUFFIXES:
+        if hostname.endswith(suffix):
+            log.warning("SSRF: rejected internal suffix %s", safe_hostname)
+            return None
+
+    allowed = set(ALLOWED_EXTERNAL_HOSTS)
+    if extra_allowed_hosts:
+        allowed |= extra_allowed_hosts
+
+    if hostname not in allowed:
+        log.warning("SSRF: rejected host not in allowlist")
+        return None
+
+    # Resolve to IP and verify it's public.
+    # We require ALL resolved addresses to be public (rebinding may rotate
+    # multiple records), then return the first for the caller to pin to.
+    try:
+        addr_info = socket.getaddrinfo(hostname, None, family=socket.AF_UNSPEC)
+        first_public_ip: Optional[str] = None
+        for info in addr_info:
+            ip_str = info[4][0]
+            # IPv6 link-local sometimes appends %iface; strip it
+            ip_str = ip_str.split("%")[0]
+            try:
+                addr = ipaddress.ip_address(ip_str)
+            except ValueError:
+                continue
+            if (addr.is_private or addr.is_loopback or addr.is_link_local
+                    or addr.is_reserved or addr.is_multicast
+                    or addr.is_unspecified):
+                log.warning("SSRF: %s resolves to non-public %s", safe_hostname, ip_str)
+                return None
+            if first_public_ip is None:
+                first_public_ip = ip_str
+        if first_public_ip is None:
+            log.warning("SSRF: no usable IPs for %s", safe_hostname)
+            return None
+        return first_public_ip
+    except socket.gaierror:
+        log.warning("SSRF: DNS resolution failed for allowlisted host")
+        return None
 
 
-# --- Hourly: ICSMA RSS ingestion + NVD CVSS enrichment ---
+def validate_external_url(url: str, extra_allowed_hosts: Optional[set] = None) -> bool:
+    """
+    Backward-compatible wrapper: True if the URL is safe to fetch.
 
-def _hourly_pipeline():
-    """Check ICSMA RSS for new advisories, enrich with NVD CVSS."""
-    # Short first-iteration delay so a freshly deployed container picks up any
-    # new advisories within a minute rather than waiting a full hour.
-    first = True
-    while True:
-        time.sleep(60 if first else 3600)
-        first = False
+    Existing callers that just want a yes/no answer keep working. New code
+    that performs network I/O after this check should call
+    validate_and_resolve_external_url() and connect to the returned IP
+    (DNS pinning). Otherwise an attacker controlling DNS for an allowlisted
+    hostname can flip the answer between this validation and the connection.
+    """
+    return validate_and_resolve_external_url(url, extra_allowed_hosts) is not None
+
+
+def _redact_url(url: str) -> str:
+    """Strip query strings and auth from URL for safe logging."""
+    try:
+        p = urllib.parse.urlparse(url)
+        return f"{p.scheme}://{p.hostname}{p.path}"
+    except Exception:
+        return "[INVALID_URL]"
+
+
+# =============================================================================
+# SAFE JSON / HTML / XML FETCHING
+# =============================================================================
+
+def safe_fetch_bytes(
+    url: str,
+    headers: Optional[dict] = None,
+    timeout: int = 15,
+    max_bytes: int = MAX_RESPONSE_BYTES,
+    extra_allowed_hosts: Optional[set] = None,
+) -> bytes:
+    """
+    Fetch URL with SSRF protection, size cap, and timeout.
+    Raises ValueError if URL is invalid or response is too large.
+    Raises urllib.error.URLError on network failure (compatibility with
+    callers that catch urlopen-shaped exceptions).
+
+    DNS pinning (closes CodeQL alert #20, py/partial-ssrf): the validator
+    returns the resolved public IP, and we connect directly to that IP
+    rather than letting the HTTP client perform a second DNS resolution.
+    This closes the TOCTOU window where an attacker controlling DNS for an
+    allowlisted hostname could flip the answer between validation and
+    connection. SNI and certificate validation still use the original
+    hostname so TLS works correctly.
+
+    Caller contract - URL construction safety:
+        Callers MUST construct the URL such that any user-controlled
+        substring is properly encoded for the position it occupies:
+
+          OK:  Query parameter values - use urllib.parse.urlencode(...)
+          OK:  Path segments - use urllib.parse.quote(value, safe='')
+          BAD: NEVER interpolate raw user input directly into a path with
+               f-string/format unless the value passes a strict regex first
+               (see validate_cve_id for an example of acceptable practice).
+
+        safe_fetch_bytes does defence-in-depth checks (rejects path
+        traversal, control bytes, CRLF, backslash, non-ASCII) but those
+        are a safety net, not a substitute for correct URL construction
+        at the call site. The host allowlist is a hard boundary; the
+        path safety check is conservative; if a caller bypasses the
+        validator entirely (e.g. by calling urllib.request directly)
+        none of these protections apply.
+    """
+    pinned_ip = validate_and_resolve_external_url(url, extra_allowed_hosts)
+    if pinned_ip is None:
+        raise ValueError("URL rejected by SSRF policy")
+
+    parsed = urllib.parse.urlparse(url)
+    hostname = parsed.hostname
+    port = parsed.port or 443  # HTTPS only per ALLOWED_SCHEMES
+
+    # Build the request path including query string
+    path = parsed.path or "/"
+    if parsed.query:
+        path = f"{path}?{parsed.query}"
+
+    # Use urllib3's HTTPSConnection with explicit server_hostname and
+    # assert_hostname so the connection goes to the pinned IP but TLS
+    # SNI and cert validation use the original hostname. Both kwargs
+    # are documented public API.
+    conn = urllib3.connection.HTTPSConnection(
+        host=pinned_ip,
+        port=port,
+        timeout=timeout,
+        server_hostname=hostname,
+        assert_hostname=hostname,
+    )
+
+    try:
+        # Build headers; ensure Host is the original hostname (some servers
+        # route on Host even on a single IP). Do not let the caller override
+        # Host, since that would defeat the SNI/cert match.
+        request_headers = dict(headers or {})
+        request_headers["Host"] = hostname
+        if "User-Agent" not in request_headers:
+            request_headers["User-Agent"] = "DTVSS/3.0"
+
         try:
-            ts = datetime.now(timezone.utc).isoformat()
-            print(f"  [Hourly] {ts}")
+            conn.request(
+                "GET", path,
+                headers=request_headers,
+                preload_content=False,  # stream so we can enforce max_bytes early
+            )
+            resp = conn.getresponse()
+        except urllib3.exceptions.HTTPError as e:
+            # Re-raise as urllib.error.URLError so existing call sites that
+            # catch urlopen-shaped exceptions keep working unchanged.
+            raise urllib.error.URLError(str(e)) from e
+        except (OSError, ssl.SSLError) as e:
+            # OSError covers socket-level failures; SSLError covers TLS
+            # handshake failures (including assert_hostname mismatches -
+            # the pinning safety net). Both should look like network
+            # errors to callers.
+            raise urllib.error.URLError(str(e)) from e
 
-            changes = False
+        # Content-Length early check.
+        # Bug fix history: previously the over-cap raise lived inside the
+        # same try as int(content_length), so an except ValueError swallowed
+        # the size-cap rejection. We now narrow the try to the int() only
+        # and check the bound outside.
+        #
+        # Caveat: chunked Transfer-Encoding responses don't send
+        # Content-Length, so this fast-path is bypassed. The hard read-cap
+        # below is the actual security boundary; the Content-Length check
+        # is a bandwidth optimisation when the server is honest about size.
+        content_length = resp.getheader("Content-Length")
+        if content_length:
+            try:
+                cl_int = int(content_length)
+            except ValueError:
+                cl_int = None
+            if cl_int is not None and cl_int > max_bytes:
+                raise ValueError(
+                    f"Response too large: {content_length} > {max_bytes}"
+                )
 
-            # M-2: SSRF-guarded RSS fetch with size cap.
-            # ICSMA_RSS_URL is on www.cisa.gov which is in the security
-            # allowlist, so safe_fetch_bytes will permit it. The 5 MB cap
-            # protects against a compromised CDN serving a giant blob.
-            raw_bytes = safe_fetch_bytes(
-                ICSMA_RSS_URL,
-                headers={"User-Agent": "DTVSS/3.0"},
-                timeout=30,
-                max_bytes=MAX_RSS_BYTES,
+        # Read with hard cap. AUTHORITATIVE size enforcement - works for
+        # both Content-Length and chunked Transfer-Encoding responses.
+        #
+        # urllib3's HTTPResponse exposes the body via the .data attribute,
+        # which is preloaded. To enforce a streaming cap before the entire
+        # body lands in memory, iterate via .stream() and accumulate up to
+        # max_bytes + 1 bytes.
+        chunks: list[bytes] = []
+        total = 0
+        for chunk in resp.stream(8192, decode_content=False):
+            chunks.append(chunk)
+            total += len(chunk)
+            if total > max_bytes:
+                raise ValueError(f"Response exceeded {max_bytes} bytes")
+        return b"".join(chunks)
+    finally:
+        conn.close()
+
+
+def safe_fetch_json(
+    url: str,
+    headers: Optional[dict] = None,
+    timeout: int = 15,
+    max_bytes: int = MAX_RESPONSE_BYTES,
+    extra_allowed_hosts: Optional[set] = None,
+) -> Any:
+    """Fetch JSON with all safety checks. Returns parsed JSON."""
+    raw = safe_fetch_bytes(url, headers, timeout, max_bytes, extra_allowed_hosts)
+    # Reject if it looks like HTML (error page)
+    stripped = raw.lstrip()
+    if stripped.startswith(b"<"):
+        raise ValueError("Response is HTML, not JSON")
+    return json.loads(raw.decode("utf-8"))
+
+
+# XXE protection is a hard requirement. Import at module load time so a
+# missing dependency fails deployment immediately rather than silently
+# degrading security at runtime.
+try:
+    from defusedxml import ElementTree as _DefusedET
+except ImportError as _e:
+    raise ImportError(
+        "defusedxml is required for XXE-safe XML parsing. "
+        "Add 'defusedxml==0.7.1' to requirements.txt and reinstall. "
+        "This is a hard requirement - DTVSS will not start without it."
+    ) from _e
+
+
+def safe_parse_xml(raw: bytes):
+    """
+    Parse XML with XXE protection via defusedxml.
+    Blocks external entities, DTDs, and entity expansion (billion-laughs).
+    """
+    return _DefusedET.fromstring(raw)
+
+
+# =============================================================================
+# INPUT VALIDATION
+# =============================================================================
+
+CVE_ID_RE = re.compile(r"^CVE-\d{4}-\d{4,10}$")
+
+# Search-query character allowlist (used by validate_query). See the
+# function docstring for the rationale on each character class.
+_QUERY_ALLOWED_RE = re.compile(r"^[A-Za-z0-9 ._,\-():]+$")
+
+def validate_cve_id(cve_id: str) -> Optional[str]:
+    """
+    Normalize and validate a CVE ID.
+    Returns canonical form or None if invalid.
+
+    Order of operations matters: strip whitespace BEFORE the length check so
+    pasted CVE IDs with surrounding whitespace are accepted, but pathological
+    inputs (e.g. 30 KB of leading whitespace) are rejected by the pre-strip
+    bound below.
+    """
+    if not cve_id or not isinstance(cve_id, str):
+        return None
+    # Pre-strip bound: defends against pathological whitespace-padded inputs.
+    # Use a generous multiplier so a few extra spaces never reach strip().
+    if len(cve_id) > MAX_CVE_ID_LENGTH * 4:
+        return None
+    normalized = cve_id.strip().upper()
+    if len(normalized) > MAX_CVE_ID_LENGTH:
+        return None
+    if not normalized.startswith("CVE-"):
+        normalized = "CVE-" + normalized
+    if not CVE_ID_RE.match(normalized):
+        return None
+    return normalized
+
+
+def validate_query(query: str) -> Optional[str]:
+    r"""
+    Validate and sanitize a search query.
+    Returns cleaned query or None if invalid.
+
+    Tight character allowlist (closes CodeQL alert #42 / py/partial-ssrf
+    at the source): the validated query becomes part of an outbound URL
+    sent to the NVD keyword API. Constraining input to letters, digits,
+    spaces, and a small set of safe punctuation here means no character
+    that can affect URL parsing or HTTP request semantics ever reaches
+    the URL-construction layer.
+
+    Allowed characters:
+      A-Z a-z 0-9     letters and digits (medical device / vendor names)
+      space            multi-word queries
+      . , - _          common punctuation in product/version strings
+      ( ) :            version numbers, model designators (e.g. "v1.0 (rev 2)")
+
+    Rejected (would otherwise affect URL/HTTP semantics):
+      & = ? #         query/fragment separators
+      / \              path injection
+      %                percent-encoding manipulation
+      < > " '          HTML/XSS in any reflected context
+      { } [ ] | ^ ` ~ $ @ ; *  rarely needed; can break parsers
+    """
+    if not query or not isinstance(query, str):
+        return None
+    # Length cap
+    query = query.strip()[:MAX_QUERY_LENGTH]
+    if not query:
+        return None
+    # No control chars, no null bytes
+    if "\x00" in query or not query.isprintable():
+        return None
+    # Strict character allowlist
+    if not _QUERY_ALLOWED_RE.match(query):
+        log.warning("validate_query: rejected query containing disallowed characters")
+        return None
+    return query
+
+
+def validate_float_param(
+    value: Any,
+    name: str,
+    min_val: float,
+    max_val: float,
+) -> float:
+    """
+    Validate a float parameter. Raises ValueError with user-safe message.
+    Rejects NaN and infinity.
+    """
+    try:
+        f = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{name} must be a number")
+    
+    if math.isnan(f) or math.isinf(f):
+        raise ValueError(f"{name} must be a finite number")
+    
+    if not (min_val <= f <= max_val):
+        raise ValueError(f"{name} must be between {min_val} and {max_val}")
+    
+    return f
+
+
+def validate_int_param(
+    value: Any,
+    name: str,
+    min_val: int,
+    max_val: int,
+) -> int:
+    """Validate an integer parameter with bounds."""
+    try:
+        i = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{name} must be an integer")
+    if not (min_val <= i <= max_val):
+        raise ValueError(f"{name} must be between {min_val} and {max_val}")
+    return i
+
+
+# =============================================================================
+# ERROR SANITIZATION
+# =============================================================================
+
+_URL_RE = re.compile(r'https?://[^\s\'"<>]+')
+_KEY_RE = re.compile(r'\b[a-zA-Z0-9]{32,}\b')
+_PATH_RE = re.compile(r'(?:/[\w\-.]+){2,}')
+# Pentest finding (LOW): the previous _HOME_RE missed container paths
+# (/mnt/..., /app/..., /workspace/...) and Railway/Docker conventions
+# (/data/..., /var/lib/...). _PATH_RE catches them generically as [PATH],
+# but listing the well-known sensitive prefixes here means they get tagged
+# as [HOME] (more accurate signal in logs) and ensures we don't accidentally
+# leak a deployment layout if _PATH_RE is ever loosened.
+_HOME_RE = re.compile(
+    r'/home/\w+'
+    r'|/root(?:/|\b)'
+    r'|/Users/\w+'
+    r'|C:\\Users\\\w+'
+    r'|/mnt/[\w\-]+'           # container mounts (e.g. /mnt/user-data)
+    r'|/app(?:/|\b)'           # Heroku/Docker app dir
+    r'|/workspace(?:/|\b)'     # GitHub Codespaces / Cloud Shell
+    r'|/data(?:/|\b)'          # Railway persistent volume convention
+    r'|/var/lib/\w+'           # systemd / packaged service data dirs
+)
+
+
+def sanitize_error(exc: Exception, max_len: int = 200) -> str:
+    """
+    Strip sensitive data from exception messages before returning to client.
+    
+    Redacts:
+      - URLs (may contain API keys or internal hosts)
+      - Long hex/base64 strings (likely keys/tokens)
+      - File paths (reveal deployment layout)
+      - Home directories
+    """
+    msg = str(exc)
+    msg = _HOME_RE.sub('[HOME]', msg)
+    msg = _URL_RE.sub('[URL]', msg)
+    msg = _KEY_RE.sub('[KEY]', msg)
+    msg = _PATH_RE.sub('[PATH]', msg)
+    return msg[:max_len]
+
+
+# =============================================================================
+# ATOMIC FILE WRITES
+# =============================================================================
+
+def atomic_write_json(path: str, data: Any, indent: int = 2) -> None:
+    """
+    Write JSON atomically. Crash-safe: either the full new file is written
+    or the old file remains untouched.
+    
+    On POSIX, os.replace() is atomic within a single filesystem.
+    """
+    dirname = os.path.dirname(path) or "."
+    os.makedirs(dirname, exist_ok=True)
+    
+    # Write to temp file in same directory (must be same FS for atomic rename)
+    fd, tmp_path = tempfile.mkstemp(
+        prefix=".",
+        suffix=".tmp",
+        dir=dirname,
+    )
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=indent, default=str)
+            f.flush()
+            os.fsync(f.fileno())
+        
+        # Keep a backup of the previous version
+        if os.path.exists(path):
+            try:
+                os.replace(path, path + ".bak")
+            except OSError as bak_err:
+                # Backup failure shouldn't prevent the update; log for diagnosis.
+                log.debug("atomic_write_json: bak rename failed: %s",
+                          _log_safe_value(bak_err))
+        
+        os.replace(tmp_path, path)  # atomic on POSIX
+    except Exception:
+        # Clean up temp file on any failure
+        try:
+            os.unlink(tmp_path)
+        except OSError as cleanup_err:
+            # Cleanup is best-effort; the original exception is re-raised below.
+            # We log at DEBUG so production stays quiet but operators can diagnose.
+            log.debug("atomic_write_json: tmp cleanup failed: %s",
+                      _log_safe_value(cleanup_err))
+        raise
+
+
+# =============================================================================
+# FLASK INTEGRATION
+# =============================================================================
+
+def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
+    """
+    Apply all Flask-level hardening to the app:
+      - ProxyFix for accurate client IPs behind Railway/Heroku/etc
+      - Security headers on every response
+      - CORS with allowlist
+      - Request ID correlation
+      - Global error handler with sanitization
+    """
+    from flask import g, request, jsonify
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    from werkzeug.exceptions import HTTPException
+    
+    # ProxyFix: trust N hops of X-Forwarded-* headers.
+    #
+    # Default is 1 hop (client -> Railway edge -> gunicorn), which matches
+    # Railway's documented edge topology at time of writing. If Railway
+    # changes to a multi-hop architecture (e.g. CDN in front of edge, or
+    # separate LB + proxy), set DTVSS_PROXY_HOPS=N on the deploy.
+    #
+    # UNDERCOUNTING HOPS: trusts attacker-forged XFF values (security issue).
+    # OVERCOUNTING HOPS: collapses rate-limit buckets (availability issue).
+    # Getting this right requires empirical verification against the actual
+    # edge - see the F-03 verification procedure in the audit report.
+    _hops = int(os.environ.get("DTVSS_PROXY_HOPS", "1"))
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app,
+        x_for=_hops,
+        x_proto=_hops,
+        x_host=_hops,
+        x_port=0,
+        x_prefix=0,
+    )
+    
+    # CORS with allowlist
+    try:
+        from flask_cors import CORS
+        env_origins = os.environ.get("DTVSS_CORS_ORIGINS", "").strip()
+        if env_origins:
+            origins = [o.strip() for o in env_origins.split(",") if o.strip()]
+        else:
+            origins = cors_origins or DEFAULT_CORS_ORIGINS
+        
+        CORS(
+            app,
+            resources={
+                r"/api/*": {
+                    "origins": origins,
+                    "methods": ["GET", "POST", "OPTIONS"],
+                    "allow_headers": ["Content-Type", "X-Request-ID"],
+                    "expose_headers": ["X-Request-ID", "X-RateLimit-Remaining"],
+                    "supports_credentials": False,
+                    "max_age": 3600,
+                }
+            },
+        )
+        log.info("CORS configured for origins: %s", origins)
+    except ImportError:
+        log.warning("flask-cors not installed; CORS not configured")
+    
+    # Request ID + per-request CSP nonce
+    @app.before_request
+    def _assign_request_id():
+        g.request_id = (
+            request.headers.get("X-Request-ID")
+            or uuid.uuid4().hex
+        )
+        # Per-request nonce for CSP. Templates can opt in by emitting
+        # <script nonce="{{ g.csp_nonce }}">...</script> on inline scripts.
+        # Once all inline scripts/styles use the nonce, set
+        # DTVSS_CSP_STRICT=1 to drop 'unsafe-inline' from the CSP entirely.
+        g.csp_nonce = uuid.uuid4().hex
+
+    # Security headers + request ID on every response
+    @app.after_request
+    def _security_headers(response):
+        response.headers["X-Request-ID"] = getattr(g, "request_id", "unknown")
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = (
+            "geolocation=(), microphone=(), camera=(), "
+            "payment=(), usb=(), interest-cohort=()"
+        )
+        # Only set HSTS over HTTPS
+        if request.is_secure or request.headers.get("X-Forwarded-Proto") == "https":
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
             )
 
-            # M-2: XXE-safe XML parsing via defusedxml. The previous
-            # xml.etree.ElementTree.fromstring would resolve external
-            # entities on Python < 3.7.1 and is vulnerable to billion-
-            # laughs entity expansion on all versions.
-            root = safe_parse_xml(raw_bytes)
-
-            with _lock:
-                mdms = _index.get("manufacturers", {})
-                known_urls = set()
-                for m in mdms.values():
-                    for a in m.get("advisory_urls", []):
-                        known_urls.add(a.get("url", ""))
-
-            for item in root.findall(".//item"):
-                title = (item.findtext("title") or "").strip()
-                link = (item.findtext("link") or "").strip()
-
-                if not title or not link or "/icsma-" not in link.lower():
-                    continue
-                if link in known_urls:
-                    continue
-                if any(term in title.lower() for term in EXCLUDED_DEVICES):
-                    continue
-
-                vendor = _normalise_vendor(_extract_vendor(title))
-                if not vendor:
-                    continue
-
-                icsma_id = ""
-                match = re.search(r'(icsma-[\d-]+)', link.lower())
-                if match:
-                    icsma_id = match.group(1).upper()
-
-                # Fetch CVEs from advisory page
-                time.sleep(0.3)
-                try:
-                    # M-2: Explicit host check on the per-advisory link.
-                    # The link comes from the RSS feed body, which means a
-                    # tampered/compromised feed could attempt to redirect
-                    # us to an attacker-controlled host or an internal
-                    # service. The general SSRF allowlist permits several
-                    # legitimate hosts (NVD, MITRE, EPSS, openFDA, GitHub),
-                    # but a CISA ICSMA *advisory page* should ONLY ever be
-                    # served from cisa.gov. We enforce that narrower policy
-                    # here rather than relying on extra_allowed_hosts,
-                    # which would *add* to the allowlist rather than
-                    # restrict it.
-                    parsed_link = urllib.parse.urlparse(link)
-                    link_host = (parsed_link.hostname or "").lower()
-                    if link_host not in ("cisa.gov", "www.cisa.gov"):
-                        print(f"    [Hourly] Rejected non-CISA advisory link: {link_host}")
-                        cve_ids = []
-                    else:
-                        page_bytes = safe_fetch_bytes(
-                            link,
-                            headers={"User-Agent": "DTVSS/3.0"},
-                            timeout=15,
-                            max_bytes=MAX_HTML_PAGE_BYTES,
-                        )
-                        page = page_bytes.decode("utf-8", errors="replace")
-                        cve_ids = list(set(re.findall(r'CVE-\d{4}-\d+', page)))
-                except Exception:
-                    cve_ids = []
-
-                key = vendor.lower().strip()
-                with _lock:
-                    if key not in mdms:
-                        mdms[key] = {
-                            "display_name": vendor,
-                            "advisory_urls": [],
-                            "cves": [],
-                            "cve_count": 0,
-                            "status": "no_cves",
-                            "source": "cisa_icsma",
-                        }
-
-                    mdms[key]["advisory_urls"].append({
-                        "url": link, "title": title, "icsma_id": icsma_id,
-                    })
-
-                    existing_ids = {c["cve_id"] for c in mdms[key]["cves"]}
-                    new_cves = []
-                    for cve_id in cve_ids:
-                        if cve_id in existing_ids:
-                            continue
-
-                        # Enrich with NVD CVSS
-                        time.sleep(NVD_DELAY)
-                        nvd = _nvd_enrich_cve(cve_id)
-                        new_cves.append({
-                            "cve_id": cve_id,
-                            "description": nvd["description"] if nvd else "",
-                            "cvss_version": nvd["cvss_version"] if nvd else "",
-                            "base_score": nvd["base_score"] if nvd else 0,
-                            "severity": nvd["severity"] if nvd else "",
-                            "published": nvd["published"] if nvd else "",
-                            "source": "rss",
-                        })
-
-                    mdms[key]["cves"].extend(new_cves)
-                    mdms[key]["cve_count"] = len(mdms[key]["cves"])
-                    if mdms[key]["cves"]:
-                        mdms[key]["status"] = "has_cves"
-                    mdms[key]["last_checked"] = datetime.now(timezone.utc).isoformat()
-
-                if new_cves:
-                    changes = True
-                    print(f"    RSS: {vendor} +{len(new_cves)} CVEs ({icsma_id})")
-
-            if changes:
-                _save_index()
-                print(f"  [Hourly] Index updated and saved")
-            else:
-                print(f"  [Hourly] No new advisories")
-
-        except Exception as e:
-            print(f"  [Hourly] Error: {e}")
+        # CSP - strict for JSON; nonce-based for HTML.
+        #
+        # Strict CSP is default-on. DTVSS_CSP_STRICT=0 opts out (permissive
+        # with 'unsafe-inline' as a fallback for <script>/<style> blocks)
+        # but this should only be used as a temporary unblocker while
+        # migrating code - please open a security advisory rather than
+        # disabling permanently.
+        #
+        # In strict mode (default), 'unsafe-inline' is absent from
+        # script-src and style-src; nonce-based authorisation is the real
+        # control. Inline style="..." attributes are permitted via
+        # style-src-attr by explicit design (see rationale on lines
+        # ~560-572 below).
+        if response.mimetype == "application/json":
+            response.headers["Content-Security-Policy"] = "default-src 'none'"
+        else:
+            nonce = getattr(g, "csp_nonce", "")
+            # Strict CSP is now the default (Fix #11). Every inline event
+            # handler in the HTML was migrated to addEventListener / event
+            # delegation, and Fix #8 wired up nonce injection on the static-
+            # file path so every <script>/<style> block carries the per-
+            # request nonce.
+            #
+            # If a future contributor adds an inline onclick=/onmouseover=/
+            # etc. handler, strict CSP will break it visibly in the browser
+            # console - that's the desired feedback loop. Use the opt-out
+            # below ONLY as a temporary unblocker while migrating, never
+            # as a permanent setting.
+            #
+            # Opt-out: DTVSS_CSP_STRICT=0  (drops back to permissive
+            # 'unsafe-inline' behaviour). The Fix #11 inline-handler
+            # migration removed the legitimate need for this; please open a
+            # security advisory rather than disabling permanently.
+            strict = os.environ.get("DTVSS_CSP_STRICT", "1") != "0"
+            inline = "" if strict else " 'unsafe-inline'"
+            # style-src-attr governs inline `style="..."` attributes
+            # specifically (CSP Level 3). The Fix #11 inline-handler
+            # migration converted all event handlers to addEventListener,
+            # but the project still has hundreds of inline style attributes
+            # in its templates (e.g. dynamic per-tier colors). Migrating
+            # every one of them into a stylesheet would be a massive
+            # refactor with no real security benefit - inline style
+            # attributes can't load resources, can't execute expressions,
+            # and can't exfiltrate data. We allow them explicitly here so
+            # `style-src` can still be strict for <style> blocks (which
+            # ARE a real injection vector). Older browsers that don't
+            # understand style-src-attr fall back to style-src, which
+            # already includes 'unsafe-inline' when DTVSS_CSP_STRICT=0.
+            style_attr = " 'unsafe-inline'" if strict else ""
+            response.headers["Content-Security-Policy"] = (
+                f"default-src 'self'; "
+                f"script-src 'self' 'nonce-{nonce}'{inline} "
+                f"https://cdnjs.cloudflare.com; "
+                f"style-src 'self' 'nonce-{nonce}'{inline} "
+                f"https://fonts.googleapis.com; "
+                f"style-src-attr{style_attr}; "
+                f"font-src 'self' https://fonts.gstatic.com; "
+                f"img-src 'self' data:; "
+                f"connect-src 'self'; "
+                f"frame-ancestors 'none'; "
+                f"base-uri 'self'; "
+                f"form-action 'self'"
+            )
+        
+        return response
+    
+    # Sanitized global error handler
+    @app.errorhandler(Exception)
+    def _handle_exception(e):
+        if isinstance(e, HTTPException):
+            return jsonify({
+                "error": e.description,
+                "type": e.__class__.__name__,
+                "request_id": getattr(g, "request_id", None),
+            }), e.code
+        
+        error_id = uuid.uuid4().hex[:16]  # 64 bits, lower collision risk
+        log.exception("Unhandled exception [%s] for %s %s",
+                      error_id,
+                      _log_safe_value(request.method),
+                      _log_safe_value(request.path))
+        
+        return jsonify({
+            "error": "Internal server error",
+            "error_id": error_id,
+            "request_id": getattr(g, "request_id", None),
+        }), 500
 
 
-# --- Init ---
+def get_real_client_ip():
+    """
+    Return the real client IP for rate limiting.
+    Only safe to call after ProxyFix middleware is installed.
+    """
+    from flask import request
+    
+    # ProxyFix updates request.remote_addr to the client IP
+    ip = request.remote_addr or ""
+    
+    # Validate it's a real IP
+    try:
+        ipaddress.ip_address(ip)
+        return ip
+    except ValueError:
+        # Fallback to a hash-based key so requests without valid IP
+        # still get bucketed, just into one shared bucket.
+        #
+        # Logged at WARNING so operators can detect when Railway's edge
+        # (or any upstream proxy) emits a malformed or missing XFF value.
+        # Without this telemetry, a misconfigured edge could silently
+        # collapse every request into one shared rate-limit bucket and
+        # we'd have no signal until rate limits stopped working.
+        log.warning(
+            "get_real_client_ip fell back to 'invalid-ip'; original remote_addr=%s",
+            _log_safe_value(request.remote_addr),
+        )
+        return "invalid-ip"
 
-def _load():
-    global _index
-    if os.path.exists(INDEX_FILE):
-        try:
-            with open(INDEX_FILE, "r") as f:
-                _index = json.load(f)
-            total = len(_index.get("manufacturers", {}))
-            with_cves = sum(1 for m in _index.get("manufacturers", {}).values()
-                          if m.get("status") == "has_cves")
-            total_cves = sum(len(m.get("cves", [])) for m in _index.get("manufacturers", {}).values())
-            source = _index.get("source", "unknown")
-            print(f"  MDM index: {total} vendors, {with_cves} with CVEs, {total_cves} total CVEs")
-            print(f"  Source: {source}")
-        except Exception as e:
-            print(f"  MDM index load failed: {e}")
-    else:
-        print(f"  MDM index not found - run build_index.py")
+
+# =============================================================================
+# PAYLOAD SIZE GUARD
+# =============================================================================
+
+def require_max_body_size(max_bytes: int):
+    """
+    Decorator to reject requests with body larger than max_bytes.
+    Use on POST endpoints to prevent memory exhaustion.
+    """
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            from flask import request, jsonify
+            cl = request.content_length
+            if cl is not None and cl > max_bytes:
+                return jsonify({
+                    "error": f"Payload too large (max {max_bytes} bytes)",
+                }), 413
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
-_seed_persistent_from_repo()
-_load()
-threading.Thread(target=_hourly_pipeline, daemon=True).start()
-print("  Hourly ICSMA pipeline started")
+# =============================================================================
+# KEV CATALOG VALIDATION
+# =============================================================================
+
+_CVE_ID_STRICT = re.compile(r"^CVE-\d{4}-\d+$")
+
+def validate_kev_catalog(catalog: dict, min_entries: int = 500) -> Optional[dict]:
+    """
+    Validate the structure of the CISA KEV catalog before trusting it.
+    Returns indexed dict on success, None on failure.
+    """
+    if not isinstance(catalog, dict):
+        log.error("KEV catalog is not a dict")
+        return None
+    
+    vulns = catalog.get("vulnerabilities")
+    if not isinstance(vulns, list):
+        log.error("KEV vulnerabilities field is not a list")
+        return None
+    
+    indexed = {}
+    skipped = 0
+    for v in vulns:
+        if not isinstance(v, dict):
+            skipped += 1
+            continue
+        cve_id = v.get("cveID", "")
+        if not _CVE_ID_STRICT.match(cve_id):
+            skipped += 1
+            continue
+        required = {"dateAdded", "vendorProject", "product", "vulnerabilityName"}
+        if not required.issubset(v.keys()):
+            skipped += 1
+            continue
+        indexed[cve_id] = v
+    
+    # Sanity: KEV has ~1100 entries as of 2026. Sudden drop is suspicious.
+    if len(indexed) < min_entries:
+        log.error(
+            "KEV catalog suspiciously small: %d valid, %d skipped",
+            len(indexed), skipped,
+        )
+        return None
+    
+    if skipped > 0:
+        log.warning("KEV: skipped %d malformed entries", skipped)
+    
+    return indexed
