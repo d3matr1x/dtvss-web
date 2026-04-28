@@ -199,6 +199,7 @@ def validate_and_resolve_external_url(
         return None
 
     # Host check
+    hostname = (parsed.hostname or "").lower()
     safe_hostname = _log_safe_value(hostname).replace("\r", "").replace("\n", "")
     if not hostname:
         return None
