@@ -213,7 +213,7 @@ def validate_and_resolve_external_url(
         allowed |= extra_allowed_hosts
 
     if hostname not in allowed:
-        log.warning("SSRF: rejected host %s", safe_hostname)
+        log.warning("SSRF: rejected host not in allowlist")
         return None
 
     # Resolve to IP and verify it's public.
