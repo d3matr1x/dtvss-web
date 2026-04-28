@@ -245,7 +245,7 @@ def validate_and_resolve_external_url(
             return None
         return first_public_ip
     except socket.gaierror:
-        log.warning("SSRF: DNS resolution failed for %s", safe_hostname)
+        log.warning("SSRF: DNS resolution failed for allowlisted host")
         return None
 
 
