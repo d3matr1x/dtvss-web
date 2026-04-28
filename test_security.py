@@ -16,8 +16,8 @@ import json
 import math
 import os
 import sys
+import urllib.parse
 from io import BytesIO
-from urllib.parse import urlparse
 
 # Make project modules importable regardless of working directory.
 # Previously this hardcoded /home/claude paths from a sandbox layout, which
@@ -787,33 +787,45 @@ def test_response_size_cap():
     # Scenario 4: every external API call site routes through _fetch_json
     poc("All 7 api_clients.py external call sites route through _fetch_json (SSRF + cap apply uniformly)")
 
+    # Map of upstream hostname -> stub response. Using a strict hostname
+    # match (via urlparse) rather than substring "x.com in url" — the
+    # latter would be flagged by CodeQL py/incomplete-url-substring-
+    # sanitization (correctly: substring matching on URLs is unsafe for
+    # security decisions; even though this is a test fixture, the pattern
+    # is bad practice).
+    _stub_responses = {
+        "api.first.org": {"status": "OK", "data": [
+            {"cve": "CVE-2017-12718", "epss": "0.97",
+             "percentile": "0.99", "date": "2024-01-01"}
+        ]},
+        "api.fda.gov": {"results": [
+            {"device_class": "3", "device_name": "test pump",
+             "product_code": "FRN", "medical_specialty_description": "AN",
+             "definition": "x"}
+        ]},
+        "cveawg.mitre.org": {"containers": {"cna": {}}, "cveMetadata": {}},
+        "www.cisa.gov": {"vulnerabilities": [
+            {"cveID": f"CVE-2024-{i:05d}", "dateAdded": "2024-01-01",
+             "vendorProject": "v", "product": "p",
+             "vulnerabilityName": "n", "dueDate": "2024-02-01",
+             "requiredAction": "patch"}
+            for i in range(600)
+        ]},
+        "cisa.gov": {"vulnerabilities": [
+            {"cveID": f"CVE-2024-{i:05d}", "dateAdded": "2024-01-01",
+             "vendorProject": "v", "product": "p",
+             "vulnerabilityName": "n", "dueDate": "2024-02-01",
+             "requiredAction": "patch"}
+            for i in range(600)
+        ]},
+        "services.nvd.nist.gov": {"vulnerabilities": []},
+    }
+
     calls = []
     def stub(url, headers=None, timeout=15, max_bytes=None):
         calls.append(url)
-        if "first.org" in url:
-            return {"status": "OK", "data": [
-                {"cve": "CVE-2017-12718", "epss": "0.97",
-                 "percentile": "0.99", "date": "2024-01-01"}
-            ]}
-        if "fda.gov" in url:
-            return {"results": [
-                {"device_class": "3", "device_name": "test pump",
-                 "product_code": "FRN", "medical_specialty_description": "AN",
-                 "definition": "x"}
-            ]}
-        if "mitre" in url:
-            return {"containers": {"cna": {}}, "cveMetadata": {}}
-        if "cisa.gov" in url:
-            return {"vulnerabilities": [
-                {"cveID": f"CVE-2024-{i:05d}", "dateAdded": "2024-01-01",
-                 "vendorProject": "v", "product": "p",
-                 "vulnerabilityName": "n", "dueDate": "2024-02-01",
-                 "requiredAction": "patch"}
-                for i in range(600)
-            ]}
-        if "nist.gov" in url:
-            return {"vulnerabilities": []}
-        return {}
+        host = (urllib.parse.urlparse(url).hostname or "").lower()
+        return _stub_responses.get(host, {})
 
     original_fetch_json = api_clients._fetch_json
     api_clients._fetch_json = stub
@@ -832,21 +844,32 @@ def test_response_size_cap():
         api_clients.cisa_kev_check("CVE-2017-12718")
         api_clients.refresh_device_keywords()
 
-        # Verify each expected host was hit
-        expected_substrings = ["nist.gov", "mitre", "first.org", "fda.gov", "cisa.gov"]
-        missing = [s for s in expected_substrings if not any(s in c for c in calls)]
-        if missing:
-            fix_fail(f"These expected call sites did not route through _fetch_json: {missing}")
+        # Verify each expected host was hit. Same defensive pattern as
+        # the stub: parse hostnames, don't substring-match.
+        call_hosts = {(urllib.parse.urlparse(c).hostname or "").lower() for c in calls}
+        expected_hosts = {
+            "services.nvd.nist.gov",
+            "cveawg.mitre.org",
+            "api.first.org",
+            "api.fda.gov",
+        }
+        # CISA may resolve to either www.cisa.gov or cisa.gov depending
+        # on the API client's URL construction; accept either.
+        cisa_hit = any(h in call_hosts for h in ("www.cisa.gov", "cisa.gov"))
+        missing = expected_hosts - call_hosts
+        if missing or not cisa_hit:
+            missing_list = list(missing)
+            if not cisa_hit:
+                missing_list.append("cisa.gov")
+            fix_fail(f"These expected call sites did not route through _fetch_json: {missing_list}")
         else:
             fix_ok(f"All 7 call sites route through _fetch_json (hit {len(set(calls))} distinct URLs)")
 
-        # Verify noRejected param preserved on NVD search
+        # Verify noRejected param preserved on NVD search.
         nvd_search_calls = [
             c for c in calls
-            if (
-                (urlparse(c).hostname == "nist.gov" or (urlparse(c).hostname or "").endswith(".nist.gov"))
-                and "keywordSearch" in c
-            )
+            if (urllib.parse.urlparse(c).hostname or "").lower() == "services.nvd.nist.gov"
+            and "keywordSearch" in c
         ]
         if nvd_search_calls and "noRejected=" in nvd_search_calls[0]:
             fix_ok("nvd_search_keyword preserves noRejected param")
