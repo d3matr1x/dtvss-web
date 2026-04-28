@@ -44,6 +44,17 @@ import uuid
 from typing import Any, Optional
 from functools import wraps
 
+def _sanitize_for_log(value: Any) -> str:
+    """
+    Sanitize untrusted values before logging to prevent log injection.
+    Removes CR/LF and other control characters.
+    """
+    s = str(value)
+    return "".join(ch for ch in s if ch >= " " and ch != "\x7f")
+
+
+# =============================================================================
+# CONSTANTS
 log = logging.getLogger("dtvss.security")
 
 
@@ -176,12 +187,13 @@ def validate_and_resolve_external_url(
     hostname = (parsed.hostname or "").lower()
     if not hostname:
         return None
+    safe_hostname = _sanitize_for_log(hostname)
 
     # Block internal/private DNS suffixes before DNS lookup.
     # Catches Railway private networking, mDNS, and corporate intranets.
     for suffix in BLOCKED_DOMAIN_SUFFIXES:
         if hostname.endswith(suffix):
-            log.warning("SSRF: rejected internal suffix %s", hostname)
+            log.warning("SSRF: rejected internal suffix %s", safe_hostname)
             return None
 
     allowed = set(ALLOWED_EXTERNAL_HOSTS)
@@ -189,7 +201,7 @@ def validate_and_resolve_external_url(
         allowed |= extra_allowed_hosts
 
     if hostname not in allowed:
-        log.warning("SSRF: rejected host %s", hostname)
+        log.warning("SSRF: rejected host %s", safe_hostname)
         return None
 
     # Resolve to IP and verify it's public.
@@ -209,16 +221,16 @@ def validate_and_resolve_external_url(
             if (addr.is_private or addr.is_loopback or addr.is_link_local
                     or addr.is_reserved or addr.is_multicast
                     or addr.is_unspecified):
-                log.warning("SSRF: %s resolves to non-public %s", hostname, ip_str)
+                log.warning("SSRF: %s resolves to non-public %s", safe_hostname, ip_str)
                 return None
             if first_public_ip is None:
                 first_public_ip = ip_str
         if first_public_ip is None:
-            log.warning("SSRF: no usable IPs for %s", hostname)
+            log.warning("SSRF: no usable IPs for %s", safe_hostname)
             return None
         return first_public_ip
     except socket.gaierror:
-        log.warning("SSRF: DNS resolution failed for %s", hostname)
+        log.warning("SSRF: DNS resolution failed for %s", safe_hostname)
         return None
 
 
