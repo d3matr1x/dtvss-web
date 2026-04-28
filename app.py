@@ -27,10 +27,8 @@ Changes from original:
 import hashlib
 import logging
 import os
-import uuid
 
 from flask import Flask, abort, g, jsonify, redirect, request, send_from_directory
-from werkzeug.exceptions import HTTPException
 
 from dtvss_engine import compute_dtvss, classify_device, TGA_CLASSES
 from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_kev_check
@@ -460,8 +458,9 @@ def lookup():
                 kev_added = cisa_kev.get("kev_added", "")
                 kev_due = cisa_kev.get("kev_due", "")
                 kev_name = cisa_kev.get("kev_name", "")
-        except Exception:
-            pass  # KEV check failure is non-fatal
+        except Exception as e:
+            log.warning("KEV check failed for %s: %s",
+                        _log_safe_value(cve_id), _log_safe_value(e))
 
     # Defensive bounds before strict compute_dtvss. NVD-derived B and
     # EPSS-derived L are nominally in range, but malformed upstream
@@ -587,8 +586,9 @@ def _search_indexed(query: str, tga_override: str, max_results: int, indexed_cve
         if not B and ic.get("exploitability"):
             try:
                 B = float(ic["exploitability"])
-            except (TypeError, ValueError):
-                pass
+            except (TypeError, ValueError) as e:
+                log.warning("Exploitability parse failed for %s: %s",
+                            _log_safe_value(cve_id), _log_safe_value(e))
         if not B:
             continue  # Skip unscorable CVEs rather than guess
 
@@ -754,8 +754,9 @@ def _search_live_nvd(query: str, tga_override: str, max_results: int):
             try:
                 if cisa_kev_check(nvd["cve_id"]):
                     kev_status = True
-            except Exception:
-                pass
+            except Exception as e:
+                log.warning("KEV fallback check failed for %s: %s",
+                            _log_safe_value(nvd.get("cve_id")), _log_safe_value(e))
 
         # Defensive bounds before strict compute_dtvss.
         try:

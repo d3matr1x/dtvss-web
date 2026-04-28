@@ -22,7 +22,6 @@ Run: python3 test_upstream_fuzzing.py
 Integration: add to test_security.py CI job so regressions fail the build.
 """
 
-import json
 import math
 import os
 import sys

@@ -24,7 +24,6 @@ Copyright 2026 Andrew Broglio. All rights reserved.
 
 from __future__ import annotations
 
-import hashlib
 import ipaddress
 import json
 import logging
