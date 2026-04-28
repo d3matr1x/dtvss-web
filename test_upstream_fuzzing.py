@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import api_clients
 from security import validate_kev_catalog
-from medical_scope import is_blocklisted, has_medical_term, is_in_scope
+from medical_scope import is_blocklisted
 
 
 class C:
