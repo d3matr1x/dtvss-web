@@ -1,0 +1,44 @@
+# Dependabot configuration for dtvss-web
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Notes:
+#   - "pip" covers requirements.txt and requirements-lock.txt at the repo root.
+#   - "github-actions" keeps the security CI workflow current.
+#   - Weekly cadence on Mondays keeps PR noise predictable.
+#   - Major-version bumps for Flask are ignored here so a breaking 4.x
+#     upgrade doesn't appear unannounced; remove the ignore block when
+#     you're ready to migrate intentionally.
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Australia/Sydney"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+    ignore:
+      - dependency-name: "flask"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Australia/Sydney"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
