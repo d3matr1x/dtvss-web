@@ -56,7 +56,8 @@ def build_from_filing_export() -> list[dict]:
         print("at calibration/source_96cve_filing.csv.")
         raise SystemExit(1)
 
-    rows_in = list(csv.DictReader(open(SOURCE_96_CVE_PATH)))
+    with open(SOURCE_96_CVE_PATH) as _f:
+        rows_in = list(csv.DictReader(_f))
     rows_out = []
     for r in rows_in:
         kev = (r.get("kev_override") or "").strip().lower() == "true"
