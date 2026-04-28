@@ -17,6 +17,7 @@ import math
 import os
 import sys
 from io import BytesIO
+from urllib.parse import urlparse
 
 # Make project modules importable regardless of working directory.
 # Previously this hardcoded /home/claude paths from a sandbox layout, which
@@ -840,7 +841,13 @@ def test_response_size_cap():
             fix_ok(f"All 7 call sites route through _fetch_json (hit {len(set(calls))} distinct URLs)")
 
         # Verify noRejected param preserved on NVD search
-        nvd_search_calls = [c for c in calls if "nist.gov" in c and "keywordSearch" in c]
+        nvd_search_calls = [
+            c for c in calls
+            if (
+                (urlparse(c).hostname == "nist.gov" or (urlparse(c).hostname or "").endswith(".nist.gov"))
+                and "keywordSearch" in c
+            )
+        ]
         if nvd_search_calls and "noRejected=" in nvd_search_calls[0]:
             fix_ok("nvd_search_keyword preserves noRejected param")
         else:
