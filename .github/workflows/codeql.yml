@@ -11,6 +11,7 @@
 #
 name: "CodeQL Advanced"
 
+<<<<<<< HEAD
 # Opt into Node 24 ahead of the 2 June 2026 cutover.
 # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 # Remove this once actions/checkout (and any other JS-based actions used by
@@ -18,6 +19,8 @@ name: "CodeQL Advanced"
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+=======
+>>>>>>> 3d6874d405ca9128682f3114ee14a7bc64744b7b
 on:
   push:
     branches: [ "main" ]
