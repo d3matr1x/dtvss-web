@@ -679,27 +679,51 @@ def test_response_size_cap():
 
     # api_clients is on sys.path via the module-level insert at top of file.
     import api_clients
-    import urllib.request
+    import urllib3.connection
     from security import safe_fetch_bytes, MAX_RESPONSE_BYTES
+
+    # safe_fetch_bytes now uses urllib3.connection.HTTPSConnection directly
+    # (via the SSRF DNS-pinning fix). These fakes mimic urllib3's connection
+    # and response API:
+    #   conn.request(method, path, headers=..., preload_content=...)
+    #   conn.getresponse() -> HTTPResponse with .getheader() and .stream()
+    #   conn.close()
+    class _FakeUrllib3Resp:
+        def __init__(self, body, content_length=None):
+            self._body = body
+            self._cl = content_length
+            self.was_read = False
+        def getheader(self, name, default=None):
+            if name.lower() == "content-length" and self._cl is not None:
+                return self._cl
+            return default
+        def stream(self, amt=8192, decode_content=False):
+            self.was_read = True
+            i = 0
+            while i < len(self._body):
+                yield self._body[i:i+amt]
+                i += amt
+
+    class _FakeUrllib3Conn:
+        def __init__(self, body, content_length=None, **kwargs):
+            self._resp = _FakeUrllib3Resp(body, content_length)
+            self.kwargs = kwargs
+        def request(self, method, path, headers=None, preload_content=True):
+            pass
+        def getresponse(self):
+            return self._resp
+        def close(self):
+            pass
+
+    original_conn = urllib3.connection.HTTPSConnection
 
     poc("Compromised upstream returns an 11 MB JSON blob to exhaust memory")
     info(f"Default cap is {MAX_RESPONSE_BYTES // (1024*1024)} MB on JSON responses")
 
-    class _FakeResp:
-        def __init__(self, body):
-            self._body = body
-            self.headers = {}
-        def read(self, n=-1):
-            return self._body if n < 0 else self._body[:n]
-        def __enter__(self): return self
-        def __exit__(self, *a): return False
-
-    original_urlopen = urllib.request.urlopen
-
-    # Scenario 1: oversized response is blocked
-    def fake_giant(req, timeout=None):
-        return _FakeResp(b"0" * (MAX_RESPONSE_BYTES + 1024))
-    urllib.request.urlopen = fake_giant
+    # Scenario 1: oversized response with no Content-Length (chunked-style),
+    # so the read-cap path is exercised, not the early-exit path.
+    body_giant = b"0" * (MAX_RESPONSE_BYTES + 1024)
+    urllib3.connection.HTTPSConnection = lambda *a, **kw: _FakeUrllib3Conn(body_giant, content_length=None, **kw)
     try:
         try:
             safe_fetch_bytes(
@@ -710,27 +734,22 @@ def test_response_size_cap():
         except ValueError as e:
             fix_ok(f"Oversized response blocked: {e}")
     finally:
-        urllib.request.urlopen = original_urlopen
+        urllib3.connection.HTTPSConnection = original_conn
 
     # Scenario 2: Content-Length header declares oversized response.
     # This used to be a known-broken path (the over-cap raise was caught
     # by the same `except ValueError` that handled unparseable headers).
     # That bug is now fixed in security.safe_fetch_bytes — this test
-    # guards against regression.
+    # guards against regression. The body should NOT be streamed.
     poc("Compromised upstream declares Content-Length > cap (early-exit)")
 
-    class _FakeRespWithCL:
-        def __init__(self):
-            self.headers = {"Content-Length": str(MAX_RESPONSE_BYTES + 1)}
-            self.was_read = False
-        def read(self, n=-1):
-            self.was_read = True
-            return b""
-        def __enter__(self): return self
-        def __exit__(self, *a): return False
-
-    cl_resp = _FakeRespWithCL()
-    urllib.request.urlopen = lambda req, timeout=None: cl_resp
+    cl_oversize = str(MAX_RESPONSE_BYTES + 1)
+    last_resp = {"r": None}
+    def make_cl_conn(*a, **kw):
+        c = _FakeUrllib3Conn(b"", content_length=cl_oversize, **kw)
+        last_resp["r"] = c._resp
+        return c
+    urllib3.connection.HTTPSConnection = make_cl_conn
     try:
         try:
             safe_fetch_bytes(
@@ -739,30 +758,19 @@ def test_response_size_cap():
             )
             fix_fail("Content-Length-declared oversized response not blocked")
         except ValueError as e:
-            if cl_resp.was_read:
-                fix_fail(f"Content-Length over-cap rejected, but body was still read: {e}")
+            if last_resp["r"] is not None and last_resp["r"].was_read:
+                fix_fail(f"Content-Length over-cap rejected, but body was streamed: {e}")
             else:
-                fix_ok(f"Content-Length over-cap rejected early (body not read): {e}")
+                fix_ok(f"Content-Length over-cap rejected early (body not streamed): {e}")
     finally:
-        urllib.request.urlopen = original_urlopen
+        urllib3.connection.HTTPSConnection = original_conn
 
     # Scenario 3: read-cap is the authoritative defense even when
     # Content-Length lies about the size (declares small, sends large).
     poc("Compromised upstream lies about Content-Length but sends a large body")
 
-    class _FakeRespLies:
-        def __init__(self):
-            self.headers = {"Content-Length": "100"}  # claims small
-        def read(self, n=-1):
-            # Sends large despite small Content-Length
-            body = b"0" * (MAX_RESPONSE_BYTES + 1024)
-            return body if n < 0 else body[:n]
-        def __enter__(self): return self
-        def __exit__(self, *a): return False
-
-    def fake_lies(req, timeout=None):
-        return _FakeRespLies()
-    urllib.request.urlopen = fake_lies
+    big_body = b"0" * (MAX_RESPONSE_BYTES + 1024)
+    urllib3.connection.HTTPSConnection = lambda *a, **kw: _FakeUrllib3Conn(big_body, content_length="100", **kw)
     try:
         try:
             safe_fetch_bytes(
@@ -773,9 +781,9 @@ def test_response_size_cap():
         except ValueError as e:
             fix_ok(f"Read-cap fires regardless of Content-Length: {e}")
     finally:
-        urllib.request.urlopen = original_urlopen
+        urllib3.connection.HTTPSConnection = original_conn
 
-    # Scenario 3: every external API call site routes through _fetch_json
+    # Scenario 4: every external API call site routes through _fetch_json
     poc("All 7 api_clients.py external call sites route through _fetch_json (SSRF + cap apply uniformly)")
 
     calls = []
