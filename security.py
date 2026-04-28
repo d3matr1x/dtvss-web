@@ -202,7 +202,6 @@ def validate_and_resolve_external_url(
     safe_hostname = _log_safe_value(hostname).replace("\r", "").replace("\n", "")
     if not hostname:
         return None
-    safe_hostname = _log_safe_value(hostname)
 
     # Block internal/private DNS suffixes before DNS lookup.
     # Catches Railway private networking, mDNS, and corporate intranets.
