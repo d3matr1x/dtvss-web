@@ -32,14 +32,9 @@ import math
 import os
 import re
 import socket
-import ssl
 import tempfile
-import urllib.error
 import urllib.parse
 import urllib.request
-import urllib3
-import urllib3.connection
-import urllib3.exceptions
 import uuid
 from typing import Any, Optional
 from functools import wraps
@@ -106,98 +101,54 @@ MAX_JSON_BODY_BYTES = 1024   # /api/score body is tiny
 # SSRF PROTECTION
 # =============================================================================
 
-def validate_and_resolve_external_url(
-    url: str, extra_allowed_hosts: Optional[set] = None
-) -> Optional[str]:
+def validate_external_url(url: str, extra_allowed_hosts: Optional[set] = None) -> bool:
     """
-    Return a verified public IP if the URL is safe to fetch server-side,
-    or None if rejected.
-
+    Return True if the URL is safe to fetch server-side.
+    
     Blocks:
       - Non-HTTPS schemes (file://, gopher://, ftp://)
       - Hosts not in allowlist
       - Private/loopback/link-local/reserved IPs (after DNS resolution)
       - Cloud metadata endpoints
-      - Hostnames whose DNS resolves to *any* private IP (rejects on first hit)
-
-    The returned IP is the address the caller MUST connect to (DNS pinning)
-    to close the TOCTOU window: a second DNS lookup at connection time could
-    otherwise resolve to a different (internal) address. See safe_fetch_bytes
-    for the pinning implementation. Closes CodeQL alert #20 (py/partial-ssrf).
     """
     if not url or not isinstance(url, str):
-        return None
-
-    # Defence in depth: reject control characters, NUL bytes, CRLF, and
-    # backslashes anywhere in the original URL string BEFORE urlparse has
-    # a chance to silently strip or reassign them. urlparse will, for
-    # example, swallow CRLF in the path silently, and put a backslash in
-    # the hostname rather than rejecting it. Catching these at the raw
-    # string level is more reliable.
-    for ch in url:
-        if ord(ch) < 0x20 or ord(ch) == 0x7F:
-            log.warning("SSRF: rejected URL with control char")
-            return None
-    if "\\" in url:
-        log.warning("SSRF: rejected URL with backslash")
-        return None
-
+        return False
+    
     try:
         parsed = urllib.parse.urlparse(url)
     except Exception:
-        return None
-
+        return False
+    
     # Scheme check
     if parsed.scheme not in ALLOWED_SCHEMES:
         log.warning("SSRF: rejected scheme %s for %s", parsed.scheme, _redact_url(url))
-        return None
-
-    # Path-traversal check: ".." as a discrete path segment is never
-    # legitimate in our API URLs and is the canonical path-injection vector.
-    # Use parsed.path so that ".." inside a longer name (e.g. "..foo") is
-    # not falsely flagged.
-    if ".." in parsed.path.split("/"):
-        log.warning("SSRF: rejected URL with path traversal segment")
-        return None
-
-    # ASCII-only check: any non-ASCII in the URL must be percent-encoded
-    # before reaching us. Raw Unicode in the path/query is suspicious and
-    # not used by any of our legitimate upstreams.
-    try:
-        target = (parsed.path or "/")
-        if parsed.query:
-            target = f"{target}?{parsed.query}"
-        target.encode("ascii")
-    except UnicodeEncodeError:
-        log.warning("SSRF: rejected URL with non-ASCII in path/query")
-        return None
-
+        return False
+    
     # Host check
     hostname = (parsed.hostname or "").lower()
     if not hostname:
-        return None
-
+        return False
+    
     # Block internal/private DNS suffixes before DNS lookup.
     # Catches Railway private networking, mDNS, and corporate intranets.
     for suffix in BLOCKED_DOMAIN_SUFFIXES:
         if hostname.endswith(suffix):
             log.warning("SSRF: rejected internal suffix %s", hostname)
-            return None
-
+            return False
+    
     allowed = set(ALLOWED_EXTERNAL_HOSTS)
     if extra_allowed_hosts:
         allowed |= extra_allowed_hosts
-
+    
     if hostname not in allowed:
         log.warning("SSRF: rejected host %s", hostname)
-        return None
-
+        return False
+    
     # Resolve to IP and verify it's public.
-    # We require ALL resolved addresses to be public (rebinding may rotate
-    # multiple records), then return the first for the caller to pin to.
+    # This catches DNS rebinding where a public hostname resolves to internal IP.
     try:
+        # Resolve all addresses, block if ANY is private
         addr_info = socket.getaddrinfo(hostname, None, family=socket.AF_UNSPEC)
-        first_public_ip: Optional[str] = None
         for info in addr_info:
             ip_str = info[4][0]
             # IPv6 link-local sometimes appends %iface; strip it
@@ -210,29 +161,12 @@ def validate_and_resolve_external_url(
                     or addr.is_reserved or addr.is_multicast
                     or addr.is_unspecified):
                 log.warning("SSRF: %s resolves to non-public %s", hostname, ip_str)
-                return None
-            if first_public_ip is None:
-                first_public_ip = ip_str
-        if first_public_ip is None:
-            log.warning("SSRF: no usable IPs for %s", hostname)
-            return None
-        return first_public_ip
+                return False
     except socket.gaierror:
         log.warning("SSRF: DNS resolution failed for %s", hostname)
-        return None
-
-
-def validate_external_url(url: str, extra_allowed_hosts: Optional[set] = None) -> bool:
-    """
-    Backward-compatible wrapper: True if the URL is safe to fetch.
-
-    Existing callers that just want a yes/no answer keep working. New code
-    that performs network I/O after this check should call
-    validate_and_resolve_external_url() and connect to the returned IP
-    (DNS pinning). Otherwise an attacker controlling DNS for an allowlisted
-    hostname can flip the answer between this validation and the connection.
-    """
-    return validate_and_resolve_external_url(url, extra_allowed_hosts) is not None
+        return False
+    
+    return True
 
 
 def _redact_url(url: str) -> str:
@@ -258,125 +192,46 @@ def safe_fetch_bytes(
     """
     Fetch URL with SSRF protection, size cap, and timeout.
     Raises ValueError if URL is invalid or response is too large.
-    Raises urllib.error.URLError on network failure (compatibility with
-    callers that catch urlopen-shaped exceptions).
-
-    DNS pinning (closes CodeQL alert #20, py/partial-ssrf): the validator
-    returns the resolved public IP, and we connect directly to that IP
-    rather than letting the HTTP client perform a second DNS resolution.
-    This closes the TOCTOU window where an attacker controlling DNS for an
-    allowlisted hostname could flip the answer between validation and
-    connection. SNI and certificate validation still use the original
-    hostname so TLS works correctly.
-
-    Caller contract - URL construction safety:
-        Callers MUST construct the URL such that any user-controlled
-        substring is properly encoded for the position it occupies:
-
-          OK:  Query parameter values - use urllib.parse.urlencode(...)
-          OK:  Path segments - use urllib.parse.quote(value, safe='')
-          BAD: NEVER interpolate raw user input directly into a path with
-               f-string/format unless the value passes a strict regex first
-               (see validate_cve_id for an example of acceptable practice).
-
-        safe_fetch_bytes does defence-in-depth checks (rejects path
-        traversal, control bytes, CRLF, backslash, non-ASCII) but those
-        are a safety net, not a substitute for correct URL construction
-        at the call site. The host allowlist is a hard boundary; the
-        path safety check is conservative; if a caller bypasses the
-        validator entirely (e.g. by calling urllib.request directly)
-        none of these protections apply.
     """
-    pinned_ip = validate_and_resolve_external_url(url, extra_allowed_hosts)
-    if pinned_ip is None:
-        raise ValueError("URL rejected by SSRF policy")
-
-    parsed = urllib.parse.urlparse(url)
-    hostname = parsed.hostname
-    port = parsed.port or 443  # HTTPS only per ALLOWED_SCHEMES
-
-    # Build the request path including query string
-    path = parsed.path or "/"
-    if parsed.query:
-        path = f"{path}?{parsed.query}"
-
-    # Use urllib3's HTTPSConnection with explicit server_hostname and
-    # assert_hostname so the connection goes to the pinned IP but TLS
-    # SNI and cert validation use the original hostname. Both kwargs
-    # are documented public API.
-    conn = urllib3.connection.HTTPSConnection(
-        host=pinned_ip,
-        port=port,
-        timeout=timeout,
-        server_hostname=hostname,
-        assert_hostname=hostname,
-    )
-
-    try:
-        # Build headers; ensure Host is the original hostname (some servers
-        # route on Host even on a single IP). Do not let the caller override
-        # Host, since that would defeat the SNI/cert match.
-        request_headers = dict(headers or {})
-        request_headers["Host"] = hostname
-        if "User-Agent" not in request_headers:
-            request_headers["User-Agent"] = "DTVSS/3.0"
-
-        try:
-            conn.request(
-                "GET", path,
-                headers=request_headers,
-                preload_content=False,  # stream so we can enforce max_bytes early
-            )
-            resp = conn.getresponse()
-        except urllib3.exceptions.HTTPError as e:
-            # Re-raise as urllib.error.URLError so existing call sites that
-            # catch urlopen-shaped exceptions keep working unchanged.
-            raise urllib.error.URLError(str(e)) from e
-        except (OSError, ssl.SSLError) as e:
-            # OSError covers socket-level failures; SSLError covers TLS
-            # handshake failures (including assert_hostname mismatches —
-            # the pinning safety net). Both should look like network
-            # errors to callers.
-            raise urllib.error.URLError(str(e)) from e
-
+    if not validate_external_url(url, extra_allowed_hosts):
+        raise ValueError(f"URL rejected by SSRF policy")
+    
+    req = urllib.request.Request(url, headers=headers or {})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
         # Content-Length early check.
-        # Bug fix history: previously the over-cap raise lived inside the
-        # same try as int(content_length), so an except ValueError swallowed
-        # the size-cap rejection. We now narrow the try to the int() only
-        # and check the bound outside.
+        # Bug fix: previously the over-cap `raise ValueError(...)` lived
+        # inside the same try-block as `int(content_length)`, so the
+        # `except ValueError: pass` (intended only to catch an unparseable
+        # header value) silently swallowed the size-cap rejection too.
+        # The hard read-cap below would still catch oversized bodies, but
+        # the early-exit benefit was lost. We now narrow the try to only
+        # the int() conversion and check the bound outside it.
         #
-        # Caveat: chunked Transfer-Encoding responses don't send
-        # Content-Length, so this fast-path is bypassed. The hard read-cap
-        # below is the actual security boundary; the Content-Length check
-        # is a bandwidth optimisation when the server is honest about size.
-        content_length = resp.getheader("Content-Length")
+        # Caveat: servers using Transfer-Encoding: chunked do not send
+        # Content-Length, so this early-exit branch is bypassed entirely
+        # for chunked responses. The hard read-cap below is the actual
+        # security boundary; the Content-Length check is a fast-path
+        # optimisation that saves the bandwidth of reading max_bytes+1
+        # when the server is honest about the response size up front.
+        # This is intentional, not a gap — see read-cap on line 215.
+        content_length = resp.headers.get("Content-Length")
         if content_length:
             try:
                 cl_int = int(content_length)
             except ValueError:
-                cl_int = None
+                cl_int = None  # Unparseable header, fall through to read cap
             if cl_int is not None and cl_int > max_bytes:
                 raise ValueError(
                     f"Response too large: {content_length} > {max_bytes}"
                 )
 
-        # Read with hard cap. AUTHORITATIVE size enforcement — works for
-        # both Content-Length and chunked Transfer-Encoding responses.
-        #
-        # urllib3's HTTPResponse exposes the body via the .data attribute,
-        # which is preloaded. To enforce a streaming cap before the entire
-        # body lands in memory, iterate via .stream() and accumulate up to
-        # max_bytes + 1 bytes.
-        chunks: list[bytes] = []
-        total = 0
-        for chunk in resp.stream(8192, decode_content=False):
-            chunks.append(chunk)
-            total += len(chunk)
-            if total > max_bytes:
-                raise ValueError(f"Response exceeded {max_bytes} bytes")
-        return b"".join(chunks)
-    finally:
-        conn.close()
+        # Read with hard cap. Read one extra byte to detect overflow.
+        # This is the AUTHORITATIVE size enforcement — works for both
+        # Content-Length and chunked Transfer-Encoding responses.
+        raw = resp.read(max_bytes + 1)
+        if len(raw) > max_bytes:
+            raise ValueError(f"Response exceeded {max_bytes} bytes")
+        return raw
 
 
 def safe_fetch_json(
@@ -422,6 +277,10 @@ def safe_parse_xml(raw: bytes):
 
 CVE_ID_RE = re.compile(r"^CVE-\d{4}-\d{4,10}$")
 
+# Search-query character allowlist (used by validate_query). See the
+# function docstring for the rationale on each character class.
+_QUERY_ALLOWED_RE = re.compile(r"^[A-Za-z0-9 ._,\-():]+$")
+
 def validate_cve_id(cve_id: str) -> Optional[str]:
     """
     Normalize and validate a CVE ID.
@@ -449,9 +308,29 @@ def validate_cve_id(cve_id: str) -> Optional[str]:
 
 
 def validate_query(query: str) -> Optional[str]:
-    """
+    r"""
     Validate and sanitize a search query.
     Returns cleaned query or None if invalid.
+
+    Tight character allowlist (closes CodeQL alert #42 / py/partial-ssrf
+    at the source): the validated query becomes part of an outbound URL
+    sent to the NVD keyword API. Constraining input to letters, digits,
+    spaces, and a small set of safe punctuation here means no character
+    that can affect URL parsing or HTTP request semantics ever reaches
+    the URL-construction layer.
+
+    Allowed characters:
+      A-Z a-z 0-9     letters and digits (medical device / vendor names)
+      space            multi-word queries
+      . , - _          common punctuation in product/version strings
+      ( ) :            version numbers, model designators (e.g. "v1.0 (rev 2)")
+
+    Rejected (would otherwise affect URL/HTTP semantics):
+      & = ? #         query/fragment separators
+      / \              path injection
+      %                percent-encoding manipulation
+      < > " '          HTML/XSS in any reflected context
+      { } [ ] | ^ ` ~ $ @ ; *  rarely needed; can break parsers
     """
     if not query or not isinstance(query, str):
         return None
@@ -461,6 +340,10 @@ def validate_query(query: str) -> Optional[str]:
         return None
     # No control chars, no null bytes
     if "\x00" in query or not query.isprintable():
+        return None
+    # Strict character allowlist
+    if not _QUERY_ALLOWED_RE.match(query):
+        log.warning("validate_query: rejected query containing disallowed characters")
         return None
     return query
 
