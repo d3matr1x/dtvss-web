@@ -427,15 +427,6 @@ def test_kev_validation():
         fix_fail("Valid catalog incorrectly rejected")
     
     poc("Injection attempt in cveID")
-    injection = {
-        "vulnerabilities": [
-            {
-                "cveID": "CVE-2024-12345' OR '1'='1",
-                "dateAdded": "2024-01-01",
-                "vendorProject": "v", "product": "p", "vulnerabilityName": "n",
-            }
-        ] * 600
-    }
     # Build a version that has valid entries plus one injection
     catalog = {
         "vulnerabilities": [

@@ -16,6 +16,7 @@ Patent Pending - IP Australia | Licensed under BSL 1.1
 """
 
 import json
+import logging
 import os
 import re
 import shutil
@@ -498,4 +499,4 @@ def _load():
 _seed_persistent_from_repo()
 _load()
 threading.Thread(target=_hourly_pipeline, daemon=True).start()
-print("  Hourly ICSMA pipeline started")
+logging.getLogger("dtvss.index_loader").info("Hourly ICSMA pipeline started")

@@ -635,16 +635,21 @@ def atomic_write_json(path: str, data: Any, indent: int = 2) -> None:
         if os.path.exists(path):
             try:
                 os.replace(path, path + ".bak")
-            except OSError:
-                pass  # bak failure shouldn't prevent the update
+            except OSError as bak_err:
+                # Backup failure shouldn't prevent the update; log for diagnosis.
+                log.debug("atomic_write_json: bak rename failed: %s",
+                          _log_safe_value(bak_err))
         
         os.replace(tmp_path, path)  # atomic on POSIX
     except Exception:
         # Clean up temp file on any failure
         try:
             os.unlink(tmp_path)
-        except OSError:
-            pass
+        except OSError as cleanup_err:
+            # Cleanup is best-effort; the original exception is re-raised below.
+            # We log at DEBUG so production stays quiet but operators can diagnose.
+            log.debug("atomic_write_json: tmp cleanup failed: %s",
+                      _log_safe_value(cleanup_err))
         raise
 
 
