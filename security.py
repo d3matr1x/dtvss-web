@@ -47,10 +47,13 @@ from functools import wraps
 def _sanitize_for_log(value: Any) -> str:
     """
     Sanitize untrusted values before logging to prevent log injection.
-    Removes CR/LF and other control characters.
+    Replaces CR/LF/tab with spaces and strips remaining control characters.
     """
-    s = str(value)
-    return "".join(ch for ch in s if ch >= " " and ch != "\x7f")
+    if value is None:
+        return ""
+    s = str(value).replace("\r", " ").replace("\n", " ").replace("\t", " ")
+    s = "".join(ch for ch in s if (" " <= ch <= "~") or ch >= "\u00a0")
+    return s[:512]
 
 
 def _log_safe_value(value: Any) -> str:
