@@ -51,6 +51,7 @@ from security import (
     validate_int_param,
     sanitize_error,
     require_max_body_size,
+    _log_safe_value,
     MAX_JSON_BODY_BYTES,
 )
 
@@ -392,7 +393,7 @@ def lookup():
     try:
         nvd = nvd_lookup_cve(cve_id, api_key=NVD_API_KEY)
     except Exception as e:
-        log.exception("NVD lookup failed for %s", cve_id)
+        log.exception("NVD lookup failed for %s", _log_safe_value(cve_id))
         return jsonify({
             "error": "Upstream lookup failed",
             "request_id": getattr(g, "request_id", None),
@@ -430,7 +431,7 @@ def lookup():
     try:
         epss = epss_lookup([cve_id])
     except Exception as e:
-        log.exception("EPSS lookup failed for %s", cve_id)
+        log.exception("EPSS lookup failed for %s", _log_safe_value(cve_id))
         epss = {}
     epss_data = epss.get(cve_id, {"epss": 0.0, "percentile": 0.0, "date": ""})
 
@@ -479,11 +480,15 @@ def lookup():
     try:
         result = compute_dtvss(B=B_in, L=L_in, H=H, kev=kev_status)
     except ValueError as ve:
-        log.warning("compute_dtvss rejected inputs for %s: %s", cve_id, ve)
+        log.warning("compute_dtvss rejected inputs for %s: %s",
+                    _log_safe_value(cve_id), _log_safe_value(ve))
+        # No 'detail' field — keeping str(ve) out of the response avoids
+        # CodeQL py/stack-trace-exposure flow. Operators correlate via
+        # request_id in logs.
         return jsonify({
             "error": "CVE has invalid scoring inputs",
             "cve_id": cve_id,
-            "detail": str(ve),
+            "request_id": getattr(g, "request_id", None),
         }), 422
 
     result.update({
@@ -616,7 +621,8 @@ def _search_indexed(query: str, tga_override: str, max_results: int, indexed_cve
         try:
             result = compute_dtvss(B, L, H, kev)
         except ValueError as ve:
-            log.warning("compute_dtvss rejected inputs for %s: %s", cve_id, ve)
+            log.warning("compute_dtvss rejected inputs for %s: %s",
+                        _log_safe_value(cve_id), _log_safe_value(ve))
             continue
 
         scored.append({
@@ -767,7 +773,8 @@ def _search_live_nvd(query: str, tga_override: str, max_results: int):
             result = compute_dtvss(B_in, L_in, H, kev=kev_status)
         except ValueError as ve:
             log.warning("compute_dtvss rejected inputs for %s: %s",
-                        nvd.get("cve_id"), ve)
+                        _log_safe_value(nvd.get("cve_id")),
+                        _log_safe_value(ve))
             continue
         result.update({
             "cve_id": nvd["cve_id"],

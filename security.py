@@ -175,7 +175,9 @@ def validate_and_resolve_external_url(
 
     # Scheme check
     if parsed.scheme not in ALLOWED_SCHEMES:
-        log.warning("SSRF: rejected scheme %s for %s", parsed.scheme, _redact_url(url))
+        log.warning("SSRF: rejected scheme %s for %s",
+                    _log_safe_value(parsed.scheme),
+                    _log_safe_value(_redact_url(url)))
         return None
 
     # Path-traversal check: ".." as a discrete path segment is never
@@ -819,7 +821,9 @@ def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
         
         error_id = uuid.uuid4().hex[:16]  # 64 bits, lower collision risk
         log.exception("Unhandled exception [%s] for %s %s",
-                      error_id, request.method, request.path)
+                      error_id,
+                      _log_safe_value(request.method),
+                      _log_safe_value(request.path))
         
         return jsonify({
             "error": "Internal server error",
@@ -852,8 +856,8 @@ def get_real_client_ip():
         # collapse every request into one shared rate-limit bucket and
         # we'd have no signal until rate limits stopped working.
         log.warning(
-            "get_real_client_ip fell back to 'invalid-ip'; original remote_addr=%r",
-            request.remote_addr,
+            "get_real_client_ip fell back to 'invalid-ip'; original remote_addr=%s",
+            _log_safe_value(request.remote_addr),
         )
         return "invalid-ip"
 
