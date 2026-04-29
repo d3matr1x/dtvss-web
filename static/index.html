@@ -53,6 +53,11 @@
 }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- Cloudflare Turnstile (managed mode) for bot challenge on /api/lookup
+     and /api/search. Loaded async; the page renders fine without it but
+     API calls will surface a "Bot challenge required" error if the script
+     failed to load. -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -93,7 +98,7 @@ a:hover{text-decoration:underline}
 .search-hint{font-size:13px;color:var(--dim);margin-top:10px;line-height:1.6}
 .search-hint span{color:var(--hd);font-weight:500}
 
-/* Class selector — DEVICE CLASS row removed from UI; kept as no-op for safety */
+/* Class selector - DEVICE CLASS row removed from UI; kept as no-op for safety */
 .class-row,.cls-btn{display:none}
 
 /* Score card */
@@ -163,7 +168,7 @@ a:hover{text-decoration:underline}
 .footer{text-align:center;padding:24px 0 0;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
 .footer .bsl{font-size:12px;color:var(--tx);margin-top:6px}
 
-/* Tier CTA — sticky pill on desktop (right side), floating bar on mobile (bottom) */
+/* Tier CTA - sticky pill on desktop (right side), floating bar on mobile (bottom) */
 .tier-float{
   /* Position relative to the centred container (740px wide).
      Container's right edge sits at (50vw + 370px); put pills 12px past that.
@@ -214,6 +219,11 @@ a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
+
+<!-- Turnstile widget mount point. Invisible (size=invisible, appearance=
+     interaction-only): renders a 0x0 iframe and only becomes visible if
+     Cloudflare decides the session needs a visible challenge. -->
+<div id="dtvss-turnstile" style="position:fixed;bottom:0;right:0;z-index:9999"></div>
 
 <div class="header">
   <h1>DTVSS</h1>
@@ -353,7 +363,7 @@ a:hover{text-decoration:underline}
 //
 // safeHref() additionally rejects javascript: / data: / vbscript: schemes
 // for any URL we drop into an href attribute. The CSP would catch most of
-// these in modern browsers, but this is defence-in-depth — the upstream
+// these in modern browsers, but this is defence-in-depth - the upstream
 // pentest report calls out that the CSP currently allows 'unsafe-inline'
 // for compatibility, so script-src protection is weaker than ideal.
 function escapeHtml(s) {
@@ -381,6 +391,37 @@ function safeHref(u) {
   }
   return '#';
 }
+
+// -----------------------------------------------------------------------------
+// Turnstile token acquisition
+// -----------------------------------------------------------------------------
+// Wraps the protected /api/lookup and /api/search calls. Tokens are
+// single-use and short-lived (~5 min), so we execute() per call rather
+// than caching. If Turnstile failed to load (script blocked, offline,
+// CSP misconfig) we still issue the request - the server returns a
+// clear 403 the user can act on, rather than silently failing in JS.
+async function getTurnstileToken() {
+  try {
+    if (window.turnstile && window.__dtvssTurnstileWidget) {
+      return await window.turnstile.execute(
+        window.__dtvssTurnstileWidget,
+        { async: true }
+      );
+    }
+  } catch (e) {
+    // Token acquisition failed; return empty so the server can produce
+    // a meaningful error response instead of us blocking the request.
+  }
+  return '';
+}
+
+// Build a query string fragment for attaching the Turnstile token to a URL.
+// Returns '&cf-turnstile-response=...' or '' if no token was acquired.
+async function turnstileQueryParam() {
+  const tok = await getTurnstileToken();
+  return tok ? `&cf-turnstile-response=${encodeURIComponent(tok)}` : '';
+}
+
 const TIER_COLOR = {Critical:'var(--crit)',High:'var(--high)',Medium:'var(--med)',Low:'var(--low)'};
 const TIER_BG = {Critical:'rgba(217,79,79,.08)',High:'rgba(217,124,42,.08)',Medium:'rgba(201,180,40,.08)',Low:'rgba(76,175,122,.08)'};
 const TIER_BD = {Critical:'rgba(217,79,79,.25)',High:'rgba(217,124,42,.25)',Medium:'rgba(201,180,40,.25)',Low:'rgba(76,175,122,.25)'};
@@ -465,11 +506,11 @@ async function loadManufacturers() {
   _populateFallbackMDMs(' - Select manufacturer -');
 }
 // -----------------------------------------------------------------------------
-// Event handler wireup (Fix #11 — strict-CSP compatibility)
+// Event handler wireup (Fix #11 - strict-CSP compatibility)
 // -----------------------------------------------------------------------------
 // Every interactive element used to use inline onclick/onchange/onkeydown/
 // onmouseover attributes. Strict CSP (DTVSS_CSP_STRICT=1) blocks ALL inline
-// handlers — nonces only authorise <script>/<style> tags, not on* attributes.
+// handlers - nonces only authorise <script>/<style> tags, not on* attributes.
 // We now attach every handler in one wireUp() pass:
 //   - Static elements (search input, SCORE button, MDM select, copy button)
 //     get direct addEventListener calls by id.
@@ -505,12 +546,12 @@ function wireUp() {
   // clicks on dynamically-rendered cards/buttons/rows.
   document.addEventListener('click', (e) => {
     // First: any ancestor that wants to stop propagation (e.g. ICS link
-    // inside a result card — we want the link to navigate, not to also
+    // inside a result card - we want the link to navigate, not to also
     // trigger the card's lookupCVE).
     const stopper = e.target.closest('[data-stop-propagation]');
     if (stopper && stopper !== e.currentTarget) {
       e.stopPropagation();
-      // Don't return — the link's default navigation should still happen.
+      // Don't return - the link's default navigation should still happen.
     }
 
     const el = e.target.closest('[data-action]');
@@ -529,7 +570,7 @@ function wireUp() {
         break;
       }
       default:
-        // Unknown data-action — log but don't throw, so a future renderer
+        // Unknown data-action - log but don't throw, so a future renderer
         // bug doesn't take down all click handling.
         console.warn('Unknown data-action:', action);
     }
@@ -576,7 +617,8 @@ async function doSearch() {
 
   try {
     if (isCVE) {
-      const resp = await fetch(`/api/lookup?cve=${encodeURIComponent(q)}${classParam}`);
+      const tsParam = await turnstileQueryParam();
+      const resp = await fetch(`/api/lookup?cve=${encodeURIComponent(q)}${classParam}${tsParam}`);
       const data = await resp.json();
       if (data.error) {
         showError(data.error);
@@ -602,7 +644,8 @@ async function doSearch() {
         return;
       }
 
-      const resp = await fetch(`/api/search?q=${encodeURIComponent(q)}${classParam}&max=30`);
+      const tsParam = await turnstileQueryParam();
+      const resp = await fetch(`/api/search?q=${encodeURIComponent(q)}${classParam}&max=30${tsParam}`);
       const data = await resp.json();
       searchCache[cacheKey] = { data, ts: Date.now() };
       if (data.error) {
@@ -850,7 +893,7 @@ function lookupCVE(cveId) {
 function copyScoreSummary() {
   if (!lastSingleResult) return;
   const r = lastSingleResult;
-  // Plain text built for navigator.clipboard.writeText() — never touches the
+  // Plain text built for navigator.clipboard.writeText() - never touches the
   // DOM, so escapeHtml is unnecessary. The // xss-ok markers tell the CI
   // grep in .github/workflows/security.yml that these interpolations are
   // intentionally raw text, not HTML.
@@ -882,6 +925,56 @@ function backToResults() {
   showSearchResults(lastSearchData, 1);
 }
 
+</script>
+
+<script>
+// -----------------------------------------------------------------------------
+// Turnstile widget bootstrap
+// -----------------------------------------------------------------------------
+// Renders an invisible Turnstile widget once the script has loaded and the
+// sitekey has been fetched from the server. The widget handle is stashed
+// on window.__dtvssTurnstileWidget so getTurnstileToken() can call
+// turnstile.execute(handle) per API request.
+//
+// Sitekey is fetched rather than hard-coded so the same HTML deploys
+// across staging/prod without rebuilds. The sitekey is public by design,
+// so /api/turnstile-config is unauthenticated.
+//
+// If TURNSTILE_SITEKEY isn't configured server-side, the endpoint
+// returns {sitekey: ""} and we skip rendering - the API will then accept
+// requests without a token (matching the server-side fail-open in dev).
+(function bootstrapTurnstile() {
+  let attempts = 0;
+  function tryRender() {
+    if (window.__dtvssTurnstileWidget) return;
+    if (!window.turnstile || typeof window.turnstile.render !== "function") {
+      // Script hasn't finished loading yet. Retry up to ~5 seconds; if
+      // it never loads (CSP blocked, offline), give up silently - the
+      // API call paths handle missing tokens gracefully.
+      if (++attempts > 50) return;
+      setTimeout(tryRender, 100);
+      return;
+    }
+    fetch("/api/turnstile-config")
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (!cfg || !cfg.sitekey) return;  // dev mode, skip widget
+        var container = document.getElementById("dtvss-turnstile");
+        if (!container) return;
+        window.__dtvssTurnstileWidget = window.turnstile.render(container, {
+          sitekey: cfg.sitekey,
+          size: "invisible",
+          appearance: "interaction-only"
+        });
+      })
+      .catch(function () { /* swallow; API path will degrade gracefully */ });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", tryRender);
+  } else {
+    tryRender();
+  }
+})();
 </script>
 
 <!-- Sticky tier CTA: desktop sidebar, mobile bottom bar. Hidden until search runs. -->
