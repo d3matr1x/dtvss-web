@@ -31,7 +31,7 @@ startCommand = "gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 30 -
 # checks outside the expensive rate-limit bucket (so Railway's checks
 # don't generate 429s during noisy periods).
 healthcheckPath = "/health"
-healthcheckTimeout = 10
+healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 
