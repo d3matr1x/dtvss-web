@@ -352,6 +352,19 @@ def static_asset(filename):
     # send_from_directory protects against ../ traversal
     return send_from_directory(STATIC_DIR, filename)
 
+# -----------------------------------------------------------------------------
+# 404 handler — HTML page for browser routes, JSON for API routes
+# -----------------------------------------------------------------------------
+@app.errorhandler(404)
+def page_not_found(e):
+    """Custom 404. JSON for API routes (matches existing 4xx shape);
+    styled HTML page for everything else."""
+    if request.path.startswith("/api/"):
+        return jsonify({
+            "error": "Not found",
+            "request_id": getattr(g, "request_id", None),
+        }), 404
+    return send_from_directory(STATIC_DIR, "404.html"), 404
 
 # -----------------------------------------------------------------------------
 # Health check (INFO-03: decoupled from business logic)
