@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+  DTVSS - Page Not Found (404)
+  Copyright © 2026 Andrew Broglio. All rights reserved.
+  Patent Pending - IP Australia | Licensed under BSL 1.1
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Not Found - DTVSS</title>
+<meta name="description" content="The page you requested does not exist on DTVSS. Return to search, calculator, or browse the navigation.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://dtvss.io/">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
+  --tx:#b8bcc8; --dim:#6b7280; --hd:#e2e6f0;
+  --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e05252; --low:#48b878; --med:#d4b832;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.header{border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.container{max-width:740px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:28px;flex:1;width:100%}
+.footer{text-align:center;padding:24px 0 8px;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
+
+/* 404-specific */
+.notfound-block{padding:40px 28px;background:var(--s1);border:1px solid var(--bd);border-radius:10px;text-align:center}
+.notfound-code{font-family:var(--mono);font-size:64px;font-weight:700;color:var(--hd);letter-spacing:0.04em;line-height:1.1;margin-bottom:14px}
+.notfound-tag{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.10em;color:var(--crit);text-transform:uppercase;margin-bottom:18px}
+.notfound-msg{font-size:14px;color:var(--tx);line-height:1.7;max-width:520px;margin:0 auto 22px}
+.notfound-msg code{font-family:var(--mono);font-size:12px;background:var(--s2);border:1px solid var(--bd);padding:2px 8px;border-radius:4px;color:var(--hd)}
+.cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.cta{padding:10px 20px;border-radius:999px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:0.05em;display:inline-flex;align-items:center;gap:8px;text-decoration:none;transition:transform .12s, border-color .12s}
+.cta:hover{transform:translateY(-1px);text-decoration:none}
+.cta.primary{color:var(--acc);border:1px solid rgba(91,147,245,0.30);background:rgba(91,147,245,0.08)}
+.cta.secondary{color:var(--dim);border:1px solid var(--bd);background:transparent}
+.cta.secondary:hover{color:var(--hd);border-color:var(--dim)}
+
+/* Suggestions panel */
+.suggest{padding:22px;background:var(--s1);border:1px solid var(--bd);border-radius:10px}
+.suggest h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--dim);text-transform:uppercase;margin-bottom:14px}
+.suggest-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width: 720px){ .suggest-grid{grid-template-columns:1fr} }
+.suggest-item{padding:14px 16px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;display:block}
+.suggest-item:hover{border-color:rgba(91,147,245,0.30);text-decoration:none}
+.suggest-item .nm{font-family:var(--mono);font-size:13px;color:var(--hd);font-weight:600;margin-bottom:4px;display:block}
+.suggest-item .ds{font-size:12px;color:var(--dim);line-height:1.5}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="/" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--hd);letter-spacing:0.04em;text-decoration:none">DTVSS</a>
+  <span style="font-size:13px;color:var(--dim)">Not Found</span>
+  <span style="margin-left:auto;font-size:13px;display:flex;gap:20px">
+    <a href="/" style="color:var(--dim);text-decoration:none">Search</a>
+    <a href="/calculator" style="color:var(--dim);text-decoration:none">Calculator</a>
+    <a href="/calibration" style="color:var(--dim);text-decoration:none">Calibration</a>
+    <a href="/about" style="color:var(--dim);text-decoration:none">About</a>
+    <a href="/tiers" style="color:var(--dim);text-decoration:none">Tiers</a>
+    <a href="/security-policy" style="color:var(--dim);text-decoration:none">Security</a>
+  </span>
+</div>
+
+<div class="container">
+
+  <!-- 404 block -->
+  <div class="notfound-block">
+    <div class="notfound-code">404</div>
+    <div class="notfound-tag">Page Not Found</div>
+    <p class="notfound-msg">
+      The page you requested does not exist on DTVSS. The URL may be misspelt, the page may have moved, or the link that brought you here may be stale.
+    </p>
+    <div class="cta-row">
+      <a href="/" class="cta primary">&larr; Back to search</a>
+      <a href="/calculator" class="cta secondary">Open calculator</a>
+    </div>
+  </div>
+
+  <!-- Suggestions -->
+  <div class="suggest">
+    <h3>Or try one of these</h3>
+    <div class="suggest-grid">
+      <a href="/" class="suggest-item">
+        <span class="nm">Search</span>
+        <span class="ds">Look up CVEs by ID, vendor, or device keyword.</span>
+      </a>
+      <a href="/calculator" class="suggest-item">
+        <span class="nm">Calculator</span>
+        <span class="ds">Compute DTVSS for any B / L / H combination.</span>
+      </a>
+      <a href="/calibration" class="suggest-item">
+        <span class="nm">Calibration</span>
+        <span class="ds">The 96-CVE filing dataset and threshold rationale.</span>
+      </a>
+      <a href="/about" class="suggest-item">
+        <span class="nm">About</span>
+        <span class="ds">What DTVSS is, who built it, and why.</span>
+      </a>
+      <a href="/tiers" class="suggest-item">
+        <span class="nm">Tiers</span>
+        <span class="ds">Tier 3 white-glove and Tier 4 self-operated platform.</span>
+      </a>
+      <a href="/security-policy" class="suggest-item">
+        <span class="nm">Security</span>
+        <span class="ds">Vulnerability disclosure and security.txt.</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>&copy; 2026 Andrew Broglio &middot; DTVSS&trade; &middot; Patent Pending - IP Australia</div>
+    <div style="margin-top:4px;font-size:12px;color:var(--tx)">Licensed under BSL 1.1 &middot; Non-commercial use permitted &middot; Commercial licence required for production use</div>
+    <div style="margin-top:8px;font-size:13px">
+      <a href="/">Search</a> &middot; <a href="/calculator">Calculator</a> &middot; <a href="/calibration">Calibration</a> &middot; <a href="/about">About</a> &middot; <a href="/tiers">Tiers</a> &middot; <a href="/security-policy">Security</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
