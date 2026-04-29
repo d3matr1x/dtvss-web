@@ -576,9 +576,11 @@ window.addEventListener('error', function(e) {
         if (!container) return;
         window.__dtvssTurnstileWidget = window.turnstile.render(container, {
           sitekey: cfg.sitekey,
-          size: "invisible",
-          // Managed mode: Cloudflare scores the session and only escalates
-          // to a visible challenge for genuinely suspicious traffic.
+          // Managed mode + appearance:interaction-only keeps the widget
+          // hidden unless Cloudflare decides interaction is needed. Do
+          // NOT pass size:"invisible" - that's not a valid value for
+          // the size parameter (Turnstile rejects with a TurnstileError).
+          // Visibility comes from the appearance setting, not size.
           appearance: "interaction-only"
         });
       })
