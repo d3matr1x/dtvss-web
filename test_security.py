@@ -6,15 +6,17 @@ Demonstrates each finding from PENTEST_REPORT.md and verifies the fixes
 in security.py.
 
 Each test has two parts:
-  1. Proof of Concept — shows the vulnerability is real
-  2. Fix Verification — shows security.py blocks it
+  1. Proof of Concept - shows the vulnerability is real
+  2. Fix Verification - shows security.py blocks it
 
 Run: python3 test_security.py
 """
 
 import os
 import sys
+import urllib.error
 import urllib.parse
+import urllib.request
 
 # Make project modules importable regardless of working directory.
 # Previously this hardcoded /home/claude paths from a sandbox layout, which
@@ -31,6 +33,8 @@ from security import (
     sanitize_error,
     safe_parse_xml,
     validate_kev_catalog,
+    is_valid_api_key,
+    verify_turnstile,
 )
 
 
@@ -171,7 +175,7 @@ def test_ssrf_protection():
         if blocked:
             print(f"  {C.GREEN}✓{C.RESET} Blocked: {desc}")
         else:
-            print(f"  {C.RED}✗{C.RESET} NOT BLOCKED: {desc} — {url}")
+            print(f"  {C.RED}✗{C.RESET} NOT BLOCKED: {desc} - {url}")
             all_blocked = False
     
     if all_blocked:
@@ -351,7 +355,7 @@ def test_error_sanitization():
         (
             Exception("connection to internal-db.railway.internal:5432 refused"),
             "Internal hostname",
-            None,  # Hostname format doesn't match patterns — acceptable
+            None,  # Hostname format doesn't match patterns - acceptable
         ),
     ]
     
@@ -389,7 +393,7 @@ def test_kev_validation():
     if result is None:
         fix_ok("Empty KEV catalog rejected (would hide exploited CVEs)")
     else:
-        fix_fail("Empty catalog accepted — dangerous for medical devices!")
+        fix_fail("Empty catalog accepted - dangerous for medical devices!")
     
     poc("Attacker returns malformed entries")
     malformed = {
@@ -449,7 +453,7 @@ def test_kev_validation():
 
 
 # =============================================================================
-# M-1: KEV Cache Poisoning — preserve prior cache on bad refresh
+# M-1: KEV Cache Poisoning - preserve prior cache on bad refresh
 # =============================================================================
 
 def test_kev_cache_poisoning():
@@ -582,17 +586,17 @@ def test_advisory_host_restriction():
         ("https://attacker.example.com/icsma-001",
          "Random attacker domain"),
         ("https://services.nvd.nist.gov/icsma-001",
-         "Other allowlisted host (NVD) — should NOT serve advisories"),
+         "Other allowlisted host (NVD) - should NOT serve advisories"),
         ("https://api.fda.gov/icsma-001",
-         "Other allowlisted host (openFDA) — should NOT serve advisories"),
+         "Other allowlisted host (openFDA) - should NOT serve advisories"),
         ("https://raw.githubusercontent.com/x/icsma.html",
-         "Other allowlisted host (GitHub) — should NOT serve advisories"),
+         "Other allowlisted host (GitHub) - should NOT serve advisories"),
         ("https://evil-cisa.gov.attacker.com/icsma-001",
          "Substring-bypass: cisa.gov as subdomain prefix"),
         ("https://cisa.gov.evil.com/icsma-001",
          "Substring-bypass: cisa.gov as suffix on attacker domain"),
         ("http://www.cisa.gov/icsma-001",
-         "HTTP (not HTTPS) — caught by SSRF scheme check downstream"),
+         "HTTP (not HTTPS) - caught by SSRF scheme check downstream"),
     ]
     all_blocked = True
     for link, desc in attack_links:
@@ -606,7 +610,7 @@ def test_advisory_host_restriction():
                 print(f"  {C.GREEN}✓{C.RESET} Blocked at SSRF layer: {desc}")
                 continue
         if host_ok:
-            print(f"  {C.RED}✗{C.RESET} NOT BLOCKED: {desc} — {link}")
+            print(f"  {C.RED}✗{C.RESET} NOT BLOCKED: {desc} - {link}")
             all_blocked = False
         else:
             print(f"  {C.GREEN}✓{C.RESET} Blocked at host check: {desc}")
@@ -727,7 +731,7 @@ def test_response_size_cap():
     # Scenario 2: Content-Length header declares oversized response.
     # This used to be a known-broken path (the over-cap raise was caught
     # by the same `except ValueError` that handled unparseable headers).
-    # That bug is now fixed in security.safe_fetch_bytes — this test
+    # That bug is now fixed in security.safe_fetch_bytes - this test
     # guards against regression. The body should NOT be streamed.
     poc("Compromised upstream declares Content-Length > cap (early-exit)")
 
@@ -775,7 +779,7 @@ def test_response_size_cap():
     poc("All 7 api_clients.py external call sites route through _fetch_json (SSRF + cap apply uniformly)")
 
     # Map of upstream hostname -> stub response. Using a strict hostname
-    # match (via urlparse) rather than substring "x.com in url" — the
+    # match (via urlparse) rather than substring "x.com in url" - the
     # latter would be flagged by CodeQL py/incomplete-url-substring-
     # sanitization (correctly: substring matching on URLs is unsafe for
     # security decisions; even though this is a test fixture, the pattern
@@ -872,12 +876,149 @@ def test_response_size_cap():
 
 
 # =============================================================================
-# MAIN
+# Turnstile + API key bypass
 # =============================================================================
+
+def test_api_key_bypass():
+    section("AUTH: X-API-Key bypass for /api/lookup, /api/search, /api/score")
+
+    poc("Without DTVSS_API_KEYS configured, no key should validate")
+    os.environ.pop("DTVSS_API_KEYS", None)
+    if not is_valid_api_key("anything-here"):
+        fix_ok("Empty key list rejects all candidates")
+    else:
+        fix_fail("Empty key list accepted a candidate")
+
+    poc("With keys configured, only exact match validates")
+    os.environ["DTVSS_API_KEYS"] = "alpha-secret-32chars-xxxxxxxxxxxxxx, beta-secret-32chars-yyyyyyyyyyyyyy"
+    if is_valid_api_key("alpha-secret-32chars-xxxxxxxxxxxxxx"):
+        fix_ok("Configured key matches")
+    else:
+        fix_fail("Configured key did not match")
+
+    if is_valid_api_key("beta-secret-32chars-yyyyyyyyyyyyyy"):
+        fix_ok("Second configured key matches")
+    else:
+        fix_fail("Second configured key did not match")
+
+    if not is_valid_api_key("alpha-secret-32chars-xxxxxxxxxxxxxX"):
+        fix_ok("Near-miss (case differs in last char) rejected")
+    else:
+        fix_fail("Near-miss accepted - comparison may not be strict")
+
+    if not is_valid_api_key(""):
+        fix_ok("Empty string rejected even with keys configured")
+    else:
+        fix_fail("Empty string accepted")
+
+    if not is_valid_api_key(None):
+        fix_ok("None rejected")
+    else:
+        fix_fail("None accepted")
+
+    poc("Oversized input must be rejected without timing the comparison")
+    if not is_valid_api_key("x" * 10000):
+        fix_ok("10KB input rejected by length cap (no timing leak)")
+    else:
+        fix_fail("Oversized key was processed")
+
+    # Cleanup so other tests aren't affected
+    os.environ.pop("DTVSS_API_KEYS", None)
+
+
+def test_turnstile_verification():
+    section("AUTH: Cloudflare Turnstile siteverify integration")
+
+    poc("Empty / non-string token must short-circuit before any HTTP call")
+    if not verify_turnstile("", "1.2.3.4"):
+        fix_ok("Empty token rejected without network call")
+    else:
+        fix_fail("Empty token returned True")
+
+    if not verify_turnstile(None, "1.2.3.4"):
+        fix_ok("None token rejected")
+    else:
+        fix_fail("None token returned True")
+
+    poc("Missing TURNSTILE_SECRET → fail closed")
+    os.environ.pop("TURNSTILE_SECRET", None)
+    if not verify_turnstile("0.fake-token", "1.2.3.4"):
+        fix_ok("verify_turnstile fails closed when secret unset")
+    else:
+        fix_fail("verify_turnstile passed despite no configured secret")
+
+    poc("Mocked siteverify success → True; failure → False")
+    # Monkey-patch urllib.request.urlopen to simulate Cloudflare responses
+    # without making real HTTP calls. Python imports are shared by
+    # identity, so patching urllib.request.urlopen here changes the
+    # binding that verify_turnstile uses inside security.py too.
+
+    class _FakeResp:
+        def __init__(self, status, body):
+            self.status = status
+            self._body = body
+        def read(self, n=None):
+            return self._body
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    original_urlopen = urllib.request.urlopen
+    os.environ["TURNSTILE_SECRET"] = "test-secret"
+
+    try:
+        # Success path
+        urllib.request.urlopen = lambda req, timeout=None: _FakeResp(
+            200, b'{"success": true, "challenge_ts": "...", "hostname": "dtvss.io"}'
+        )
+        if verify_turnstile("0.real-looking-token", "1.2.3.4"):
+            fix_ok("Successful siteverify response returns True")
+        else:
+            fix_fail("Successful siteverify response returned False")
+
+        # Explicit failure
+        urllib.request.urlopen = lambda req, timeout=None: _FakeResp(
+            200, b'{"success": false, "error-codes": ["invalid-input-response"]}'
+        )
+        if not verify_turnstile("0.bad-token", "1.2.3.4"):
+            fix_ok("success=false response returns False")
+        else:
+            fix_fail("success=false response returned True")
+
+        # Non-200 from Cloudflare
+        urllib.request.urlopen = lambda req, timeout=None: _FakeResp(503, b"")
+        if not verify_turnstile("0.token", "1.2.3.4"):
+            fix_ok("HTTP 503 from siteverify treated as failure")
+        else:
+            fix_fail("HTTP 503 treated as success")
+
+        # Network error → fail closed
+        def _raise(*a, **kw):
+            raise urllib.error.URLError("simulated outage")
+        urllib.request.urlopen = _raise
+        if not verify_turnstile("0.token", "1.2.3.4"):
+            fix_ok("Network error fails closed")
+        else:
+            fix_fail("Network error treated as success - this is a bypass")
+
+        # Malformed JSON → fail closed
+        urllib.request.urlopen = lambda req, timeout=None: _FakeResp(
+            200, b"<html>not json</html>"
+        )
+        if not verify_turnstile("0.token", "1.2.3.4"):
+            fix_ok("Non-JSON body fails closed")
+        else:
+            fix_fail("Non-JSON body treated as success")
+
+    finally:
+        urllib.request.urlopen = original_urlopen
+        os.environ.pop("TURNSTILE_SECRET", None)
+
+
+
 
 def main():
     print(f"\n{C.BOLD}{'═' * 70}{C.RESET}")
-    print(f"{C.BOLD}  DTVSS SECURITY TEST SUITE — Red Team{C.RESET}")
+    print(f"{C.BOLD}  DTVSS SECURITY TEST SUITE - Red Team{C.RESET}")
     print(f"{C.BOLD}  Demonstrates vulnerabilities and verifies fixes{C.RESET}")
     print(f"{C.BOLD}{'═' * 70}{C.RESET}")
     
@@ -890,6 +1031,8 @@ def main():
     test_kev_cache_poisoning()
     test_advisory_host_restriction()
     test_response_size_cap()
+    test_api_key_bypass()
+    test_turnstile_verification()
     
     # Summary
     print(f"\n{C.BOLD}{'═' * 70}{C.RESET}")
