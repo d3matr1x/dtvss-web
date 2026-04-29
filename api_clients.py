@@ -753,13 +753,6 @@ def cisa_kev_check(cve_id: str) -> Optional[dict]:
 _device_cache = {"keywords": {}, "fetched_at": 0}
 DEVICE_CACHE_TTL = 86400  # refresh daily (24 hours)
 
-# openFDA medical specialty codes relevant to network-connected devices
-FDA_SPECIALTIES = [
-    "AN",  # Anesthesiology
-    "CV",  # Cardiovascular
-    "SU",  # General/Plastic Surgery (infusion)
-]
-
 # openFDA product codes for known network-connected device categories
 FDA_PRODUCT_CODES = [
     "FRN",  # Infusion pump
