@@ -19,6 +19,12 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<!-- Cloudflare Turnstile (managed mode) for /api/lookup bot challenge.
+     Loaded async; the page renders fine without it (the API call will
+     surface a "Bot challenge required" error if the script failed to
+     load). Sitekey is injected at request time by the server via the
+     data-attribute on the placeholder div below. -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #080a0f; }
@@ -31,6 +37,10 @@
 </style>
 </head>
 <body>
+<!-- Turnstile widget mount point. Invisible (size=invisible, appearance=
+     interaction-only): the widget renders a 0x0 iframe and only becomes
+     visible if Cloudflare decides this session needs a visible challenge. -->
+<div id="dtvss-turnstile" style="position:fixed;bottom:0;right:0;z-index:9999"></div>
 <div id="root">
   <div style="padding:40px;font-family:system-ui;color:#b8bcc8;text-align:center;background:#080a0f">
     <div style="font-size:14px;color:#6b7280">Loading calculator...</div>
@@ -105,7 +115,7 @@ window.addEventListener('error', function(e) {
   }
 
   function App() {
-    // Tier gating — Tier 1 (this page) shows optional embodiments in a
+    // Tier gating - Tier 1 (this page) shows optional embodiments in a
     // locked/disabled state as an upsell. Flip to false to unlock all
     // features in a paid Tier 2+ build.
     const TIER2_LOCKED = true;
@@ -135,7 +145,26 @@ window.addEventListener('error', function(e) {
       if (!cve.match(/^CVE-\d{4}-\d+$/i)) return;
       setLookupLoading(true); setLookupMsg("");
       try {
-        const resp = await fetch(`/api/lookup?cve=${encodeURIComponent(cve)}`);
+        // Acquire a fresh Turnstile token. Tokens are single-use, so we
+        // execute() on every lookup rather than caching. If Turnstile
+        // hasn't loaded (script blocked, offline dev) we still issue the
+        // request - the server will return a clear 403 the user can act
+        // on, rather than us silently failing in the browser.
+        let tsToken = "";
+        try {
+          if (window.turnstile && window.__dtvssTurnstileWidget) {
+            tsToken = await window.turnstile.execute(
+              window.__dtvssTurnstileWidget,
+              { async: true }
+            );
+          }
+        } catch (e) {
+          // Token acquisition failed; fall through and let the server
+          // produce a meaningful error. Don't block the user here.
+        }
+        const url = `/api/lookup?cve=${encodeURIComponent(cve)}` +
+                    (tsToken ? `&cf-turnstile-response=${encodeURIComponent(tsToken)}` : "");
+        const resp = await fetch(url);
         const data = await resp.json();
         if (data.error) {
           setLookupMsg(data.error);
@@ -509,6 +538,57 @@ window.addEventListener('error', function(e) {
   }
 
   ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+})();
+
+// -----------------------------------------------------------------------------
+// Turnstile widget bootstrap
+// -----------------------------------------------------------------------------
+// Renders an invisible Turnstile widget once the script has loaded and the
+// sitekey has been fetched from the server. The widget handle is stashed on
+// window.__dtvssTurnstileWidget so the React component (above) can call
+// turnstile.execute(handle) per API request.
+//
+// Why fetch the sitekey rather than hard-code it: it lets us deploy the same
+// HTML file across environments (staging/prod) without rebuilds, and lets us
+// rotate the sitekey via env-var redeploy without touching templates. The
+// sitekey is public by design, so /api/turnstile-config is unauthenticated.
+//
+// If TURNSTILE_SITEKEY isn't configured server-side, the endpoint returns
+// {sitekey: ""} and we skip rendering - the API will then accept requests
+// without a token (matching the server-side fail-open in dev).
+(function bootstrapTurnstile() {
+  let attempts = 0;
+  function tryRender() {
+    if (window.__dtvssTurnstileWidget) return;
+    if (!window.turnstile || typeof window.turnstile.render !== "function") {
+      // Script hasn't finished loading yet. Retry up to ~5 seconds; if it
+      // never loads (CSP blocked, offline), give up silently - the lookup
+      // path handles missing tokens gracefully.
+      if (++attempts > 50) return;
+      setTimeout(tryRender, 100);
+      return;
+    }
+    fetch("/api/turnstile-config")
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (!cfg || !cfg.sitekey) return;  // dev mode, skip widget
+        var container = document.getElementById("dtvss-turnstile");
+        if (!container) return;
+        window.__dtvssTurnstileWidget = window.turnstile.render(container, {
+          sitekey: cfg.sitekey,
+          size: "invisible",
+          // Managed mode: Cloudflare scores the session and only escalates
+          // to a visible challenge for genuinely suspicious traffic.
+          appearance: "interaction-only"
+        });
+      })
+      .catch(function () { /* swallow; lookup path will degrade gracefully */ });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", tryRender);
+  } else {
+    tryRender();
+  }
 })();
 </script>
 </body>

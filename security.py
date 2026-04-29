@@ -24,6 +24,7 @@ Copyright 2026 Andrew Broglio. All rights reserved.
 
 from __future__ import annotations
 
+import hmac
 import ipaddress
 import json
 import logging
@@ -799,13 +800,15 @@ def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
             response.headers["Content-Security-Policy"] = (
                 f"default-src 'self'; "
                 f"script-src 'self' 'nonce-{nonce}'{inline} "
-                f"https://cdnjs.cloudflare.com; "
+                f"https://cdnjs.cloudflare.com "
+                f"https://challenges.cloudflare.com; "
                 f"style-src 'self' 'nonce-{nonce}'{inline} "
                 f"https://fonts.googleapis.com; "
                 f"style-src-attr{style_attr}; "
                 f"font-src 'self' https://fonts.gstatic.com; "
                 f"img-src 'self' data:; "
                 f"connect-src 'self'; "
+                f"frame-src https://challenges.cloudflare.com; "
                 f"frame-ancestors 'none'; "
                 f"base-uri 'self'; "
                 f"form-action 'self'"
@@ -937,3 +940,280 @@ def validate_kev_catalog(catalog: dict, min_entries: int = 500) -> Optional[dict
         log.warning("KEV: skipped %d malformed entries", skipped)
     
     return indexed
+
+
+# =============================================================================
+# Cloudflare Turnstile bot challenge + API-key bypass
+# =============================================================================
+# Adds challenge-token verification on top of the existing Flask-Limiter
+# rate limits. Turnstile raises the cost of acquiring fresh sessions for
+# botnets that rotate IPs (which defeat per-IP limits), while remaining
+# invisible to legitimate browsers in "managed" mode 99% of the time.
+#
+# Two ways to satisfy the challenge:
+#
+#   1. Browser flow: client embeds the Turnstile widget, gets a token,
+#      passes it back in the `cf-turnstile-response` field (form, query,
+#      or header). Tokens are single-use and short-lived (~5 min).
+#
+#   2. Programmatic flow: caller sends `X-API-Key: <key>` matching one of
+#      the pre-shared keys in DTVSS_API_KEYS. This is the only way to
+#      reach the API from CLI / scripts.
+#
+# Configuration env vars:
+#   TURNSTILE_SITEKEY  - public, embedded in HTML (safe to expose)
+#   TURNSTILE_SECRET   - server-only, used to call siteverify
+#   DTVSS_API_KEYS     - comma-separated list of valid API keys
+#
+# Failure modes by design:
+#   - Missing TURNSTILE_SECRET: decorator passes through with a one-time
+#     warning. Matches the existing "Flask-Limiter not installed" pattern
+#     so local dev doesn't need Cloudflare credentials.
+#   - Network failure to siteverify: fails closed (returns 403). Five-
+#     second timeout. We'd rather drop a legit request than allow a bot
+#     past us during a Cloudflare outage.
+#   - Empty DTVSS_API_KEYS: API-key bypass is simply unavailable; the
+#     header is ignored. No way to authenticate without a configured key.
+
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+TURNSTILE_TIMEOUT_SEC = 5
+
+# Track whether we've already logged the "secret missing" warning so the
+# log doesn't fill up with one line per request in dev environments.
+_TURNSTILE_WARNED_NO_SECRET = False
+
+
+def _load_api_keys() -> list[str]:
+    """Parse DTVSS_API_KEYS env var into a list of non-empty keys.
+
+    Returns an empty list if the env var is unset or only contains
+    whitespace/commas - in that case the API-key bypass is disabled.
+    """
+    raw = os.environ.get("DTVSS_API_KEYS", "")
+    return [k.strip() for k in raw.split(",") if k.strip()]
+
+
+def is_valid_api_key(provided: Optional[str]) -> bool:
+    """Constant-time check of `provided` against the configured key list.
+
+    Uses hmac.compare_digest for each comparison to prevent timing
+    side-channels that could leak key prefixes. Reading the env var on
+    every call (rather than caching at import time) means key rotation
+    via env-var update takes effect on the next request - important for
+    incident response without a redeploy.
+    """
+    if not provided or not isinstance(provided, str):
+        return False
+    # Reject absurdly long inputs early to cap CPU time per request.
+    if len(provided) > 256:
+        return False
+    keys = _load_api_keys()
+    if not keys:
+        return False
+    # Iterate every key even after a match, so total time is constant
+    # in the number of configured keys (small leak otherwise).
+    matched = False
+    for k in keys:
+        if hmac.compare_digest(provided, k):
+            matched = True
+    return matched
+
+
+def verify_turnstile(token: Optional[str], remote_ip: Optional[str]) -> bool:
+    """POST `token` to Cloudflare's siteverify endpoint.
+
+    Returns True only if Cloudflare confirms the token is valid AND was
+    issued for the configured sitekey. Any of the following return False:
+      - Empty / non-string token
+      - Missing TURNSTILE_SECRET (caller should detect this earlier and
+        decide whether to fail-open or fail-closed; here we fail-closed)
+      - Network timeout / connection error / non-200 response
+      - Cloudflare's JSON says success=false
+      - Non-JSON response body (treat as a network anomaly)
+
+    The remoteip parameter is optional in Cloudflare's API but improves
+    fraud detection. We pass the ProxyFix-corrected client IP.
+    """
+    if not token or not isinstance(token, str):
+        return False
+    if len(token) > 2048:
+        # Cloudflare tokens are well under this; anything bigger is junk.
+        return False
+
+    secret = os.environ.get("TURNSTILE_SECRET", "").strip()
+    if not secret:
+        # Caller (the decorator) has already decided what to do when the
+        # secret is missing. If verify_turnstile is called directly with
+        # no secret configured, that's a misconfiguration - fail closed.
+        return False
+
+    form = {"secret": secret, "response": token}
+    if remote_ip:
+        form["remoteip"] = remote_ip
+
+    data = urllib.parse.urlencode(form).encode("ascii")
+    req = urllib.request.Request(
+        TURNSTILE_VERIFY_URL,
+        data=data,
+        method="POST",
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    try:
+        # No SSRF allowlist concerns here - the URL is a constant we
+        # control, not user input. Standard urllib is fine.
+        with urllib.request.urlopen(req, timeout=TURNSTILE_TIMEOUT_SEC) as resp:
+            if resp.status != 200:
+                log.warning(
+                    "Turnstile siteverify returned HTTP %s",
+                    resp.status,
+                )
+                return False
+            body = resp.read(8192)  # response is tiny; cap defensively
+    except (urllib.error.URLError, socket.timeout, OSError) as e:
+        log.warning("Turnstile siteverify network error: %s",
+                    sanitize_error(e))
+        return False
+
+    try:
+        result = json.loads(body.decode("utf-8", errors="replace"))
+    except (ValueError, UnicodeDecodeError):
+        log.warning("Turnstile siteverify returned non-JSON")
+        return False
+
+    if not isinstance(result, dict):
+        return False
+
+    if not result.get("success"):
+        # Log error-codes (an array per CF docs) for ops visibility,
+        # without leaking the token itself.
+        codes = result.get("error-codes") or []
+        log.info("Turnstile challenge failed: %s",
+                 _log_safe_value(",".join(str(c) for c in codes)))
+        return False
+
+    return True
+
+
+def _extract_turnstile_token(request) -> Optional[str]:
+    """Look for the Turnstile token in the request.
+
+    Cloudflare's documented field name is `cf-turnstile-response`. We
+    accept it from any of:
+      - JSON body (POST endpoints)
+      - Form body (POST endpoints - though we don't currently use forms)
+      - Query string (GET endpoints, e.g. /api/lookup, /api/search)
+      - Custom header `CF-Turnstile-Response` (programmatic clients
+        that want a uniform place to put it)
+    """
+    field = "cf-turnstile-response"
+    # Header first - cheap and explicit.
+    header_token = request.headers.get("CF-Turnstile-Response")
+    if header_token:
+        return header_token.strip()
+    # JSON body (only if the endpoint is POST + application/json)
+    if request.is_json:
+        try:
+            body = request.get_json(silent=True) or {}
+            if isinstance(body, dict):
+                tok = body.get(field)
+                if isinstance(tok, str) and tok:
+                    return tok.strip()
+        except Exception:
+            # get_json is paranoid-safe (silent=True), but if anything
+            # upstream raises, fall through to other extraction paths.
+            pass
+    # Form body
+    form_token = request.form.get(field)
+    if form_token:
+        return form_token.strip()
+    # Query string
+    query_token = request.args.get(field)
+    if query_token:
+        return query_token.strip()
+    return None
+
+
+def require_turnstile_or_api_key(fn):
+    """Decorator: require a valid Turnstile token OR a valid API key.
+
+    Order of checks:
+      1. X-API-Key header → if valid, allow without consuming a Turnstile
+         verification round-trip.
+      2. Otherwise, look for a Turnstile token and verify it with CF.
+      3. If neither is present/valid → 403.
+
+    Decorator ordering with the rate limiter matters. The intended stack
+    is:
+        @app.route(...)
+        @_expensive            # rate limit FIRST
+        @require_turnstile_or_api_key   # then Turnstile
+        def endpoint(): ...
+
+    Rationale for limiter-first: a bot spamming garbage tokens would
+    otherwise burn unlimited siteverify calls (real cost - Cloudflare
+    rate-limits those too, but we'd be hitting that ceiling for them).
+    With the limiter outermost, the bot's IP gets 429'd long before its
+    forged tokens reach our verify path.
+
+    Local dev fallback: if TURNSTILE_SECRET is unset, the decorator logs
+    a one-time warning and passes through. This matches the Flask-
+    Limiter "not installed" fallback in app.py and keeps `python app.py`
+    runnable without Cloudflare credentials.
+    """
+    from flask import request, jsonify, g
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        global _TURNSTILE_WARNED_NO_SECRET
+
+        secret_configured = bool(os.environ.get("TURNSTILE_SECRET", "").strip())
+        if not secret_configured:
+            if not _TURNSTILE_WARNED_NO_SECRET:
+                log.warning(
+                    "TURNSTILE_SECRET not set; bot challenge bypass active "
+                    "(safe for local dev, NOT for production)"
+                )
+                _TURNSTILE_WARNED_NO_SECRET = True
+            return fn(*args, **kwargs)
+
+        # 1. API-key bypass (preferred path for CLI / scripted clients)
+        api_key = request.headers.get("X-API-Key")
+        if api_key is not None:
+            if is_valid_api_key(api_key):
+                # Mark the request so downstream handlers / logs can tell
+                # an API-keyed call from a browser-issued one if needed.
+                g.auth_method = "api_key"
+                return fn(*args, **kwargs)
+            # Header was present but didn't match any configured key.
+            # Don't fall through to Turnstile: a present-but-wrong key is
+            # almost always a misconfigured client, and silently letting
+            # them through on a different mechanism would be confusing.
+            return jsonify({
+                "error": "Invalid API key",
+                "request_id": getattr(g, "request_id", None),
+            }), 401
+
+        # 2. Turnstile token
+        token = _extract_turnstile_token(request)
+        if not token:
+            return jsonify({
+                "error": "Bot challenge required",
+                "hint": (
+                    "Browsers: include cf-turnstile-response from the "
+                    "Turnstile widget. Programmatic clients: send "
+                    "X-API-Key header instead."
+                ),
+                "request_id": getattr(g, "request_id", None),
+            }), 403
+
+        client_ip = get_real_client_ip()
+        if not verify_turnstile(token, client_ip):
+            return jsonify({
+                "error": "Bot challenge failed",
+                "request_id": getattr(g, "request_id", None),
+            }), 403
+
+        g.auth_method = "turnstile"
+        return fn(*args, **kwargs)
+
+    return wrapper

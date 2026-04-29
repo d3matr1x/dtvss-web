@@ -303,7 +303,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
             <rect width="60" height="30" fill="#012169"/>
             <!-- White saltire (diagonal cross) -->
             <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
-            <!-- Red saltire — four offset segments so the red stripe is properly shifted -->
+            <!-- Red saltire - four offset segments so the red stripe is properly shifted -->
             <clipPath id="ukTL"><polygon points="0,0 30,0 0,15"/></clipPath>
             <clipPath id="ukTR"><polygon points="30,0 60,0 60,15"/></clipPath>
             <clipPath id="ukBL"><polygon points="0,15 0,30 30,30"/></clipPath>
@@ -436,6 +436,27 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
         LinkedIn →
       </a>
     </div>
+  </div>
+
+  <!-- API Access -->
+  <div class="section">
+    <h3>Programmatic API Access</h3>
+    <p style="color:var(--tx);font-size:13px;line-height:1.7;margin-bottom:12px">
+      The DTVSS reference implementation exposes three endpoints - <span style="font-family:var(--mono);color:var(--acc)">/api/lookup</span>, <span style="font-family:var(--mono);color:var(--acc)">/api/search</span>, and <span style="font-family:var(--mono);color:var(--acc)">/api/score</span> - that browsers reach via the calculator UI. To prevent automated abuse of the upstream NVD and EPSS feeds we depend on, these endpoints require either a Cloudflare Turnstile token (issued automatically by the calculator page) or a pre-shared API key sent in an <span style="font-family:var(--mono);color:var(--acc)">X-API-Key</span> header.
+    </p>
+    <p style="color:var(--tx);font-size:13px;line-height:1.7;margin-bottom:12px">
+      API keys are issued on request to researchers, clinicians, and organisations evaluating DTVSS for medical-device vulnerability triage. There is no per-call charge during the Tier 1 research preview, but per-key rate limits apply (20 expensive requests per hour, 60 cheap requests per minute) and are enforced independently of authentication.
+    </p>
+    <p style="color:var(--tx);font-size:13px;line-height:1.7;margin-bottom:12px">
+      To request a key, open a request via <a href="https://github.com/d3matr1x/dtvss-web/issues" style="color:var(--acc)">GitHub Issues</a> with: your affiliation, intended use case, and approximate request volume. Keys are issued as 32-character URL-safe tokens, delivered out-of-band, and must be transmitted only over TLS. Compromised keys should be reported via <a href="https://github.com/d3matr1x/dtvss-web/security/advisories/new" style="color:var(--acc)">GitHub Security Advisories</a> for immediate rotation.
+    </p>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--dim);background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:12px;line-height:1.6">
+      curl -H "X-API-Key: $DTVSS_KEY" \<br>
+      &nbsp;&nbsp;"https://dtvss.io/api/lookup?cve=CVE-2024-12345"
+    </div>
+    <p style="color:var(--dim);font-size:11px;line-height:1.6;margin-top:10px;font-style:italic">
+      Commercial production use of DTVSS - including programmatic integration into a vendor risk-management product - requires a separate commercial licence under BSL 1.1. Research-preview API access does not grant commercial rights.
+    </p>
   </div>
 
   <!-- IP -->

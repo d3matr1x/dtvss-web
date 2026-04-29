@@ -4,7 +4,7 @@
 # Licensed under BSL 1.1 - Commercial licence required for production use.
 
 """
-DTVSS Tier 1 Web Application — Security Hardened
+DTVSS Tier 1 Web Application - Security Hardened
 ==================================================
 This version applies all findings from PENTEST_REPORT.md via security.py.
 
@@ -39,7 +39,7 @@ from index_loader import (
     get_advisory_urls,
 )
 
-# Security module — centralized hardening
+# Security module - centralized hardening
 from security import (
     apply_hardening,
     get_real_client_ip,
@@ -49,11 +49,12 @@ from security import (
     validate_int_param,
     sanitize_error,
     require_max_body_size,
+    require_turnstile_or_api_key,
     _log_safe_value,
     MAX_JSON_BODY_BYTES,
 )
 
-# Medical-device scope filter — rejects non-medical CVEs (PHP-Fusion,
+# Medical-device scope filter - rejects non-medical CVEs (PHP-Fusion,
 # Wonderware, WordPress, ZPanel, etc.) that were leaking through the old
 # substring-based filter.
 from medical_scope import is_in_scope, filter_scored_results
@@ -68,7 +69,7 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024  # 16 KB global cap on request bodi
 # subfolder (matches the original send_from_directory("static", ...)
 # pattern). An earlier patch incorrectly resolved STATIC_DIR to the repo
 # root, which was based on a misread of the file layout in a snapshot
-# delivered to me — the live repo has always had `static/`. The fix here
+# delivered to me - the live repo has always had `static/`. The fix here
 # preserves the env-var override for operators who restructure later.
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.environ.get("DTVSS_STATIC_DIR") or os.path.join(_APP_DIR, "static")
@@ -81,12 +82,12 @@ WELL_KNOWN_DIR = os.path.join(STATIC_DIR, ".well-known")
 # The HTML pages are served as flat files via send_from_directory, so there
 # is no Jinja pass to inject the per-request CSP nonce that security.py
 # generates in g.csp_nonce. Without injection, every inline <script> and
-# <style> tag would be blocked by a strict CSP — meaning the existing
+# <style> tag would be blocked by a strict CSP - meaning the existing
 # DTVSS_CSP_STRICT=1 opt-in could never be safely enabled.
 #
 # This helper rewrites <script> and <style> open tags to carry the current
 # request's nonce. It runs once per page load and adds a few hundred
-# microseconds of regex work per request — a non-issue for a low-traffic
+# microseconds of regex work per request - a non-issue for a low-traffic
 # tool, and crucially it makes strict CSP actually deployable.
 #
 # Limitations honestly stated:
@@ -109,7 +110,7 @@ _SCRIPT_OPEN_RE = _re_csp.compile(
 def _inject_csp_nonce(html_bytes: bytes, nonce: str) -> bytes:
     """Inject nonce="..." into every inline <script>/<style> open tag.
 
-    External script/style tags (with src= or href=) get nonces too — that's
+    External script/style tags (with src= or href=) get nonces too - that's
     correct and required by strict CSP, since 'self' alone is not enough
     when 'unsafe-inline' is dropped: the browser still wants the nonce as
     an authentication token for the source.
@@ -156,7 +157,7 @@ def _serve_html_with_nonce(directory: str, filename: str):
 #
 # BUG FIX: previously this checked RAILWAY_ENVIRONMENT == "production", but
 # Railway sets RAILWAY_ENVIRONMENT to whatever the user named their environment
-# in the dashboard — "production" is only the default. Renamed environments
+# in the dashboard - "production" is only the default. Renamed environments
 # (staging, prod, main, etc.) silently bypassed the guard, which was the exact
 # failure mode this check was designed to prevent. We now trigger on ANY
 # Railway-/Heroku-/Fly-/Render-style env var, with an explicit DTVSS_ALLOW_EPHEMERAL
@@ -189,7 +190,7 @@ if _is_managed_deploy():
         )
     if not os.environ.get("DTVSS_CORS_ORIGINS"):
         logging.warning(
-            "DTVSS_CORS_ORIGINS is not set — CORS will use default allowlist "
+            "DTVSS_CORS_ORIGINS is not set - CORS will use default allowlist "
             "which probably doesn't match your production domain."
         )
 
@@ -252,7 +253,7 @@ except ImportError:
         return fn
 
 
-# Helper for query logging — hash the query to avoid logging PII
+# Helper for query logging - hash the query to avoid logging PII
 def _query_hash(q: str) -> str:
     return hashlib.sha256(q.encode("utf-8")).hexdigest()[:8]
 
@@ -353,7 +354,7 @@ def static_asset(filename):
     return send_from_directory(STATIC_DIR, filename)
 
 # -----------------------------------------------------------------------------
-# 404 handler — HTML page for browser routes, JSON for API routes
+# 404 handler - HTML page for browser routes, JSON for API routes
 # -----------------------------------------------------------------------------
 @app.errorhandler(404)
 def page_not_found(e):
@@ -384,6 +385,7 @@ def health():
 # -----------------------------------------------------------------------------
 @app.route("/api/lookup")
 @_expensive
+@require_turnstile_or_api_key
 def lookup():
     """Look up a single CVE by ID. Auto-scores."""
     raw_cve = request.args.get("cve", "")
@@ -418,7 +420,7 @@ def lookup():
     # looking up e.g. CVE-2006-2331 (PHP-Fusion) would get a fake DTVSS
     # Critical score for a 20-year-old website bug.
     #
-    # User TGA override bypasses this gate — if someone explicitly sets
+    # User TGA override bypasses this gate - if someone explicitly sets
     # tga_class, they're asserting this is a medical device, so we trust
     # them. Useful for new devices not yet in our terminology list.
     if not tga_override:
@@ -494,7 +496,7 @@ def lookup():
     except ValueError as ve:
         log.warning("compute_dtvss rejected inputs for %s: %s",
                     _log_safe_value(cve_id), _log_safe_value(ve))
-        # No 'detail' field — keeping str(ve) out of the response avoids
+        # No 'detail' field - keeping str(ve) out of the response avoids
         # CodeQL py/stack-trace-exposure flow. Operators correlate via
         # request_id in logs.
         return jsonify({
@@ -532,6 +534,7 @@ def lookup():
 # -----------------------------------------------------------------------------
 @app.route("/api/search")
 @_expensive
+@require_turnstile_or_api_key
 def search():
     """Search by device name or keyword."""
     raw_query = request.args.get("q", "")
@@ -810,10 +813,10 @@ def _search_live_nvd(query: str, tga_override: str, max_results: int):
         })
         scored.append(result)
 
-    # Scope filter — THIS IS THE CRITICAL FIX.
+    # Scope filter - THIS IS THE CRITICAL FIX.
     # Before this filter, searches for terms like "infusion" would return
     # PHP-Fusion CMS, Wonderware InFusion SCADA, WordPress Infusionsoft,
-    # ZPanel, etc. — all scored as Critical Class IIb medical devices.
+    # ZPanel, etc. - all scored as Critical Class IIb medical devices.
     # filter_scored_results rejects them using word-boundary regex and an
     # explicit non-medical blocklist.
     scored, scope_stats = filter_scored_results(scored)
@@ -848,11 +851,12 @@ def _search_live_nvd(query: str, tga_override: str, max_results: int):
 
 
 # -----------------------------------------------------------------------------
-# API: /api/score (MED-02 — full input validation)
+# API: /api/score (MED-02 - full input validation)
 # -----------------------------------------------------------------------------
 @app.route("/api/score", methods=["POST"])
 @_cheap
 @require_max_body_size(MAX_JSON_BODY_BYTES)
+@require_turnstile_or_api_key
 def score():
     """Manual scoring. POST {B, L, H, kev}."""
     # ASVS V13.2.5: enforce application/json on JSON endpoints.
@@ -885,7 +889,7 @@ def score():
     
     # Validate each parameter individually so we can return a specific,
     # safe error message naming which parameter failed and its valid range.
-    # We deliberately don't echo str(e) to the client — CodeQL flags any
+    # We deliberately don't echo str(e) to the client - CodeQL flags any
     # exception object flow into responses (py/stack-trace-exposure), and
     # keeping our error messages hard-coded here makes the safety property
     # locally obvious to both reviewers and static analysis.
@@ -912,7 +916,7 @@ def score():
                 failed = name
                 break
         if failed is None:
-            # Should not happen — defence in depth
+            # Should not happen - defence in depth
             return jsonify({"error": "Invalid score parameters"}), 400
         lo, hi, desc = _PARAM_BOUNDS[failed]
         return jsonify({
@@ -944,6 +948,22 @@ def manufacturers():
 
 
 # -----------------------------------------------------------------------------
+# API: /api/turnstile-config (cheap, no auth - sitekey is public by design)
+# -----------------------------------------------------------------------------
+# Browser bootstrap reads this to know which Turnstile sitekey to render.
+# Returning an empty string when unset is intentional: the calculator
+# falls back to no-widget mode, and the protected endpoints fail-open in
+# matching fashion (one-time warning logged). This keeps `python app.py`
+# usable for local dev without Cloudflare credentials.
+@app.route("/api/turnstile-config")
+@_cheap
+def turnstile_config():
+    return jsonify({
+        "sitekey": os.environ.get("TURNSTILE_SITEKEY", "").strip(),
+    })
+
+
+# -----------------------------------------------------------------------------
 # Startup
 # -----------------------------------------------------------------------------
 try:
@@ -956,7 +976,7 @@ except Exception as _e:
 # Warm the CISA KEV cache at startup so the first request doesn't synchronously
 # pay a ~1 MB JSON download. Without this, four gunicorn workers each pay the
 # cold-start cost on their first hit, blocking real user requests for several
-# seconds while CISA responds. Failure here is non-fatal — cisa_kev_check has
+# seconds while CISA responds. Failure here is non-fatal - cisa_kev_check has
 # its own backoff logic.
 try:
     from api_clients import cisa_kev_check
