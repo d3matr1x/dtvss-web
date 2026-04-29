@@ -181,7 +181,7 @@ def search_manufacturer_cves(manufacturer_name):
             return list(mdms[key].get("cves", []))
 
         # Strategy 2: Partial match on display_name (bidirectional, case-insensitive)
-        for mkey, mdm in mdms.items():
+        for mdm in mdms.values():
             display_name = mdm.get("display_name", "").lower()
             
             # Check if search query is substring of vendor name OR vice versa
@@ -210,7 +210,7 @@ def get_cpe_search_terms(manufacturer_name):
         mdm = mdms.get(key)
         if not mdm:
             # Try partial match
-            for mkey, m in mdms.items():
+            for m in mdms.values():
                 display_name = m.get("display_name", "").lower()
                 if key in display_name or display_name in key:
                     mdm = m
@@ -239,7 +239,7 @@ def get_advisory_urls(manufacturer_name):
         mdm = mdms.get(key)
         if not mdm:
             # Try partial match
-            for mkey, m in mdms.items():
+            for m in mdms.values():
                 display_name = m.get("display_name", "").lower()
                 if key in display_name or display_name in key:
                     mdm = m

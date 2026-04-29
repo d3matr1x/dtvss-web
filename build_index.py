@@ -149,16 +149,6 @@ def nvd_get(url, timeout=15):
         return None
 
 
-def load_existing():
-    if os.path.exists(OUTPUT_FILE):
-        try:
-            with open(OUTPUT_FILE, "r") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {"manufacturers": {}}
-
-
 def save_index(index):
     os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
     with open(OUTPUT_FILE, "w") as f:
