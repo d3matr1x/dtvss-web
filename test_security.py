@@ -14,7 +14,9 @@ Run: python3 test_security.py
 
 import os
 import sys
+import urllib.error
 import urllib.parse
+import urllib.request
 
 # Make project modules importable regardless of working directory.
 # Previously this hardcoded /home/claude paths from a sandbox layout, which
@@ -23,12 +25,6 @@ import urllib.parse
 # the tests work on any machine, in any working directory, in CI, etc.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Some tests need to monkey-patch attributes on the security module
-# (e.g. urllib.request.urlopen) so we import it as a module in addition
-# to importing specific names. CodeQL flags mixed `import x` and
-# `from x import y` styles, but the standard Python idiom is to do both
-# at the top of the file rather than mid-function.
-import security as _sec
 from security import (
     validate_external_url,
     validate_cve_id,
@@ -952,9 +948,10 @@ def test_turnstile_verification():
         fix_fail("verify_turnstile passed despite no configured secret")
 
     poc("Mocked siteverify success → True; failure → False")
-    # Monkey-patch urllib.request.urlopen used inside verify_turnstile.
-    # _sec is imported at the top of the module.
-    import io
+    # Monkey-patch urllib.request.urlopen to simulate Cloudflare responses
+    # without making real HTTP calls. Python imports are shared by
+    # identity, so patching urllib.request.urlopen here changes the
+    # binding that verify_turnstile uses inside security.py too.
 
     class _FakeResp:
         def __init__(self, status, body):
@@ -965,12 +962,12 @@ def test_turnstile_verification():
         def __enter__(self): return self
         def __exit__(self, *a): return False
 
-    original_urlopen = _sec.urllib.request.urlopen
+    original_urlopen = urllib.request.urlopen
     os.environ["TURNSTILE_SECRET"] = "test-secret"
 
     try:
         # Success path
-        _sec.urllib.request.urlopen = lambda req, timeout=None: _FakeResp(
+        urllib.request.urlopen = lambda req, timeout=None: _FakeResp(
             200, b'{"success": true, "challenge_ts": "...", "hostname": "dtvss.io"}'
         )
         if verify_turnstile("0.real-looking-token", "1.2.3.4"):
@@ -979,7 +976,7 @@ def test_turnstile_verification():
             fix_fail("Successful siteverify response returned False")
 
         # Explicit failure
-        _sec.urllib.request.urlopen = lambda req, timeout=None: _FakeResp(
+        urllib.request.urlopen = lambda req, timeout=None: _FakeResp(
             200, b'{"success": false, "error-codes": ["invalid-input-response"]}'
         )
         if not verify_turnstile("0.bad-token", "1.2.3.4"):
@@ -988,7 +985,7 @@ def test_turnstile_verification():
             fix_fail("success=false response returned True")
 
         # Non-200 from Cloudflare
-        _sec.urllib.request.urlopen = lambda req, timeout=None: _FakeResp(503, b"")
+        urllib.request.urlopen = lambda req, timeout=None: _FakeResp(503, b"")
         if not verify_turnstile("0.token", "1.2.3.4"):
             fix_ok("HTTP 503 from siteverify treated as failure")
         else:
@@ -996,15 +993,15 @@ def test_turnstile_verification():
 
         # Network error → fail closed
         def _raise(*a, **kw):
-            raise _sec.urllib.error.URLError("simulated outage")
-        _sec.urllib.request.urlopen = _raise
+            raise urllib.error.URLError("simulated outage")
+        urllib.request.urlopen = _raise
         if not verify_turnstile("0.token", "1.2.3.4"):
             fix_ok("Network error fails closed")
         else:
             fix_fail("Network error treated as success - this is a bypass")
 
         # Malformed JSON → fail closed
-        _sec.urllib.request.urlopen = lambda req, timeout=None: _FakeResp(
+        urllib.request.urlopen = lambda req, timeout=None: _FakeResp(
             200, b"<html>not json</html>"
         )
         if not verify_turnstile("0.token", "1.2.3.4"):
@@ -1013,7 +1010,7 @@ def test_turnstile_verification():
             fix_fail("Non-JSON body treated as success")
 
     finally:
-        _sec.urllib.request.urlopen = original_urlopen
+        urllib.request.urlopen = original_urlopen
         os.environ.pop("TURNSTILE_SECRET", None)
 
 
