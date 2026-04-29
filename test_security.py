@@ -23,6 +23,12 @@ import urllib.parse
 # the tests work on any machine, in any working directory, in CI, etc.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Some tests need to monkey-patch attributes on the security module
+# (e.g. urllib.request.urlopen) so we import it as a module in addition
+# to importing specific names. CodeQL flags mixed `import x` and
+# `from x import y` styles, but the standard Python idiom is to do both
+# at the top of the file rather than mid-function.
+import security as _sec
 from security import (
     validate_external_url,
     validate_cve_id,
@@ -947,7 +953,7 @@ def test_turnstile_verification():
 
     poc("Mocked siteverify success → True; failure → False")
     # Monkey-patch urllib.request.urlopen used inside verify_turnstile.
-    import security as _sec
+    # _sec is imported at the top of the module.
     import io
 
     class _FakeResp:

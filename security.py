@@ -980,7 +980,12 @@ TURNSTILE_TIMEOUT_SEC = 5
 
 # Track whether we've already logged the "secret missing" warning so the
 # log doesn't fill up with one line per request in dev environments.
-_TURNSTILE_WARNED_NO_SECRET = False
+# Stored in a dict (rather than a module-level scalar + `global` declaration
+# inside the closure) because some static analysers flag the global
+# declaration as unused even though it is required for the assignment to
+# rebind the module-level name. Using a mutable container removes the
+# need for `global` entirely and keeps the analyser happy.
+_turnstile_state = {"warned_no_secret": False}
 
 
 def _load_api_keys() -> list[str]:
@@ -1164,16 +1169,14 @@ def require_turnstile_or_api_key(fn):
 
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        global _TURNSTILE_WARNED_NO_SECRET
-
         secret_configured = bool(os.environ.get("TURNSTILE_SECRET", "").strip())
         if not secret_configured:
-            if not _TURNSTILE_WARNED_NO_SECRET:
+            if not _turnstile_state["warned_no_secret"]:
                 log.warning(
                     "TURNSTILE_SECRET not set; bot challenge bypass active "
                     "(safe for local dev, NOT for production)"
                 )
-                _TURNSTILE_WARNED_NO_SECRET = True
+                _turnstile_state["warned_no_secret"] = True
             return fn(*args, **kwargs)
 
         # 1. API-key bypass (preferred path for CLI / scripted clients)
