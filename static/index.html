@@ -220,11 +220,6 @@ a:hover{text-decoration:underline}
 </head>
 <body>
 
-<!-- Turnstile widget mount point. Invisible (size=invisible, appearance=
-     interaction-only): renders a 0x0 iframe and only becomes visible if
-     Cloudflare decides the session needs a visible challenge. -->
-<div id="dtvss-turnstile" style="position:fixed;bottom:0;right:0;z-index:9999"></div>
-
 <div class="header">
   <h1>DTVSS</h1>
   <span class="ver">v6.0 - Dynamic Temporal Vulnerability Scoring</span>
@@ -263,8 +258,13 @@ a:hover{text-decoration:underline}
   <div class="search-box">
     <div class="search-row">
       <input class="search-input" id="searchInput" placeholder="CVE-2017-12718 or infusion pump">
-      <button class="search-btn" id="searchBtn">SCORE</button>
+      <button class="search-btn" id="searchBtn" disabled style="opacity:0.5;cursor:not-allowed">Verifying you're human...</button>
     </div>
+    <!-- Turnstile widget mount point. Visible (size=flexible) so users
+         can see verification progress and complete any interactive
+         challenge Cloudflare presents. While the widget is verifying,
+         the SCORE button is disabled with a 'Verifying...' label. -->
+    <div id="dtvss-turnstile" style="margin-top:12px;min-height:65px"></div>
     <div class="search-hint">
       Enter a <span>CVE ID</span>, <span>device name</span>, or select a <span>manufacturer</span> below. Data fetched live from NVD, EPSS, and CISA KEV.
     </div>
@@ -393,33 +393,66 @@ function safeHref(u) {
 }
 
 // -----------------------------------------------------------------------------
-// Turnstile token acquisition
+// Turnstile token management
 // -----------------------------------------------------------------------------
-// Wraps the protected /api/lookup and /api/search calls. Tokens are
-// single-use and short-lived (~5 min), so we execute() per call rather
-// than caching. If Turnstile failed to load (script blocked, offline,
-// CSP misconfig) we still issue the request - the server returns a
-// clear 403 the user can act on, rather than silently failing in JS.
-async function getTurnstileToken() {
-  try {
-    if (window.turnstile && window.__dtvssTurnstileWidget) {
-      return await window.turnstile.execute(
-        window.__dtvssTurnstileWidget,
-        { async: true }
-      );
-    }
-  } catch (e) {
-    // Token acquisition failed; return empty so the server can produce
-    // a meaningful error response instead of us blocking the request.
+// We render a visible Turnstile widget below the search input. While
+// verification is in progress, the SCORE button is disabled with a
+// "Verifying you're human..." label. When the widget callback fires,
+// we cache the token in __dtvssTurnstileToken, enable the button, and
+// restore the SCORE label.
+//
+// Tokens are single-use and ~5 min lifetime. After we use one we reset
+// the widget so it produces a fresh token for the next call. During
+// the ~1 second between use and new token arriving, the button is
+// briefly disabled again.
+//
+// If Turnstile fails to load (CSP block, ad-blocker, network error)
+// the button stays disabled indefinitely and the user can't search.
+// That's the conservative choice - in fail-open dev mode (server
+// has no TURNSTILE_SECRET) the server returns {sitekey:""} from
+// /api/turnstile-config and we enable the button without rendering
+// the widget at all.
+let __dtvssTurnstileToken = '';
+
+function setSearchUiVerifying(reason) {
+  // reason: 'loading' | 'expired' | 'error' | 'used'
+  var btn = document.getElementById('searchBtn');
+  if (!btn) return;
+  __dtvssTurnstileToken = '';
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.style.cursor = 'not-allowed';
+  if (reason === 'error') {
+    btn.textContent = 'Verification failed - retry';
+  } else {
+    btn.textContent = "Verifying you're human...";
   }
-  return '';
 }
 
-// Build a query string fragment for attaching the Turnstile token to a URL.
-// Returns '&cf-turnstile-response=...' or '' if no token was acquired.
-async function turnstileQueryParam() {
-  const tok = await getTurnstileToken();
-  return tok ? `&cf-turnstile-response=${encodeURIComponent(tok)}` : '';
+function setSearchUiReady(token) {
+  __dtvssTurnstileToken = token || '';
+  var btn = document.getElementById('searchBtn');
+  if (!btn) return;
+  btn.disabled = false;
+  btn.style.opacity = '';
+  btn.style.cursor = '';
+  btn.textContent = 'SCORE';
+}
+
+// Build a query string fragment for attaching the Turnstile token to
+// a URL. After use, schedule a widget reset so the next call gets a
+// fresh token (the button briefly returns to "Verifying..." state
+// while the new token loads).
+function turnstileQueryParam() {
+  var tok = __dtvssTurnstileToken;
+  if (!tok) return '';
+  // Token is being consumed; reset for next request. setSearchUiVerifying
+  // disables the button while the new token is being fetched.
+  setSearchUiVerifying('used');
+  if (window.turnstile && window.__dtvssTurnstileWidget != null) {
+    try { window.turnstile.reset(window.__dtvssTurnstileWidget); } catch (e) {}
+  }
+  return `&cf-turnstile-response=${encodeURIComponent(tok)}`;
 }
 
 const TIER_COLOR = {Critical:'var(--crit)',High:'var(--high)',Medium:'var(--med)',Low:'var(--low)'};
@@ -610,14 +643,17 @@ async function doSearch() {
   document.getElementById('detail').classList.remove('visible');
   document.getElementById('resultsList').classList.remove('visible');
   document.getElementById('loading').classList.add('visible');
-  document.getElementById('searchBtn').disabled = true;
+  // Note: button disable/enable state is now driven by Turnstile token
+  // availability (setSearchUiVerifying / setSearchUiReady). The loading
+  // spinner provides sufficient feedback during the actual API call;
+  // we don't double-disable here.
 
   const isCVE = /^CVE-\d{4}-\d+$/i.test(q) || /^\d{4}-\d+$/.test(q);
   const classParam = selectedClass !== 'auto' ? `&tga_class=${selectedClass}` : '';
 
   try {
     if (isCVE) {
-      const tsParam = await turnstileQueryParam();
+      const tsParam = turnstileQueryParam();
       const resp = await fetch(`/api/lookup?cve=${encodeURIComponent(q)}${classParam}${tsParam}`);
       const data = await resp.json();
       if (data.error) {
@@ -633,7 +669,6 @@ async function doSearch() {
       const cached = searchCache[cacheKey];
       if (cached && (Date.now() - cached.ts < CACHE_TTL)) {
         document.getElementById('loading').classList.remove('visible');
-        document.getElementById('searchBtn').disabled = false;
         if (cached.data.count === 0) {
           showError(cached.data.note || `No scorable results found for "${q}"`);
         } else if (cached.data.count === 1) {
@@ -644,7 +679,7 @@ async function doSearch() {
         return;
       }
 
-      const tsParam = await turnstileQueryParam();
+      const tsParam = turnstileQueryParam();
       const resp = await fetch(`/api/search?q=${encodeURIComponent(q)}${classParam}&max=30${tsParam}`);
       const data = await resp.json();
       searchCache[cacheKey] = { data, ts: Date.now() };
@@ -663,7 +698,6 @@ async function doSearch() {
   }
 
   document.getElementById('loading').classList.remove('visible');
-  document.getElementById('searchBtn').disabled = false;
 }
 
 function showError(msg) {
@@ -934,7 +968,7 @@ function backToResults() {
 // Renders an invisible Turnstile widget once the script has loaded and the
 // sitekey has been fetched from the server. The widget handle is stashed
 // on window.__dtvssTurnstileWidget so getTurnstileToken() can call
-// turnstile.execute(handle) per API request.
+// turnstile.getResponse(handle) per API request to retrieve the token.
 //
 // Sitekey is fetched rather than hard-coded so the same HTML deploys
 // across staging/prod without rebuilds. The sitekey is public by design,
@@ -949,8 +983,9 @@ function backToResults() {
     if (window.__dtvssTurnstileWidget) return;
     if (!window.turnstile || typeof window.turnstile.render !== "function") {
       // Script hasn't finished loading yet. Retry up to ~5 seconds; if
-      // it never loads (CSP blocked, offline), give up silently - the
-      // API call paths handle missing tokens gracefully.
+      // it never loads (CSP blocked, offline, ad-blocker), give up and
+      // leave the button disabled - the user will see "Verifying..."
+      // indefinitely, which is the conservative choice.
       if (++attempts > 50) return;
       setTimeout(tryRender, 100);
       return;
@@ -958,20 +993,43 @@ function backToResults() {
     fetch("/api/turnstile-config")
       .then(function (r) { return r.json(); })
       .then(function (cfg) {
-        if (!cfg || !cfg.sitekey) return;  // dev mode, skip widget
+        if (!cfg || !cfg.sitekey) {
+          // Server is in fail-open dev mode (no TURNSTILE_SECRET).
+          // Enable the button without a token; the API will accept
+          // requests without one in that mode.
+          setSearchUiReady('');
+          return;
+        }
         var container = document.getElementById("dtvss-turnstile");
         if (!container) return;
         window.__dtvssTurnstileWidget = window.turnstile.render(container, {
           sitekey: cfg.sitekey,
-          // Managed mode + appearance:interaction-only keeps the widget
-          // hidden unless Cloudflare decides interaction is needed. Do
-          // NOT pass size:"invisible" - that's not a valid value for
-          // the size parameter (Turnstile rejects with a TurnstileError).
-          // Visibility comes from the appearance setting, not size.
-          appearance: "interaction-only"
+          // 'flexible' adapts to the container width.
+          size: "flexible",
+          // Token success callback: cache the token and enable the button.
+          callback: function (token) {
+            setSearchUiReady(token);
+          },
+          // Token expired (after ~5 min): disable the button until the
+          // widget produces a new one. Turnstile auto-resets by default
+          // when refresh-expired is 'auto' (the default).
+          'expired-callback': function () {
+            setSearchUiVerifying('expired');
+          },
+          // Verification failed (Cloudflare rejected the user as a bot,
+          // or a transient error). Show error state on the button.
+          'error-callback': function (errorCode) {
+            console.warn('Turnstile error:', errorCode);
+            setSearchUiVerifying('error');
+          }
         });
       })
-      .catch(function () { /* swallow; API path will degrade gracefully */ });
+      .catch(function () {
+        // /api/turnstile-config failed; treat as fail-open and enable
+        // the button. The server will return a clear error if this is
+        // wrong.
+        setSearchUiReady('');
+      });
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", tryRender);
