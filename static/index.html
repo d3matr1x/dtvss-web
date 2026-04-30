@@ -260,11 +260,12 @@ a:hover{text-decoration:underline}
       <input class="search-input" id="searchInput" placeholder="CVE-2017-12718 or infusion pump">
       <button class="search-btn" id="searchBtn" disabled style="opacity:0.5;cursor:not-allowed">Verifying you're human...</button>
     </div>
-    <!-- Turnstile widget mount point. Visible (size=flexible) so users
-         can see verification progress and complete any interactive
-         challenge Cloudflare presents. While the widget is verifying,
-         the SCORE button is disabled with a 'Verifying...' label. -->
-    <div id="dtvss-turnstile" style="margin-top:12px;min-height:65px"></div>
+    <!-- Turnstile widget mount point. Under Invisible widget mode
+         (Cloudflare dashboard setting) the iframe renders nothing
+         visible during normal operation, so we don't reserve any
+         vertical space here. Turnstile's JavaScript sizes the iframe
+         itself if it ever needs to show something (error states). -->
+    <div id="dtvss-turnstile"></div>
     <div class="search-hint">
       Enter a <span>CVE ID</span>, <span>device name</span>, or select a <span>manufacturer</span> below. Data fetched live from NVD, EPSS, and CISA KEV.
     </div>
@@ -1096,7 +1097,10 @@ function backToResults() {
         if (!container) return;
         window.__dtvssTurnstileWidget = window.turnstile.render(container, {
           sitekey: cfg.sitekey,
-          // 'flexible' adapts to the container width.
+          // size is ignored under Invisible widget mode (Cloudflare
+          // dashboard setting), but we set 'flexible' as a safe default
+          // so if you switch the widget mode back to Managed in the
+          // dashboard later, the visible widget will fit the container.
           size: "flexible",
           // Token success callback: cache the token and enable the button.
           callback: function (token) {
