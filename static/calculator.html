@@ -164,13 +164,17 @@ window.addEventListener('error', function(e) {
         // Read the cached Turnstile token captured by the bootstrap when
         // its callback fired. Tokens are single-use, so after reading we
         // clear the cache and reset the widget to fetch a fresh one.
-        // While the new token is being fetched the button shows
-        // "Verifying you're human..." again.
+        // The widget is reset silently in the background; after the
+        // user's first successful verification the widget is hidden and
+        // stays that way (passing reason:'used' tells the bootstrap to
+        // keep it hidden rather than fading it back in).
         let tsToken = window.__dtvssTurnstileToken || "";
         if (tsToken) {
           window.__dtvssTurnstileToken = "";
           setTurnstileReady(false);
-          window.dispatchEvent(new CustomEvent('dtvss-turnstile-unready'));
+          window.dispatchEvent(new CustomEvent('dtvss-turnstile-unready', {
+            detail: { reason: 'used' }
+          }));
           if (window.turnstile && window.__dtvssTurnstileWidget != null) {
             try { window.turnstile.reset(window.__dtvssTurnstileWidget); } catch (e) {}
           }
@@ -576,14 +580,69 @@ window.addEventListener('error', function(e) {
 // without a token (matching the server-side fail-open in dev).
 (function bootstrapTurnstile() {
   let attempts = 0;
+  // Tracks first-ever successful verification. Once true, the widget
+  // is hidden and stays hidden across silent token resets ('used'
+  // reason). It only fades back in if verification genuinely fails
+  // ('expired' or 'error') so the user can recover.
+  let everVerified = false;
+
+  function setWidgetVisibility(visible) {
+    var c = document.getElementById('dtvss-turnstile');
+    if (!c) return;
+    if (visible) {
+      c.style.display = '';
+      c.style.opacity = '';
+      c.style.height = '';
+      c.style.overflow = '';
+      c.style.pointerEvents = '';
+    } else {
+      c.style.transition = 'opacity 300ms ease-out';
+      c.style.opacity = '0';
+      c.style.pointerEvents = 'none';
+      setTimeout(function () {
+        c.style.height = '0';
+        c.style.overflow = 'hidden';
+        c.style.transition = '';
+      }, 300);
+    }
+  }
+
   function fireReady(token) {
     window.__dtvssTurnstileToken = token || "";
     window.dispatchEvent(new CustomEvent('dtvss-turnstile-ready', { detail: { token: token } }));
+    // First successful verification: fade out the widget.
+    if (token && !everVerified) {
+      everVerified = true;
+      setWidgetVisibility(false);
+    }
   }
-  function fireUnready() {
+  function fireUnready(reason) {
     window.__dtvssTurnstileToken = "";
-    window.dispatchEvent(new CustomEvent('dtvss-turnstile-unready'));
+    window.dispatchEvent(new CustomEvent('dtvss-turnstile-unready', {
+      detail: { reason: reason || 'unknown' }
+    }));
+    // 'used': silent post-search reset. Keep widget hidden if we've
+    // ever verified.
+    // 'expired' / 'error': verification genuinely needs the user's
+    // attention - bring the widget back so they can see it.
+    if (reason === 'expired' || reason === 'error') {
+      setWidgetVisibility(true);
+    }
   }
+
+  // Listen for 'used' dispatches from the lookupCVE flow. The fetch
+  // path dispatches dtvss-turnstile-unready directly (without going
+  // through fireUnready) when consuming a token, so we mirror the
+  // visibility logic here for that path too. No-op if already hidden.
+  window.addEventListener('dtvss-turnstile-unready', function (ev) {
+    var reason = (ev.detail && ev.detail.reason) || '';
+    if (reason === 'expired' || reason === 'error') {
+      setWidgetVisibility(true);
+    }
+    // 'used' falls through: container is already hidden (everVerified
+    // was true to get to this point), so no action needed.
+  });
+
   function tryRender() {
     if (window.__dtvssTurnstileWidget != null) return;
     if (!window.turnstile || typeof window.turnstile.render !== "function") {
@@ -614,11 +673,11 @@ window.addEventListener('error', function(e) {
           callback: function (token) { fireReady(token); },
           // Token expired (~5 min): clear cache, mark unready. Turnstile
           // auto-resets and we'll get a fresh callback when ready again.
-          'expired-callback': function () { fireUnready(); },
+          'expired-callback': function () { fireUnready('expired'); },
           // Verification failed: mark unready; user sees error state.
           'error-callback': function (errorCode) {
             console.warn('Turnstile error:', errorCode);
-            fireUnready();
+            fireUnready('error');
           }
         });
       })

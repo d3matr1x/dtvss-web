@@ -414,6 +414,39 @@ function safeHref(u) {
 // the widget at all.
 let __dtvssTurnstileToken = '';
 
+// Tracks whether the user has ever successfully completed verification.
+// After the first success, we fade the widget out and keep it hidden
+// across subsequent silent resets - the visible "verifying" cycle on
+// every search was a real UX problem ("did something just go wrong?").
+// The widget only re-appears if verification actually fails (expired or
+// error callback fires), at which point the user genuinely needs to
+// see it to recover.
+let __dtvssEverVerified = false;
+
+function setWidgetVisibility(visible) {
+  var container = document.getElementById('dtvss-turnstile');
+  if (!container) return;
+  if (visible) {
+    container.style.display = '';
+    container.style.opacity = '';
+    container.style.height = '';
+    container.style.overflow = '';
+    container.style.pointerEvents = '';
+  } else {
+    // Fade out over 300ms, then collapse height to avoid layout shift.
+    // pointer-events:none prevents the user from interacting with the
+    // hidden iframe by accident during the fade.
+    container.style.transition = 'opacity 300ms ease-out';
+    container.style.opacity = '0';
+    container.style.pointerEvents = 'none';
+    setTimeout(function () {
+      container.style.height = '0';
+      container.style.overflow = 'hidden';
+      container.style.transition = '';
+    }, 300);
+  }
+}
+
 function setSearchUiVerifying(reason) {
   // reason: 'loading' | 'expired' | 'error' | 'used'
   var btn = document.getElementById('searchBtn');
@@ -427,6 +460,16 @@ function setSearchUiVerifying(reason) {
   } else {
     btn.textContent = "Verifying you're human...";
   }
+  // Show the widget when verification is genuinely needed (initial load,
+  // expired session, error). After the user has been verified once, hide
+  // it during the silent post-search reset ('used').
+  if (reason === 'expired' || reason === 'error') {
+    setWidgetVisibility(true);
+  } else if (reason === 'used' && __dtvssEverVerified) {
+    setWidgetVisibility(false);
+  }
+  // 'loading' (initial state) leaves visibility at its default - the
+  // widget is visible by default in the HTML.
 }
 
 function setSearchUiReady(token) {
@@ -437,6 +480,15 @@ function setSearchUiReady(token) {
   btn.style.opacity = '';
   btn.style.cursor = '';
   btn.textContent = 'SCORE';
+  // First successful verification: mark and fade widget out. On
+  // subsequent silent token refreshes, the container is already
+  // hidden, so this is a no-op then.
+  if (token) {
+    if (!__dtvssEverVerified) {
+      __dtvssEverVerified = true;
+      setWidgetVisibility(false);
+    }
+  }
 }
 
 // Build a query string fragment for attaching the Turnstile token to
