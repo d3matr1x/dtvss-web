@@ -423,6 +423,17 @@ let __dtvssTurnstileToken = '';
 // see it to recover.
 let __dtvssEverVerified = false;
 
+// Pending search: if the user triggers a search via dropdown change or
+// Enter key while we're between tokens (the previous one was just
+// consumed and the next hasn't arrived from Turnstile yet), we stash
+// it here and replay when the new token arrives. Without this, fast
+// alternation between search box and dropdown produces "Bot challenge
+// required" 403s because the request fires with an empty token.
+//
+// Only one search can be queued at a time: a newer queued search
+// replaces the older one (the user changed their mind).
+let __dtvssPendingSearch = null;
+
 function setWidgetVisibility(visible) {
   var container = document.getElementById('dtvss-turnstile');
   if (!container) return;
@@ -488,6 +499,16 @@ function setSearchUiReady(token) {
       __dtvssEverVerified = true;
       setWidgetVisibility(false);
     }
+  }
+  // If a search was queued while we were between tokens (user picked
+  // a manufacturer or hit Enter during the silent reset window), run
+  // it now. Clearing __dtvssPendingSearch before doSearch() prevents
+  // an infinite loop if doSearch immediately consumes the token and
+  // queues again - the new doSearch call gets a fresh token via the
+  // normal path.
+  if (token && __dtvssPendingSearch) {
+    __dtvssPendingSearch = null;
+    doSearch();
   }
 }
 
@@ -685,6 +706,25 @@ function selectMDM(nvdTerm) {
 async function doSearch() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return;
+
+  // Token gate: if we don't have a Turnstile token cached, the user is
+  // either on initial page load (widget still verifying) or in the
+  // silent-reset gap between two searches. In either case we'd 403 if
+  // we tried to fire the API call now. Queue the search instead and
+  // setSearchUiReady will replay it as soon as the next token arrives.
+  // The caller doesn't need to know - they got a "search starting"
+  // experience, just delayed by ~200-500ms.
+  if (!__dtvssTurnstileToken) {
+    __dtvssPendingSearch = { q: q };
+    // Make sure the verifying state is visible so the user sees what's
+    // happening instead of a frozen UI. setSearchUiVerifying handles
+    // the disabled-button + label, and (on initial load) keeps the
+    // widget visible.
+    if (!document.getElementById('searchBtn').disabled) {
+      setSearchUiVerifying('used');
+    }
+    return;
+  }
 
   // Hide landing, example, and previous results
   const landing = document.getElementById('landing');

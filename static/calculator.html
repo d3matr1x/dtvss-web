@@ -156,9 +156,34 @@ window.addEventListener('error', function(e) {
       };
     }, []);
 
+    // Drain pending lookup when verification completes. If the user
+    // triggered lookupCVE() while we were between tokens (example card
+    // click during silent reset, etc), the queue holds the pending CVE.
+    // When turnstileReady flips true, replay it.
+    React.useEffect(() => {
+      if (turnstileReady && window.__dtvssPendingLookup) {
+        const pending = window.__dtvssPendingLookup;
+        window.__dtvssPendingLookup = null;
+        lookupCVE(pending.cve);
+      }
+    }, [turnstileReady]);
+
     const lookupCVE = async (id) => {
       const cve = id || cveId;
       if (!cve.match(/^CVE-\d{4}-\d+$/i)) return;
+
+      // Token gate: if we don't have a token yet (initial page load, or
+      // the silent-reset gap between two lookups), the API will 403 if
+      // we fire now. Queue the lookup and replay when the next token
+      // arrives. This matches the index page's pending-search behavior
+      // and prevents the "Bot challenge required" message when the user
+      // triggers a lookup via the example cards or Enter key during the
+      // window between tokens.
+      if (!window.__dtvssTurnstileToken) {
+        window.__dtvssPendingLookup = { cve: cve };
+        return;
+      }
+
       setLookupLoading(true); setLookupMsg("");
       try {
         // Read the cached Turnstile token captured by the bootstrap when
