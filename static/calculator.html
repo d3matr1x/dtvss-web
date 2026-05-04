@@ -357,12 +357,11 @@ window.addEventListener('error', function(e) {
               }, lookupLoading ? "Loading..." : (turnstileReady ? "Lookup" : "Verifying you're human...")),
               cveYear && e('span', { style: { fontFamily: mono, fontSize: "11px", color: "#6b7280" } }, `Year: ${cveYear} · Age: ${Math.round(cveAge)}yr`)
             ),
-            // Turnstile widget mount point. Under Invisible widget mode
-            // (Cloudflare dashboard setting) the iframe renders nothing
-            // visible during normal operation, so we don't reserve any
-            // vertical space. Turnstile sizes itself if it ever needs to
-            // surface something (error states).
-            e('div', { id: 'dtvss-turnstile' }),
+            // Turnstile widget mount point (visible flexible widget). Cloudflare
+            // renders a verification widget here on page load; the bootstrap
+            // script wires its callbacks to the dtvss-turnstile-ready /
+            // -unready events that this component listens to.
+            e('div', { id: 'dtvss-turnstile', style: { marginTop: '10px', minHeight: '65px' } }),
             lookupMsg && e('div', { style: { fontFamily: mono, fontSize: "11px", color: lookupMsg.startsWith("Loaded") ? "#48b878" : "#e05252", marginTop: "6px" } }, lookupMsg)
           ),
 
@@ -692,10 +691,7 @@ window.addEventListener('error', function(e) {
         if (!container) return;
         window.__dtvssTurnstileWidget = window.turnstile.render(container, {
           sitekey: cfg.sitekey,
-          // size is ignored under Invisible widget mode (Cloudflare
-          // dashboard setting), but we set 'flexible' as a safe default
-          // so if you switch the widget mode back to Managed in the
-          // dashboard later, the visible widget will fit the container.
+          // 'flexible' adapts to the container width.
           size: "flexible",
           // Token success: cache and notify React component (or any
           // listener) that the widget is ready.
