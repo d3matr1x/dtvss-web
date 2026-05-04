@@ -62,7 +62,7 @@
 <style>
 :root {
   --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
-  --tx:#b8bcc8; --dim:#6b7280; --hd:#e2e6f0; --trk:#181d2a;
+  --tx:#b8bcc8; --dim:#838996; --hd:#e2e6f0; --trk:#181d2a;
   --acc:#5b93f5; --purple:#a070e8;
   --crit:#e05252; --high:#e08a3a; --med:#d4b832; --low:#48b878;
   --sans:'IBM Plex Sans',system-ui,sans-serif;
@@ -73,6 +73,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px
   -webkit-font-smoothing:antialiased}
 a{color:var(--acc);text-decoration:none}
 a:hover{text-decoration:underline}
+/* a11y: in-prose links get a non-color cue (underline). Header/nav/footer links opt out via inline color:var(--dim) or explicit text-decoration:none on the link itself. */
+p a, li a, .section a, .search-hint a, .guidance a, .callout a { text-decoration: underline; text-underline-offset: 2px; }
 
 /* Header */
 .header{border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
@@ -233,7 +235,7 @@ a:hover{text-decoration:underline}
   </span>
 </div>
 
-<div class="container">
+<main class="container">
 
   <!-- Landing -->
   <div id="landing" style="padding:28px 24px;background:var(--s1);border:1px solid var(--bd);border-radius:10px">
@@ -257,7 +259,7 @@ a:hover{text-decoration:underline}
   <!-- Search -->
   <div class="search-box">
     <div class="search-row">
-      <input class="search-input" id="searchInput" placeholder="CVE-2017-12718 or infusion pump">
+      <input class="search-input" id="searchInput" aria-label="Search by CVE ID, device name, or keyword" placeholder="CVE-2017-12718 or infusion pump">
       <button class="search-btn" id="searchBtn" disabled style="opacity:0.5;cursor:not-allowed">Verifying you're human...</button>
     </div>
     <!-- Turnstile widget mount point. Under Invisible widget mode
@@ -270,7 +272,7 @@ a:hover{text-decoration:underline}
       Enter a <span>CVE ID</span>, <span>device name</span>, or select a <span>manufacturer</span> below. Data fetched live from NVD, EPSS, and CISA KEV.
     </div>
     <div style="margin-top:12px">
-      <label style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.06em">MANUFACTURER (CISA ICSMA):</label>
+      <label for="mdmSelect" style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.06em">MANUFACTURER (CISA ICSMA):</label>
       <select id="mdmSelect" style="
         margin-left:8px;background:var(--s1);border:1px solid var(--bd);border-radius:6px;
         padding:6px 10px;color:var(--hd);font-family:var(--mono);font-size:12px;outline:none;cursor:pointer;
@@ -348,7 +350,7 @@ a:hover{text-decoration:underline}
     </div>
   </div>
 
-</div>
+</main>
 
 <script>
 // -----------------------------------------------------------------------------

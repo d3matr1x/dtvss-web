@@ -18,7 +18,7 @@
 <style>
 :root {
   --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
-  --tx:#b8bcc8; --dim:#6b7280; --hd:#e2e6f0;
+  --tx:#b8bcc8; --dim:#838996; --hd:#e2e6f0;
   --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e05252; --low:#48b878; --med:#d4b832;
   --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
 }
@@ -26,6 +26,8 @@
 body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
 a{color:var(--acc);text-decoration:none}
 a:hover{text-decoration:underline}
+/* a11y: in-prose links get a non-color cue (underline). Header/nav/footer links opt out via inline color:var(--dim) or explicit text-decoration:none on the link itself. */
+p a, li a, .section a, .search-hint a, .guidance a, .callout a { text-decoration: underline; text-underline-offset: 2px; }
 .header{border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .container{max-width:740px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:28px;flex:1;width:100%}
 .footer{text-align:center;padding:24px 0 8px;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
@@ -69,7 +71,7 @@ a:hover{text-decoration:underline}
   </span>
 </div>
 
-<div class="container">
+<main class="container">
 
   <!-- 404 block -->
   <div class="notfound-block">
@@ -124,6 +126,6 @@ a:hover{text-decoration:underline}
     </div>
   </div>
 
-</div>
+</main>
 </body>
 </html>
