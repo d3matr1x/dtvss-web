@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#080a0f"/>
+
+  <!-- Subtle gradient accent: top-left blue glow -->
+  <defs>
+    <radialGradient id="glow" cx="0" cy="0" r="0.6">
+      <stop offset="0%" stop-color="#5b93f5" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#5b93f5" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- DTVSS logo -->
+  <g transform="translate(90, 175) scale(2)" color="#e2e6f0">
+    <g transform="translate(140, 60)">
+      <text x="-115" y="10" text-anchor="start" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="32" font-weight="500" fill="#838996">$</text>
+      <text x="-85" y="10" text-anchor="start" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="32" font-weight="500" fill="currentColor" letter-spacing="2">dtvss</text>
+      <rect x="83" y="-18" width="14" height="32" fill="currentColor"/>
+      <path d="M -110,52 L -75,52 L -60,32 L -45,68 L -30,40 L -15,55 L 0,28 L 15,52 L 50,52 L 65,38 L 97,52" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- Vertical separator -->
+  <line x1="660" y1="180" x2="660" y2="450" stroke="#1e2433" stroke-width="1"/>
+
+  <!-- Right side -->
+  <g font-family="ui-sans-serif, system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif">
+
+    <!-- Eyebrow: smaller font + reduced letter-spacing to fit -->
+    <text x="700" y="200" font-size="14" font-weight="600" fill="#5b93f5" letter-spacing="2" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">DYNAMIC TEMPORAL VULNERABILITY SCORING</text>
+
+    <!-- Headline -->
+    <text x="700" y="265" font-size="44" font-weight="600" fill="#e2e6f0" letter-spacing="-0.5">A risk engine for</text>
+    <text x="700" y="318" font-size="44" font-weight="600" fill="#e2e6f0" letter-spacing="-0.5">medical device</text>
+    <text x="700" y="371" font-size="44" font-weight="600" fill="#e2e6f0" letter-spacing="-0.5">cybersecurity.</text>
+
+    <!-- Sub-line: key inputs -->
+    <text x="700" y="430" font-size="18" font-weight="500" fill="#b8bcc8" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace">
+      <tspan fill="#5b93f5">B</tspan><tspan> exploitability</tspan><tspan fill="#838996">  ×  </tspan><tspan fill="#e08a3a">H</tspan><tspan> harm</tspan><tspan fill="#838996">  ×  </tspan><tspan fill="#a070e8">L(t)</tspan><tspan> exploit likelihood</tspan>
+    </text>
+
+  </g>
+
+  <!-- Bottom strip -->
+  <line x1="90" y1="540" x2="1110" y2="540" stroke="#1e2433" stroke-width="1"/>
+
+  <text x="90" y="582" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="16" font-weight="500" fill="#838996" letter-spacing="0.5">dtvss.io</text>
+
+  <text x="1110" y="582" text-anchor="end" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="14" font-weight="500" fill="#838996">PATENT PENDING - IP AUSTRALIA</text>
+
+</svg>

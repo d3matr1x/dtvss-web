@@ -20,16 +20,21 @@
 <meta property="og:url" content="https://dtvss.io/calibration">
 <meta property="og:site_name" content="DTVSS">
 <meta property="og:type" content="article">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="DTVSS Calibration - How k = 15 was chosen">
 <meta name="twitter:description" content="Four criteria, one binding constraint. Full sweep and out-of-sample validation.">
+<meta property="og:image" content="https://dtvss.io/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:image" content="https://dtvss.io/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
   --tx:#b8bcc8; --dim:#838996; --hd:#e2e6f0;
-  --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e05252; --low:#48b878; --med:#d4b832;
+  --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e95e5e; --low:#48b878; --med:#d4b832;
   --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -269,7 +274,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
         <!-- x axis title -->
         <text x="360" y="275" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" text-anchor="middle">k (temporal amplification constant)</text>
         <!-- critical threshold line -->
-        <line x1="60" y1="80" x2="660" y2="80" stroke="#e05252" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <line x1="60" y1="80" x2="660" y2="80" stroke="#e95e5e" stroke-width="1.5" stroke-dasharray="5 4"/>
         <!-- score line: rises linearly from (60, 207) to (452.8, 40), then flat to (660, 40) -->
         <!-- score fill (area under the line) -->
         <path d="M 60 207 L 452.8 40 L 660 40 L 660 240 L 60 240 Z" fill="#5b93f5" fill-opacity="0.10"/>

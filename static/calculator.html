@@ -10,6 +10,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DTVSS Calculator - Interactive Vulnerability Scoring with Optional Embodiments</title>
+<meta property="og:image" content="https://dtvss.io/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://dtvss.io/og-image.png">
 <meta name="description" content="Interactive DTVSS calculator with manual input, CVE auto-lookup, environment-adjusted exploitability, temporal decay, and fleet-level organisational risk scaling. Patent pending.">
 <meta name="keywords" content="DTVSS calculator, vulnerability scoring, medical device cybersecurity, CVSS exploitability, EPSS, patient harm, ORS fleet scaling, ZTA, temporal decay">
 <meta name="author" content="Andrew Broglio">
@@ -32,7 +38,7 @@
   :root {
     --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
     --tx:#b8bcc8; --dim:#838996; --hd:#e2e6f0;
-    --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e05252; --low:#48b878; --med:#d4b832;
+    --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e95e5e; --low:#48b878; --med:#d4b832;
     --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -67,7 +73,7 @@
 <div id="root">
   <div style="padding:40px;font-family:system-ui;color:#b8bcc8;text-align:center;background:#080a0f">
     <div style="font-size:14px;color:#838996">Loading calculator...</div>
-    <div id="errMsg" style="font-size:11px;color:#e05252;margin-top:8px;font-family:monospace;white-space:pre-wrap"></div>
+    <div id="errMsg" style="font-size:11px;color:#e95e5e;margin-top:8px;font-family:monospace;white-space:pre-wrap"></div>
     <div style="font-size:11px;color:#838996;margin-top:8px">If this message persists, try the <a href="/" style="color:#5b93f5">search interface</a> instead.</div>
   </div>
 </div>
@@ -100,7 +106,7 @@ window.addEventListener('error', function(e) {
     },
     III: {
       H: 10.0, label: "Class III", desc: "Highest risk - Implantable life-sustaining devices",
-      color: "#e05252",
+      color: "#e95e5e",
       examples: "Pacemakers, implantable defibrillators, CRT devices",
       jurisdictions: {
         "TGA / Medsafe (AU / NZ)": "Class III",
@@ -121,7 +127,7 @@ window.addEventListener('error', function(e) {
     { max: 8.0,  level: "High",     color: "#e08a3a", bg: "rgba(217,124,42,0.08)",  border: "rgba(217,124,42,0.25)",  sla: "≤ 7 days",
       guidance: "Expedite remediation. Escalate to clinical/biomedical engineering and risk management teams.",
       rationale: "Indicates credible exploitation risk with potential clinical impact." },
-    { max: 10.1, level: "Critical", color: "#e05252", bg: "rgba(217,79,79,0.08)",   border: "rgba(217,79,79,0.25)",   sla: "Immediate",
+    { max: 10.1, level: "Critical", color: "#e95e5e", bg: "rgba(217,79,79,0.08)",   border: "rgba(217,79,79,0.25)",   sla: "Immediate",
       guidance: "Initiate incident response immediately. Isolate or remove affected systems.",
       rationale: "Represents active exploitation or severe patient safety risk. k=15 calibration criterion satisfied." },
   ];
@@ -383,7 +389,7 @@ window.addEventListener('error', function(e) {
             // script wires its callbacks to the dtvss-turnstile-ready /
             // -unready events that this component listens to.
             e('div', { id: 'dtvss-turnstile', style: { marginTop: '10px', minHeight: '65px' } }),
-            lookupMsg && e('div', { style: { fontFamily: mono, fontSize: "11px", color: lookupMsg.startsWith("Loaded") ? "#48b878" : "#e05252", marginTop: "6px" } }, lookupMsg)
+            lookupMsg && e('div', { style: { fontFamily: mono, fontSize: "11px", color: lookupMsg.startsWith("Loaded") ? "#48b878" : "#e95e5e", marginTop: "6px" } }, lookupMsg)
           ),
 
           // Sliders: B and L
@@ -429,7 +435,7 @@ window.addEventListener('error', function(e) {
           e('div', { style: { display: "flex", justifyContent: "center", marginTop: "14px" } },
             e('button', {
               onClick: () => setKev(!kev),
-              style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${kev ? "#e05252" : "#1e2433"}`, background: kev ? "rgba(217,79,79,0.15)" : "transparent", color: kev ? "#e05252" : "#838996", animation: kev ? "pulse 1.5s infinite" : "none" }
+              style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${kev ? "#e95e5e" : "#1e2433"}`, background: kev ? "rgba(217,79,79,0.15)" : "transparent", color: kev ? "#e95e5e" : "#838996", animation: kev ? "pulse 1.5s infinite" : "none" }
             }, kev ? "⚠ KEV OVERRIDE ACTIVE - SCORE FORCED TO 10.0" : "KEV Override (CISA Known Exploited)")
           )
         ),
@@ -598,7 +604,7 @@ window.addEventListener('error', function(e) {
 
         // Disclaimer
         e('div', { style: { padding: "14px 18px", marginTop: "-8px", border: "1px solid rgba(224,82,82,0.25)", borderRadius: "8px", background: "rgba(224,82,82,0.05)", fontFamily: mono, fontSize: "11px", color: "#b8bcc8", lineHeight: 1.8, textAlign: "center" } },
-          e('span', { style: { color: "#e05252", fontWeight: 600 } }, "RESEARCH PREVIEW"),
+          e('span', { style: { color: "#e95e5e", fontWeight: 600 } }, "RESEARCH PREVIEW"),
           " - Tier 1 is a non-commercial research demonstration. Not a certified medical device risk management tool. Commercial licence required for production use."
         )
       )
