@@ -85,11 +85,6 @@ p a[href], li a[href] {
 
 /* Header */
 .header{border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.header h1{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--hd);letter-spacing:0.04em}
-.header .ver{font-size:13px;color:var(--dim);font-weight:400}
-.header .right{margin-left:auto;font-size:13px;display:flex;gap:20px}
-.header .right a{color:var(--dim);text-decoration:none;transition:color .15s}
-.header .right a:hover{color:var(--hd)}
 
 .container{max-width:740px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:24px}
 
@@ -230,9 +225,9 @@ p a[href], li a[href] {
 <body>
 
 <div class="header">
-  <h1>DTVSS</h1>
-  <span class="ver">v6.0 - Dynamic Temporal Vulnerability Scoring</span>
-  <span class="right">
+  <a href="/" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--hd);letter-spacing:0.04em;text-decoration:none">DTVSS</a>
+  <span style="font-size:13px;color:var(--dim)">Search</span>
+  <span style="margin-left:auto;font-size:13px;display:flex;gap:20px">
     <a href="/" style="color:var(--acc);text-decoration:none">Search</a>
     <a href="/calculator" style="color:var(--dim);text-decoration:none">Calculator</a>
     <a href="/calibration" style="color:var(--dim);text-decoration:none">Calibration</a>
@@ -246,6 +241,7 @@ p a[href], li a[href] {
 
   <!-- Landing -->
   <div id="landing" style="padding:28px 24px;background:var(--s1);border:1px solid var(--bd);border-radius:10px">
+    <h1 style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--hd);letter-spacing:0.02em;line-height:1.3;margin-bottom:14px">Dynamic Temporal Vulnerability Scoring System</h1>
     <div style="font-size:17px;color:var(--hd);line-height:1.7;font-weight:400">
       A patent-pending <span style="color:var(--acc);font-weight:600">multiplicative risk engine</span> for medical device cybersecurity. Integrates
       <span style="color:var(--purple);font-weight:600">real-time exploit likelihood</span>,
@@ -341,12 +337,7 @@ p a[href], li a[href] {
     <div style="margin-top:6px">© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia</div>
     <div class="bsl">Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use</div>
     <div style="margin-top:10px;font-size:12px">
-      <a href="/" style="color:var(--acc)">Search</a> ·
-      <a href="/calculator" style="color:var(--acc)">Calculator</a> ·
-      <a href="/calibration" style="color:var(--acc)">Calibration</a> ·
-      <a href="/about" style="color:var(--acc)">About</a> ·
-      <a href="/tiers" style="color:var(--acc)">Tiers</a> ·
-      <a href="/security-policy" style="color:var(--acc)">Security</a>
+      <a href="/">Search</a> · <a href="/calculator">Calculator</a> · <a href="/calibration">Calibration</a> · <a href="/about">About</a> · <a href="/tiers">Tiers</a> · <a href="/security-policy">Security</a>
     </div>
   </div>
 
