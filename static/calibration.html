@@ -341,11 +341,18 @@ Lowest integer: <span class="win">k = 15</span></div>
     <p>
       All inputs are public. The calibration runs offline in under a second against the committed dataset. To re-validate against a live ICSMA snapshot, the same script can rebuild the dataset from the current index and fetch EPSS from FIRST.org.
     </p>
-    <div class="cmd"><span class="prompt">$</span> git clone &lt;repo&gt; &amp;&amp; cd calibration
+    <div class="cmd"><span class="prompt">$</span> git clone https://github.com/d3matr1x/dtvss-web.git &amp;&amp; cd dtvss-web
 <span class="prompt">$</span> python3 calibrate_k.py
 <span class="ok">&rarr; Lowest integer k satisfying all four criteria: k = 15</span></div>
     <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;font-size:13px;line-height:1.7">
-      <span style="color:var(--hd);font-weight:600">Repository available on request.</span> The calibration source (calibrate_k.py), the 96-CVE filing dataset, results.json, and the accompanying README are maintained as a reproducibility artefact. Contact via LinkedIn in the footer below for access.
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--low);box-shadow:0 0 6px var(--low)"></span>
+        <span style="color:var(--hd);font-weight:600">Calibration verified on every commit.</span>
+      </div>
+      <span style="color:var(--tx)">A continuous integration workflow runs <span style="font-family:var(--mono);font-size:12px;color:var(--hd)">calibrate_k.py</span> against the frozen 96-CVE dataset on every push and pull request, and asserts that the eight patent-binding values in <span style="font-family:var(--mono);font-size:12px;color:var(--hd)">results.json</span> reproduce exactly. Drift breaks the build. <a href="https://github.com/d3matr1x/dtvss-web/actions/workflows/calibration.yml" target="_blank" rel="noopener noreferrer">View CI runs &rarr;</a></span>
+      <div style="margin-top:10px;color:var(--dim);font-size:12px">
+        Source: <a href="https://github.com/d3matr1x/dtvss-web" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono)">github.com/d3matr1x/dtvss-web</a>
+      </div>
     </div>
   </div>
 

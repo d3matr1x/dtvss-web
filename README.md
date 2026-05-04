@@ -1,5 +1,7 @@
 # DTVSS Calibration Package
 
+[![Calibration](https://github.com/d3matr1x/dtvss-web/actions/workflows/calibration.yml/badge.svg)](https://github.com/d3matr1x/dtvss-web/actions/workflows/calibration.yml)
+
 Executable record of the temporal amplification constant **k = 15** used in the
 DTVSS scoring formula, backing the empirical calibration claim in provisional
 patent paragraphs [0023] and [0025]:
