@@ -84,7 +84,8 @@ p a[href], li a[href] {
 }
 
 /* Header */
-.header{border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+html{scroll-padding-top:60px}
+.header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 
 .container{max-width:740px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:24px}
 
@@ -170,7 +171,6 @@ p a[href], li a[href] {
 
 /* Footer */
 .footer{text-align:center;padding:24px 0 0;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
-.footer .bsl{font-size:12px;color:var(--tx);margin-top:6px}
 
 /* Tier CTA - sticky pill on desktop (right side), floating bar on mobile (bottom) */
 .tier-float{
@@ -334,9 +334,9 @@ p a[href], li a[href] {
 
   <!-- Footer -->
   <div class="footer">
-    <div style="margin-top:6px">© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia</div>
-    <div class="bsl">Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use</div>
-    <div style="margin-top:10px;font-size:12px">
+    <div>© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia</div>
+    <div style="margin-top:4px;font-size:12px;color:var(--tx)">Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use</div>
+    <div style="margin-top:8px;font-size:13px">
       <a href="/">Search</a> · <a href="/calculator">Calculator</a> · <a href="/calibration">Calibration</a> · <a href="/about">About</a> · <a href="/tiers">Tiers</a> · <a href="/security-policy">Security</a>
     </div>
   </div>
