@@ -322,12 +322,12 @@ def security_txt():
         return send_from_directory(
             WELL_KNOWN_DIR,
             "security.txt",
-            mimetype="text/plain; charset=utf-8",
+            mimetype="text/plain",
         )
     return send_from_directory(
         STATIC_DIR,
         "security.txt",
-        mimetype="text/plain; charset=utf-8",
+        mimetype="text/plain",
     )
 
 
