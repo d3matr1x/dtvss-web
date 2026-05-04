@@ -27,6 +27,8 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
   html { scroll-padding-top: 60px; }
+  @media(max-width:720px){.global-header>span:first-of-type{display:none}}
+  @media(max-width:720px){.global-header>span:first-of-type{display:none}}
   :root {
     --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
     --tx:#b8bcc8; --dim:#838996; --hd:#e2e6f0;
@@ -34,7 +36,7 @@
     --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #080a0f; color: var(--tx); font-family: var(--sans); }
+  body { background: #080a0f; color: var(--tx); font-family: var(--sans); line-height: 1.7; }
   a { color: var(--acc); text-decoration: none; }
   a:hover { text-decoration: underline; }
   /* a11y: in-prose links carry a non-color cue (underline) */
@@ -49,7 +51,7 @@
 </style>
 </head>
 <body>
-<div style="position:sticky;top:0;z-index:100;border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--bg)">
+<div class="global-header" style="position:sticky;top:0;z-index:100;border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:nowrap;background:var(--bg)">
   <a href="/" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--hd);letter-spacing:0.04em;text-decoration:none">DTVSS</a>
   <span style="font-size:13px;color:var(--dim)">Calculator</span>
   <span style="margin-left:auto;font-size:13px;display:flex;gap:20px">
