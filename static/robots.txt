@@ -3,6 +3,7 @@ Allow: /
 Allow: /calculator
 Allow: /calibration
 Allow: /about
+Allow: /tiers
 Allow: /security-policy
 Allow: /.well-known/security.txt
 
