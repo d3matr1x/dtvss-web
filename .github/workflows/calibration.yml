@@ -1,0 +1,167 @@
+# DTVSS Calibration Reproducibility
+# =================================
+# Locks in the patent calibration claim. Runs calibrate_k.py against the
+# frozen filing-time dataset (dataset.csv) on every push and PR, and asserts
+# that the five patent-binding numbers in results.json match the values
+# reported in the README exactly.
+#
+# Why this exists: the README publicly claims "every patent number reproduces
+# exactly" against the committed dataset. Without CI, a contributor (or
+# future-Andrew) could silently change scoring code, dataset rows, or build
+# logic in a way that drifts the calibration but still passes other tests.
+# This workflow makes the patent claim self-enforcing — drift the numbers,
+# break the build, can't merge.
+#
+# The job runs offline and deterministically (no network, no API calls).
+# A separate optional job re-validates against the larger live-index
+# dataset on a weekly cron, but failures there are advisory only because
+# live EPSS values legitimately move over time.
+
+name: Calibration Reproducibility
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Weekly Monday 06:30 UTC. Catches drift from any dependency update
+    # that might silently affect float arithmetic (numpy version bumps,
+    # Python micro-version changes, etc.).
+    - cron: '30 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical-calibration:
+    name: Canonical (offline, must match patent exactly)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # calibrate_k.py uses only the standard library (csv, json, pathlib),
+      # so no requirements install is needed. If that ever changes, add a
+      # `pip install -r requirements.txt` step here.
+
+      - name: Run canonical calibration
+        run: python3 calibrate_k.py
+
+      - name: Assert patent-binding values in results.json
+        run: |
+          python3 - <<'PY'
+          import json
+          import sys
+
+          # Patent-binding values from README and patent paragraph [0025].
+          # Any drift here is a publishable claim violation, not a coding bug.
+          EXPECTED = {
+              "lowest_satisfying_k":      15,
+              "dataset_size":             96,
+              "class_iib_count":          87,
+              "class_iii_count":          9,
+              "kev_overridden_count":     1,
+              "non_kev_count":            95,
+              "score_changes_non_kev":    95,
+              "tier_crossings_non_kev":   34,
+          }
+
+          with open("results.json") as f:
+              actual = json.load(f)
+
+          drifted = []
+          for key, want in EXPECTED.items():
+              got = actual.get(key)
+              if got != want:
+                  drifted.append((key, want, got))
+
+          if drifted:
+              print("CALIBRATION DRIFT DETECTED")
+              print("==========================")
+              print("The following patent-binding values no longer match.")
+              print("This breaks the README reproducibility claim and must")
+              print("be investigated before merge.")
+              print()
+              for key, want, got in drifted:
+                  print(f"  {key}: expected {want}, got {got}")
+              print()
+              print("If this drift is intentional (dataset update, formula")
+              print("revision, etc.), update both the README table AND the")
+              print("EXPECTED dict in this workflow in the same commit.")
+              sys.exit(1)
+
+          print("All 8 patent-binding values reproduce exactly.")
+          for key, want in EXPECTED.items():
+              print(f"  {key} = {want}")
+          PY
+
+      - name: Upload results.json as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-results-canonical
+          path: results.json
+          retention-days: 90
+
+  live-index-validation:
+    # Weekly only. Failures here are advisory — k=15 should still hold against
+    # the live ICSMA index, but EPSS scores legitimately drift, so we don't
+    # block PRs on it. Run with workflow_dispatch when you want an on-demand
+    # re-validation.
+    name: Live index (advisory, weekly)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Rebuild dataset from live index
+        run: python3 build_dataset.py --from-index
+        env:
+          # Don't fail the whole job if EPSS API is flaky; the main
+          # canonical job still ran and gates merges.
+          PYTHONUNBUFFERED: '1'
+
+      - name: Run calibration against live index
+        run: python3 calibrate_k.py
+
+      - name: Assert lowest_satisfying_k still equals 15
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          actual = json.load(open("results.json"))
+          k = actual.get("lowest_satisfying_k")
+          if k != 15:
+              print(f"ADVISORY: lowest_satisfying_k drifted to {k} on live index.")
+              print("This is informational only — the canonical 96-CVE patent")
+              print("dataset is the binding claim. Investigate whether the")
+              print("live index has changed materially.")
+              sys.exit(1)
+          print(f"Live index ({actual['dataset_size']} CVEs) still yields k = 15.")
+          PY
+
+      - name: Upload live results.json as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibration-results-live
+          path: results.json
+          retention-days: 90
