@@ -1,5 +1,5 @@
 # =============================================================================
-# DTVSS Security Policy — security.txt (RFC 9116)
+# DTVSS Security Policy - security.txt (RFC 9116)
 # =============================================================================
 # This file tells security researchers how to report vulnerabilities in the
 # Dynamic Temporal Vulnerability Scoring System (DTVSS) deployed at dtvss.io.
@@ -17,7 +17,7 @@ Contact: https://github.com/d3matr1x/dtvss-web/security/advisories/new
 # field and recommends a value less than 12 months. Calendar reminder
 # recommended: re-sign and re-publish before this date or scanners will
 # flag the file as expired.
-Expires: 2027-04-20T00:00:00.000Z
+Expires: 2027-04-20T00:00:00Z
 
 # Languages accepted for vulnerability reports.
 Preferred-Languages: en
@@ -26,7 +26,7 @@ Preferred-Languages: en
 # is only authoritative when served from the URI below.
 Canonical: https://dtvss.io/.well-known/security.txt
 
-# Full vulnerability disclosure policy — scope, safe harbour, timelines,
+# Full vulnerability disclosure policy - scope, safe harbour, timelines,
 # and what to include in a report.
 Policy: https://dtvss.io/security-policy
 
