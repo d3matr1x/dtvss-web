@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="180" height="180">
+  <rect width="100" height="100" fill="#080a0f"/>
+  <!-- Two ECG cycles, centred. Stroke width scales with size automatically. -->
+  <path d="M 8,50 L 22,50 L 25,42 L 28,58 L 32,18 L 38,82 L 42,50 L 52,50 L 55,42 L 58,58 L 62,18 L 68,82 L 72,50 L 92,50"
+        fill="none" stroke="#e2e6f0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
