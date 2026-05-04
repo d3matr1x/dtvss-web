@@ -59,6 +59,32 @@ from security import (
 # substring-based filter.
 from medical_scope import is_in_scope, filter_scored_results
 
+# -----------------------------------------------------------------------------
+# Sentry error monitoring (MUST initialize before Flask app creation)
+# -----------------------------------------------------------------------------
+# Captures unhandled exceptions, slow requests, and the CAA-violation reports
+# from /caa-report. Initialization is gated on SENTRY_DSN being set so that
+# local dev (no DSN) doesn't try to send events to Sentry.
+#
+# traces_sample_rate controls performance monitoring overhead. 0.1 = 10% of
+# requests get full performance traces (cheaper). Increase to 1.0 if you
+# want every request profiled. send_default_pii=False is the conservative
+# choice - prevents Sentry from auto-collecting request bodies / IP.
+SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.flask import FlaskIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=0.1,
+        profiles_sample_rate=0.1,
+        environment=os.environ.get("RAILWAY_ENVIRONMENT", "production"),
+        release=os.environ.get("RAILWAY_GIT_COMMIT_SHA", "unknown"),
+        send_default_pii=False,
+    )
+
 app = Flask(__name__, static_folder=None)  # MED-04: no wildcard static serving
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024  # 16 KB global cap on request bodies
 
@@ -339,6 +365,37 @@ def security_txt_legacy():
 @app.route("/security-policy")
 def security_policy():
     return _serve_html_with_nonce(STATIC_DIR, "security-policy.html")
+
+
+# -----------------------------------------------------------------------------
+# CAA violation receiver (RFC 7970 IODEF endpoint)
+# -----------------------------------------------------------------------------
+# Configured as the iodef target in our DNS CAA records. Certificate
+# Authorities POST here when they refuse to issue a cert for dtvss.io
+# because of CAA policy mismatch. Should fire essentially never. When it
+# does, it means someone is trying to obtain a fraudulent cert for our
+# domain - investigate immediately via Sentry alerts.
+#
+# We accept any payload (CAs format these as IODEF JSON, but spec compliance
+# varies) and forward to Sentry as a warning event with the raw body
+# attached. Returns 200 unconditionally so the CA's reporting infrastructure
+# doesn't retry (which would amplify any DoS attempt against this endpoint).
+@app.route("/caa-report", methods=["POST"])
+def caa_report():
+    body = request.get_json(silent=True) or {}
+    raw = request.get_data(as_text=True)[:10000]  # Cap for safety
+
+    if SENTRY_DSN:
+        import sentry_sdk
+        with sentry_sdk.push_scope() as scope:
+            scope.set_extra("iodef_json", body)
+            scope.set_extra("iodef_raw", raw)
+            scope.set_extra("source_ip", get_real_client_ip())
+            sentry_sdk.capture_message(
+                "CAA violation reported for dtvss.io",
+                level="warning",
+            )
+    return jsonify({"received": True}), 200
 
 
 # Serve only whitelisted static assets (CSS, JS, images)
