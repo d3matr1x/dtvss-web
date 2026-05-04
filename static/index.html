@@ -73,8 +73,15 @@ body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px
   -webkit-font-smoothing:antialiased}
 a{color:var(--acc);text-decoration:none}
 a:hover{text-decoration:underline}
-/* a11y: in-prose links get a non-color cue (underline). Header/nav/footer links opt out via inline color:var(--dim) or explicit text-decoration:none on the link itself. */
-p a, li a, .section a, .search-hint a, .guidance a, .callout a { text-decoration: underline; text-underline-offset: 2px; }
+/* a11y: in-prose links carry a non-color cue (underline). Header,
+   nav, and footer links opt out by setting text-decoration via inline
+   style. Match all <a> inside the .container (main content area) and
+   inside paragraphs/list items, with offset for legibility. */
+.container a[href]:not(.cta):not(.suggest-item),
+p a[href], li a[href] {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
 /* Header */
 .header{border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
@@ -226,12 +233,12 @@ p a, li a, .section a, .search-hint a, .guidance a, .callout a { text-decoration
   <h1>DTVSS</h1>
   <span class="ver">v6.0 - Dynamic Temporal Vulnerability Scoring</span>
   <span class="right">
-    <a href="/">Search</a>
-    <a href="/calculator">Calculator</a>
-    <a href="/calibration">Calibration</a>
-    <a href="/about">About</a>
-    <a href="/tiers">Tiers</a>
-    <a href="/security-policy">Security</a>
+    <a href="/" style="color:var(--acc);text-decoration:none">Search</a>
+    <a href="/calculator" style="color:var(--dim);text-decoration:none">Calculator</a>
+    <a href="/calibration" style="color:var(--dim);text-decoration:none">Calibration</a>
+    <a href="/about" style="color:var(--dim);text-decoration:none">About</a>
+    <a href="/tiers" style="color:var(--dim);text-decoration:none">Tiers</a>
+    <a href="/security-policy" style="color:var(--dim);text-decoration:none">Security</a>
   </span>
 </div>
 
@@ -299,7 +306,7 @@ p a, li a, .section a, .search-hint a, .guidance a, .callout a { text-decoration
       <span style="margin-left:auto;font-size:12px">Example · Try it above</span>
     </div>
     <div style="margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.02em">
-      Anchored to criterion (i) of the DTVSS <a href="/calibration" style="color:var(--acc);text-decoration:none">calibration</a>.
+      Anchored to criterion (i) of the DTVSS <a href="/calibration" style="color:var(--acc)">calibration</a>.
     </div>
   </div>
 
