@@ -446,7 +446,7 @@ window.addEventListener('error', function(e) {
             e('div', { style: { fontFamily: body, fontSize: "11px", color: "#838996", marginTop: "2px" } }, TGA_CLASSES[tgaClass].examples),
             e('div', { style: { marginTop: "10px", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px", background: "#1e2433", borderRadius: "4px", overflow: "hidden" } },
               ...Object.entries(TGA_CLASSES[tgaClass].jurisdictions).map(([j, c], i) => e('div', { key: i, style: { background: "#0e1118", padding: "6px 4px", textAlign: "center", fontFamily: mono } },
-                e('div', { style: { color: "#838996", fontSize: "11px" } }, j),
+                e('div', { style: { color: "#838996", fontSize: "10px", whiteSpace: "nowrap" } }, j),
                 e('div', { style: { color: TGA_CLASSES[tgaClass].color, fontWeight: 600, fontSize: "11px", marginTop: "2px" } }, c)
               ))
             )
