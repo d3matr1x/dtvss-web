@@ -1,35 +1,42 @@
 <!DOCTYPE html>
 <!--
-  DTVSS Calculator - Full Interactive Calculator with Optional Embodiments
-  Copyright © 2026 Andrew Broglio. All rights reserved.
-  Patent Pending - IP Australia | Licensed under BSL 1.1
-  Route: dtvss.io/calculator
+  DTVSS Calibration Page
+  Copyright (c) 2026 Andrew Broglio. All rights reserved.
+  Patent Pending - IP Australia
+  Licensed under BSL 1.1
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DTVSS Calculator - Interactive Vulnerability Scoring with Optional Embodiments</title>
-<meta property="og:image" content="https://dtvss.io/img/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:type" content="image/png">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://dtvss.io/img/og-image.png">
-<meta name="description" content="Interactive DTVSS calculator with manual input, CVE auto-lookup, environment-adjusted exploitability, temporal decay, and fleet-level organisational risk scaling. Patent pending.">
-<meta name="keywords" content="DTVSS calculator, vulnerability scoring, medical device cybersecurity, CVSS exploitability, EPSS, patient harm, ORS fleet scaling, ZTA, temporal decay">
+<title>Calibration - How k = 15 was chosen - DTVSS</title>
+<meta name="description" content="Executable record of the k = 15 calibration in DTVSS. Four clinical criteria, a full sweep from k = 1 to 30, and an out-of-sample re-run against a 362-CVE superset of the filing-time 96-CVE dataset.">
+<meta name="keywords" content="DTVSS calibration, k=15, temporal amplification, medical device CVE, EPSS, CVSS exploitability, patent calibration, ICU Medical Plum 360, CVE-2017-12718, Treck Ripple20, CVE-2020-11896">
 <meta name="author" content="Andrew Broglio">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://dtvss.io/calculator">
+<link rel="canonical" href="https://dtvss.io/calibration">
 <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/img/favicon-32x32.png" type="image/png" sizes="32x32">
 <link rel="icon" href="/img/favicon-16x16.png" type="image/png" sizes="16x16">
 <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
 <link rel="manifest" href="/img/site.webmanifest">
 <meta name="theme-color" content="#080a0f">
-<link rel="preload" href="/fonts/ibm-plex-mono-v20-latin-600.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/ibm-plex-sans-v23-latin-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/ibm-plex-sans-v23-latin-500.woff2" as="font" type="font/woff2" crossorigin>
+<meta property="og:title" content="DTVSS Calibration - How k = 15 was chosen">
+<meta property="og:description" content="The lowest integer k satisfying the patent's four clinical criteria. Reproduces exactly on the 96-CVE filing set and holds on a 362-CVE live superset.">
+<meta property="og:url" content="https://dtvss.io/calibration">
+<meta property="og:site_name" content="DTVSS">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DTVSS Calibration - How k = 15 was chosen">
+<meta name="twitter:description" content="Four criteria, one binding constraint. Full sweep and out-of-sample validation.">
+<meta property="og:image" content="https://dtvss.io/img/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:image" content="https://dtvss.io/img/og-image.png">
+<link rel="preload" href="/fonts/ibm-plex-mono-v20-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/ibm-plex-mono-v20-latin-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/ibm-plex-sans-v23-latin-600.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 /* Inlined @font-face declarations - eliminates the HTML->CSS->woff2
    dependency chain. Browser discovers woff2 URLs immediately on HTML
@@ -44,727 +51,400 @@
 @font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/ibm-plex-sans-v23-latin-600.woff2') format('woff2')}
 @font-face{font-family:'IBM Plex Sans';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/ibm-plex-sans-v23-latin-700.woff2') format('woff2')}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
-<!-- Cloudflare Turnstile (managed mode) for /api/lookup bot challenge.
-     Loaded async; the page renders fine without it (the API call will
-     surface a "Bot challenge required" error if the script failed to
-     load). Sitekey is injected at request time by the server via the
-     data-attribute on the placeholder div below. -->
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
-  html { scroll-padding-top: 60px; }
-  @media(max-width:720px){.global-header>span:first-of-type{display:none}}
-  @media(max-width:720px){.global-header>span:first-of-type{display:none}}
-  :root {
-    --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
-    --tx:#b8bcc8; --dim:#838996; --hd:#e2e6f0;
-    --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e95e5e; --low:#48b878; --med:#d4b832;
-    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #080a0f; color: var(--tx); font-family: var(--sans); line-height: 1.7; }
-  a { color: var(--acc); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  /* a11y: in-prose links carry a non-color cue (underline) */
-  main a[href]:not(.cta):not(.suggest-item),
-  p a[href], li a[href] { text-decoration: underline; text-underline-offset: 2px; }
-  input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; }
-  input[type=range]::-webkit-slider-track { height: 3px; background: #1e2433; border-radius: 2px; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #b8bcc8; margin-top: -4px; cursor: pointer; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-  @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+:root {
+  --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
+  --tx:#b8bcc8; --dim:#838996; --hd:#e2e6f0;
+  --acc:#5b93f5; --purple:#a070e8; --high:#e08a3a; --crit:#e95e5e; --low:#48b878; --med:#d4b832;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+/* a11y: in-prose links carry a non-color cue (underline). Header,
+   nav, and footer links opt out by setting text-decoration via inline
+   style. Match all <a> inside the .container (main content area) and
+   inside paragraphs/list items, with offset for legibility. */
+.container a[href]:not(.cta):not(.suggest-item),
+p a[href], li a[href] {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+html{scroll-padding-top:60px}
+.header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:nowrap}
+@media(max-width:720px){.header>span:first-of-type{display:none}}
+.container{max-width:740px;margin:0 auto;padding:32px 24px;display:flex;flex-direction:column;gap:28px}
+h2{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--hd);letter-spacing:0.02em}
+h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
+.section{padding:22px;background:var(--s1);border:1px solid var(--bd);border-radius:10px}
+.formula{font-family:var(--mono);font-size:13px;color:var(--hd);padding:14px;background:var(--bg);border-radius:6px;margin:12px 0}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;border:1px solid;letter-spacing:.04em;vertical-align:baseline;white-space:nowrap}
+.pill-crit{color:var(--crit);background:rgba(224,82,82,0.10);border-color:rgba(224,82,82,0.30)}
+.pill-high{color:var(--high);background:rgba(224,138,58,0.10);border-color:rgba(224,138,58,0.30)}
+.pill-med{color:var(--med);background:rgba(212,184,50,0.10);border-color:rgba(212,184,50,0.30)}
+.pill-low{color:var(--low);background:rgba(72,184,120,0.10);border-color:rgba(72,184,120,0.30)}
+.footer{text-align:center;padding:24px 0 8px;font-size:12px;color:var(--dim);border-top:1px solid var(--bd);line-height:2}
+
+/* Headline stats under the page title */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.stats .stat{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:14px 16px}
+.stats .stat-lbl{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+.stats .stat-val{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--hd);line-height:1.1;margin-top:4px}
+.stats .stat-val .u{font-size:11px;color:var(--dim);font-weight:400;margin-left:4px}
+
+/* Sweep table */
+.sweep-wrap{background:var(--bg);border:1px solid var(--bd);border-radius:6px;overflow:hidden;margin-top:14px}
+.sweep{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;table-layout:fixed}
+.sweep thead tr{background:var(--s2)}
+.sweep th{padding:10px;text-align:center;font-weight:600;color:var(--dim);letter-spacing:.04em;font-size:11px;border-bottom:1px solid var(--bd)}
+.sweep th.k-col{width:44px;text-align:left;padding-left:14px}
+.sweep td{padding:7px 10px;text-align:center;color:var(--tx);border-top:1px solid var(--bd)}
+.sweep td.k-cell{text-align:left;padding-left:14px;color:var(--dim);font-weight:600}
+.sweep td.pass{background:rgba(72,184,120,0.10);color:var(--low)}
+.sweep td.fail{background:rgba(224,82,82,0.08);color:var(--crit)}
+.sweep tr.win td{box-shadow:inset 0 0 0 1.5px var(--acc)}
+.sweep tr.win td.k-cell{color:var(--acc)}
+
+/* Legend rows */
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0 6px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
+.legend span.sw{display:inline-flex;align-items:center;gap:6px}
+.legend .box-pass{width:12px;height:10px;background:rgba(72,184,120,0.14);border:1px solid rgba(72,184,120,0.4);border-radius:2px}
+.legend .box-fail{width:12px;height:10px;background:rgba(224,82,82,0.10);border:1px solid rgba(224,82,82,0.35);border-radius:2px}
+.legend .box-win{width:12px;height:10px;background:transparent;border:1.5px solid var(--acc);border-radius:2px}
+.legend .ln-score{width:16px;height:2px;background:var(--acc)}
+.legend .ln-crit{width:16px;height:0;border-top:2px dashed var(--crit)}
+.legend .pt-cross{width:10px;height:10px;border:2px solid var(--acc);border-radius:50%;background:var(--bg);display:inline-block}
+.legend .pt-pick{width:10px;height:10px;background:var(--acc);display:inline-block;border-radius:2px}
+
+/* Code/derivation block matches about's formula style but left-aligned and multiline */
+.deriv{font-family:var(--mono);font-size:12.5px;color:var(--hd);padding:14px 16px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;margin-top:14px;line-height:1.9;white-space:pre;overflow-x:auto}
+.deriv .k{color:var(--purple);font-weight:600}
+.deriv .win{color:var(--acc);font-weight:700}
+
+/* Dual column validation */
+.dual{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.dual .col{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:14px}
+.dual .col .lbl{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.dual .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-family:var(--mono);font-size:12px}
+.dual .kv .k{color:var(--dim)}
+.dual .kv .v{color:var(--hd);font-weight:600;text-align:right}
+.dual .kv .v.crit{color:var(--crit)}
+.dual .kv .v.acc{color:var(--acc)}
+
+/* Reproduce block */
+.cmd{font-family:var(--mono);font-size:12px;color:var(--hd);padding:14px 16px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;line-height:1.9;white-space:pre;overflow-x:auto;margin-top:12px}
+.cmd .prompt{color:var(--dim);user-select:none}
+.cmd .ok{color:var(--low);font-weight:600}
+
+/* Footnote styles inside sections */
+.fn{font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7;margin-top:12px}
+.fn .lbl{color:var(--hd);font-weight:600}
+
+/* Chart container */
+.chart-wrap{margin:14px 0 8px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:12px}
 </style>
 </head>
 <body>
-<div class="global-header" style="position:sticky;top:0;z-index:100;border-bottom:1px solid var(--bd);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-wrap:nowrap;background:var(--bg)">
+
+<div class="header">
   <a href="/" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--hd);letter-spacing:0.04em;text-decoration:none">DTVSS</a>
-  <span style="font-size:13px;color:var(--dim)">Calculator</span>
+  <span style="font-size:13px;color:var(--dim)">Calibration</span>
   <span style="margin-left:auto;font-size:13px;display:flex;gap:20px">
     <a href="/" style="color:var(--dim);text-decoration:none">Search</a>
-    <a href="/calculator" style="color:var(--acc);text-decoration:none">Calculator</a>
-    <a href="/calibration" style="color:var(--dim);text-decoration:none">Calibration</a>
+    <a href="/calculator" style="color:var(--dim);text-decoration:none">Calculator</a>
+    <a href="/calibration" style="color:var(--acc);text-decoration:none">Calibration</a>
     <a href="/about" style="color:var(--dim);text-decoration:none">About</a>
     <a href="/tiers" style="color:var(--dim);text-decoration:none">Tiers</a>
     <a href="/security-policy" style="color:var(--dim);text-decoration:none">Security</a>
   </span>
 </div>
-<main>
-<div id="root">
-  <div style="padding:40px;font-family:system-ui;color:#b8bcc8;text-align:center;background:#080a0f">
-    <div style="font-size:14px;color:#838996">Loading calculator...</div>
-    <div id="errMsg" style="font-size:11px;color:#e95e5e;margin-top:8px;font-family:monospace;white-space:pre-wrap"></div>
-    <div style="font-size:11px;color:#838996;margin-top:8px">If this message persists, try the <a href="/" style="color:#5b93f5">search interface</a> instead.</div>
+
+<main class="container">
+
+  <!-- Page title + headline stats -->
+  <div>
+    <h2>How k = 15 was chosen</h2>
+    <p style="margin-top:10px;color:var(--dim)">
+      The DTVSS formula multiplies severity, patient harm, and a temporal amplification factor (1 + k&middot;L(t)).
+    </p>
+    <p style="margin-top:6px;color:var(--dim)">
+      <a href="/about" title="DTVSS scoring methodology and the role of EPSS as a continuous daily probability">How DTVSS uses EPSS as a continuous amplification factor &rarr;</a>
+    </p>
+    <p style="margin-top:10px;color:var(--dim)">
+      The constant k was calibrated against 96 real medical device CVEs as the lowest integer value satisfying four clinical criteria defined in the provisional patent. A re-run against a 362-CVE superset drawn from the current live CISA ICSMA index returns the same k.
+    </p>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-lbl">Lowest k</div>
+        <div class="stat-val">15</div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Filing set</div>
+        <div class="stat-val">96<span class="u">CVEs</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Live superset</div>
+        <div class="stat-val">362<span class="u">CVEs</span></div>
+      </div>
+    </div>
   </div>
-</div>
+
+  <!-- The Criteria -->
+  <div class="section">
+    <h3>The four criteria</h3>
+    <p>
+      The provisional patent defines four clinical discrimination criteria that any calibrated k must satisfy. The criteria were designed before the value of k was picked; they encode what the scoring is required to do, not what any particular integer happens to produce.
+    </p>
+    <div class="formula" style="line-height:2">
+      <span style="color:var(--acc);font-weight:600">(i)</span> CVE-2017-12718 (Plum 360 infusion pump) must score &ge; 8.0 <span class="pill pill-crit">CRITICAL</span><br>
+      <span style="color:var(--acc);font-weight:600">(ii)</span> Low-risk CVEs (B &le; 1.5, L &le; 0.002) must stay &le; 5.5 <span class="pill pill-med">MEDIUM</span><br>
+      <span style="color:var(--acc);font-weight:600">(iii)</span> CVE-2020-11896 (Treck Ripple20) must score &ge; 8.0 <span class="pill pill-crit">CRITICAL</span><br>
+      <span style="color:var(--acc);font-weight:600">(iv)</span> The score span across the full dataset must be &ge; 4.0 points
+    </div>
+    <p style="margin-top:10px;color:var(--dim);font-size:13px">
+      Criterion (i) guarantees the formula recognises clinically-deployed exploitable infusion pump vulnerabilities. Criterion (ii) prevents score inflation on low-exploitability workstation-class findings. Criterion (iii) anchors known-exploited IP stack flaws at Critical. Criterion (iv) ensures the scale actually discriminates between device classes rather than compressing everything toward one value.
+    </p>
+  </div>
+
+  <!-- The Sweep -->
+  <div class="section">
+    <h3>The sweep</h3>
+    <p>
+      Each row below shows an integer value of k. Green cells mark criteria that pass at that k. The lowest row where all four are green is the calibrated value.
+    </p>
+    <div class="legend">
+      <span class="sw"><span class="box-pass"></span>Passes</span>
+      <span class="sw"><span class="box-fail"></span>Fails</span>
+      <span class="sw"><span class="box-win"></span>Lowest all-pass</span>
+    </div>
+    <div class="sweep-wrap">
+      <table class="sweep">
+        <thead>
+          <tr>
+            <th class="k-col">k</th>
+            <th>(i) Plum 360 &ge; 8.0</th>
+            <th>(ii) Low-risk &le; 5.5</th>
+            <th>(iii) Ripple20 &ge; 8.0</th>
+            <th>(iv) Span &ge; 4.0</th>
+          </tr>
+        </thead>
+        <tbody id="sweep-body"></tbody>
+      </table>
+    </div>
+    <p class="fn">
+      Values are criterion scores at each k on the 96-CVE filing dataset. Criterion (i): score of CVE-2017-12718. Criterion (ii): highest score among CVEs with B &le; 1.5 and L &le; 0.002. Criterion (iii): score of CVE-2020-11896. Criterion (iv): score span across the full dataset. Sweep shown for k = 1 to 20; all rows from k = 21 to 30 continue to pass.
+    </p>
+  </div>
+
+  <!-- Binding constraint -->
+  <div class="section">
+    <h3>The binding constraint</h3>
+    <p>
+      Three of the four criteria pass at values well below 15. The one that binds is criterion (i): CVE-2017-12718, a buffer overflow in the ICU Medical Plum 360 infusion pump, must reach the Critical tier (score &ge; 8.0). At k = 14 it scores 7.60. At k = 15 it scores 8.03.
+    </p>
+
+    <div class="legend">
+      <span class="sw"><span class="ln-score"></span>CVE-2017-12718 score</span>
+      <span class="sw"><span class="ln-crit"></span>Critical threshold (8.0)</span>
+      <span class="sw"><span class="pt-cross"></span>k = 14.93 (crossing)</span>
+      <span class="sw"><span class="pt-pick"></span>k = 15 (lowest integer)</span>
+    </div>
+
+    <div class="chart-wrap">
+      <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Line chart of DTVSS score for CVE-2017-12718 against k from 0 to 30. Score rises linearly from 1.65 at k=0 and plateaus at 10 at k=19.64. The 8.0 Critical threshold is crossed at k=14.93. The lowest integer satisfying the threshold is marked at k=15, score 8.03." style="display:block;width:100%;height:auto">
+        <!-- viewport geometry:
+             plot area x: 60 -> 660  (width 600), k: 0 -> 30, 20px per unit k
+             plot area y: 20 -> 240  (height 220), score: 0 -> 11, 20px per unit score
+             x(k) = 60 + k * 20
+             y(score) = 240 - score * 20
+             score plateaus at 10 when k >= 19.64
+             DTVSS = 1.65 * (1 + 0.2577 * k), capped at 10
+        -->
+        <!-- grid lines -->
+        <g stroke="#1e2433" stroke-width="1" fill="none">
+          <line x1="60" y1="20" x2="60" y2="240"/>
+          <line x1="60" y1="240" x2="660" y2="240"/>
+          <line x1="60" y1="200" x2="660" y2="200" stroke-dasharray="2 4"/>
+          <line x1="60" y1="160" x2="660" y2="160" stroke-dasharray="2 4"/>
+          <line x1="60" y1="120" x2="660" y2="120" stroke-dasharray="2 4"/>
+          <line x1="60" y1="80"  x2="660" y2="80"  stroke-dasharray="2 4"/>
+          <line x1="60" y1="40"  x2="660" y2="40"  stroke-dasharray="2 4"/>
+          <line x1="160" y1="20" x2="160" y2="240" stroke-dasharray="2 4"/>
+          <line x1="260" y1="20" x2="260" y2="240" stroke-dasharray="2 4"/>
+          <line x1="360" y1="20" x2="360" y2="240" stroke-dasharray="2 4"/>
+          <line x1="460" y1="20" x2="460" y2="240" stroke-dasharray="2 4"/>
+          <line x1="560" y1="20" x2="560" y2="240" stroke-dasharray="2 4"/>
+          <line x1="660" y1="20" x2="660" y2="240" stroke-dasharray="2 4"/>
+        </g>
+        <!-- y axis labels (score) -->
+        <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" text-anchor="end">
+          <text x="54" y="244">0</text>
+          <text x="54" y="204">2</text>
+          <text x="54" y="164">4</text>
+          <text x="54" y="124">6</text>
+          <text x="54" y="84">8</text>
+          <text x="54" y="44">10</text>
+        </g>
+        <!-- y axis title -->
+        <text x="20" y="130" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" transform="rotate(-90 20 130)" text-anchor="middle">DTVSS score</text>
+        <!-- x axis labels (k) -->
+        <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" text-anchor="middle">
+          <text x="60" y="258">0</text>
+          <text x="160" y="258">5</text>
+          <text x="260" y="258">10</text>
+          <text x="360" y="258">15</text>
+          <text x="460" y="258">20</text>
+          <text x="560" y="258">25</text>
+          <text x="660" y="258">30</text>
+        </g>
+        <!-- x axis title -->
+        <text x="360" y="275" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" text-anchor="middle">k (temporal amplification constant)</text>
+        <!-- critical threshold line -->
+        <line x1="60" y1="80" x2="660" y2="80" stroke="#e95e5e" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <!-- score line: rises linearly from (60, 207) to (452.8, 40), then flat to (660, 40) -->
+        <!-- score fill (area under the line) -->
+        <path d="M 60 207 L 452.8 40 L 660 40 L 660 240 L 60 240 Z" fill="#5b93f5" fill-opacity="0.10"/>
+        <!-- score line itself -->
+        <path d="M 60 207 L 452.8 40 L 660 40" stroke="#5b93f5" stroke-width="2" fill="none"/>
+        <!-- crossing circle at (14.93, 8.0) -> x=358.6, y=80 -->
+        <circle cx="358.6" cy="80" r="5" fill="#080a0f" stroke="#5b93f5" stroke-width="2"/>
+        <!-- k=15 square at (15, 8.03) -> x=360, y=239.4 ... wait, y=240-8.03*20=79.4 -->
+        <rect x="356" y="75.4" width="8" height="8" fill="#5b93f5"/>
+      </svg>
+    </div>
+
+    <div class="deriv"><span style="color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.08em;display:block;margin-bottom:8px">CLOSED-FORM DERIVATION</span>DTVSS = (2.20 / 10) &middot; (7.5 / 10) &middot; (1 + k &middot; 0.2577) &middot; 10
+      = 1.65 &middot; (1 + 0.2577 &middot; k)
+
+DTVSS &ge; 8.0  &rArr;  k &ge; <span class="k">14.93</span>
+
+Lowest integer: <span class="win">k = 15</span></div>
+  </div>
+
+  <!-- Out-of-sample validation -->
+  <div class="section">
+    <h3>Out-of-sample validation</h3>
+    <p>
+      The 96-CVE dataset was frozen at the time of patent filing (April 2026). A re-run against the current live CISA ICSMA index, 362 CVEs of which 323 are Class IIb and 39 are Class III, 3.8 times larger, returns k = 15 as well. The binding constraint in criterion (i) uses patent-frozen inputs, so the calibration is stable under dataset expansion; the fact that it survives a near-quadrupling of the corpus is the evidence that k = 15 is not a small-sample artefact.
+    </p>
+    <div class="dual">
+      <div class="col">
+        <div class="lbl">Filing &middot; 96 CVEs</div>
+        <div class="kv">
+          <span class="k">Score span</span><span class="v">9.62</span>
+          <span class="k">L(t) score changes</span><span class="v">95 of 96</span>
+          <span class="k">L(t) tier crossings</span><span class="v">34</span>
+          <span class="k">KEV-overridden</span><span class="v crit">1</span>
+        </div>
+      </div>
+      <div class="col">
+        <div class="lbl">Live &middot; 362 CVEs</div>
+        <div class="kv">
+          <span class="k">Score span</span><span class="v">9.84</span>
+          <span class="k">Class IIb</span><span class="v">323</span>
+          <span class="k">Class III</span><span class="v crit">39</span>
+          <span class="k">Lowest satisfying k</span><span class="v acc">15</span>
+        </div>
+      </div>
+    </div>
+    <p class="fn">
+      <span class="lbl">KEV note.</span> CVEs in the CISA KEV catalog are forced to score 10.0 post-scoring regardless of k, so they are excluded from the "L(t) score changes" statistic. The filing dataset contains 1 such CVE (CVE-2020-11899, Treck Ripple20, in CISA KEV since 2022-03-03). Excluding it leaves 95 non-KEV CVEs, all 95 of which change score when L is zeroed, hence "95 of 96."
+    </p>
+    <p class="fn">
+      <span class="lbl">Snapshot.</span> Filing dataset frozen 2026-04-09 (EPSS snapshot 2026-04-08). Live superset drawn from the current ICSMA index. L(t) values drift daily by design; the 96-CVE set is frozen for reproducibility.
+    </p>
+  </div>
+
+  <!-- Reproduce -->
+  <div class="section">
+    <h3>Reproduce it</h3>
+    <p>
+      All inputs are public. The calibration runs offline in under a second against the committed dataset. To re-validate against a live ICSMA snapshot, the same script can rebuild the dataset from the current index and fetch EPSS from FIRST.org.
+    </p>
+    <div class="cmd"><span class="prompt">$</span> git clone https://github.com/d3matr1x/dtvss-web.git &amp;&amp; cd dtvss-web
+<span class="prompt">$</span> python3 calibrate_k.py
+<span class="ok">&rarr; Lowest integer k satisfying all four criteria: k = 15</span></div>
+    <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;font-size:13px;line-height:1.7">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--low);box-shadow:0 0 6px var(--low)"></span>
+        <span style="color:var(--hd);font-weight:600">Calibration verified on every commit.</span>
+      </div>
+      <span style="color:var(--tx)">A continuous integration workflow runs <span style="font-family:var(--mono);font-size:12px;color:var(--hd)">calibrate_k.py</span> against the frozen 96-CVE dataset on every push and pull request, and asserts that the eight patent-binding values in <span style="font-family:var(--mono);font-size:12px;color:var(--hd)">results.json</span> reproduce exactly. Drift breaks the build. <a href="https://github.com/d3matr1x/dtvss-web/actions/workflows/calibration.yml" target="_blank" rel="noopener noreferrer">View CI runs &rarr;</a></span>
+      <div style="margin-top:10px;color:var(--dim);font-size:12px">
+        Source: <a href="https://github.com/d3matr1x/dtvss-web" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono)">github.com/d3matr1x/dtvss-web</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- References (single block at page bottom, matching about.html pattern) -->
+  <div class="section">
+    <h3>References</h3>
+    <div style="padding:12px;background:var(--bg);border-radius:6px;font-family:var(--mono);font-size:11px;line-height:2;color:var(--dim)">
+      <a href="https://www.first.org/cvss/v3-1/specification-document" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">FIRST - CVSS v3.1 Specification Document</a>
+      <a href="https://www.first.org/epss/" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">FIRST - Exploit Prediction Scoring System (EPSS)</a>
+      <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">CISA - Known Exploited Vulnerabilities Catalog</a>
+      <a href="https://www.cisa.gov/news-events/ics-advisories" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">CISA - ICS Medical Advisories (ICSMA)</a>
+      <a href="https://nvd.nist.gov/vuln/detail/CVE-2017-12718" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">NVD - CVE-2017-12718 (ICU Medical Plum 360)</a>
+      <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-11896" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">NVD - CVE-2020-11896 (Treck Ripple20)</a>
+      <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-11899" target="_blank" rel="noopener noreferrer" style="color:var(--acc);display:block">NVD - CVE-2020-11899 (Treck Ripple20, KEV-listed)</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div style="margin-top:10px">&copy; 2026 Andrew Broglio &middot; DTVSS&trade; &middot; Patent Pending - IP Australia</div>
+    <div style="margin-top:4px;font-size:12px;color:var(--tx)">Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use</div>
+    <div style="margin-top:8px;font-size:13px">
+      <a href="/">Search</a> · <a href="/calculator">Calculator</a> · <a href="/calibration">Calibration</a> · <a href="/about">About</a> · <a href="/tiers">Tiers</a> · <a href="/security-policy">Security</a>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div style="padding:14px 18px;margin-top:-16px;border:1px solid rgba(224,82,82,0.25);border-radius:8px;background:rgba(224,82,82,0.05);font-family:var(--mono);font-size:11px;color:var(--tx);line-height:1.8;text-align:center;margin-bottom:24px">
+    <span style="color:var(--crit);font-weight:600">RESEARCH PREVIEW</span> - Tier 1 is a non-commercial research demonstration. Not a certified medical device risk management tool. Commercial licence required for production use.
+  </div>
+
 </main>
+
 <script>
-window.addEventListener('error', function(e) {
-  var em = document.getElementById('errMsg');
-  if (em) em.textContent = 'Error: ' + (e.message || 'Unknown') + (e.filename ? ' in ' + e.filename : '');
+// Sweep data, computed offline from results.json
+var sweep = [
+  {k:1,i:2.08,ip:0,ii:0.98,iip:1,iii:4.17,iiip:0,iv:4.25,ivp:1},
+  {k:2,i:2.50,ip:0,ii:0.98,iip:1,iii:5.42,iiip:0,iv:5.94,ivp:1},
+  {k:3,i:2.93,ip:0,ii:0.98,iip:1,iii:6.67,iiip:0,iv:7.64,ivp:1},
+  {k:4,i:3.35,ip:0,ii:0.98,iip:1,iii:7.91,iiip:0,iv:9.33,ivp:1},
+  {k:5,i:3.78,ip:0,ii:0.98,iip:1,iii:9.16,iiip:1,iv:9.63,ivp:1},
+  {k:6,i:4.20,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.63,ivp:1},
+  {k:7,i:4.63,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:8,i:5.05,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:9,i:5.48,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:10,i:5.90,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:11,i:6.33,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:12,i:6.75,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:13,i:7.18,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:14,i:7.60,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:15,i:8.03,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1,win:1},
+  {k:16,i:8.45,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:17,i:8.88,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:18,i:9.30,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:19,i:9.73,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
+  {k:20,i:10.00,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1}
+];
+
+var tbody = document.getElementById('sweep-body');
+sweep.forEach(function(r) {
+  var tr = document.createElement('tr');
+  if (r.win) tr.className = 'win';
+  var cellClass = function(p) { return p ? 'pass' : 'fail'; };
+  tr.innerHTML =
+    '<td class="k-cell">' + r.k + '</td>' +
+    '<td class="' + cellClass(r.ip) + '">' + r.i.toFixed(2) + '</td>' +
+    '<td class="' + cellClass(r.iip) + '">' + r.ii.toFixed(2) + '</td>' +
+    '<td class="' + cellClass(r.iiip) + '">' + r.iii.toFixed(2) + '</td>' +
+    '<td class="' + cellClass(r.ivp) + '">' + r.iv.toFixed(2) + '</td>';
+  tbody.appendChild(tr);
 });
-
-(function() {
-  'use strict';
-
-  const e = React.createElement;
-  const { useState, useEffect, useRef } = React;
-
-  const K = 15;
-
-  const TGA_CLASSES = {
-    IIb: {
-      H: 7.5, label: "Class IIb", desc: "Moderate-high risk - Network-connected therapeutic devices",
-      color: "#e08a3a",
-      examples: "Infusion pumps, insulin pumps, ventilators, patient monitors, CGMs",
-      jurisdictions: {
-        "TGA / Medsafe (AU / NZ)": "Class IIb",
-        "MDR (EU)": "Class IIb",
-        "MHRA (UK)": "Class IIb",
-        "FDA (US)": "Class II"
-      }
-    },
-    III: {
-      H: 10.0, label: "Class III", desc: "Highest risk - Implantable life-sustaining devices",
-      color: "#e95e5e",
-      examples: "Pacemakers, implantable defibrillators, CRT devices",
-      jurisdictions: {
-        "TGA / Medsafe (AU / NZ)": "Class III",
-        "MDR (EU)": "Class III",
-        "MHRA (UK)": "Class III",
-        "FDA (US)": "Class III"
-      }
-    }
-  };
-
-  const THRESHOLDS = [
-    { max: 3.0,  level: "Low",      color: "#48b878", bg: "rgba(76,175,122,0.08)",  border: "rgba(76,175,122,0.25)",  sla: "Monitor",
-      guidance: "No immediate remediation required. Maintain routine patch cycle and continuous monitoring.",
-      rationale: "Represents minimal exploitability or impact. Managed under standard vulnerability management." },
-    { max: 6.0,  level: "Medium",   color: "#d4b832", bg: "rgba(201,180,40,0.08)",  border: "rgba(201,180,40,0.25)",  sla: "≤ 30 days",
-      guidance: "Remediate within defined maintenance window. Prioritise based on asset criticality.",
-      rationale: "Requires timely remediation per NIST risk-based prioritisation and FDA postmarket expectations." },
-    { max: 8.0,  level: "High",     color: "#e08a3a", bg: "rgba(217,124,42,0.08)",  border: "rgba(217,124,42,0.25)",  sla: "≤ 7 days",
-      guidance: "Expedite remediation. Escalate to clinical/biomedical engineering and risk management teams.",
-      rationale: "Indicates credible exploitation risk with potential clinical impact." },
-    { max: 10.1, level: "Critical", color: "#e95e5e", bg: "rgba(217,79,79,0.08)",   border: "rgba(217,79,79,0.25)",   sla: "Immediate",
-      guidance: "Initiate incident response immediately. Isolate or remove affected systems.",
-      rationale: "Represents active exploitation or severe patient safety risk. k=15 calibration criterion satisfied." },
-  ];
-
-  function getTier(s) {
-    for (const t of THRESHOLDS) if (s < t.max) return t;
-    return THRESHOLDS[3];
-  }
-
-  function computeDTVSS(B, L, H, kev) {
-    if (kev) return { score: 10, raw: null, tier: THRESHOLDS[3], kevOverride: true };
-    const raw = (B / 10) * (H / 10) * (1 + K * L) * 10;
-    const score = Math.round(Math.min(raw, 10) * 100) / 100;
-    return { score, raw: Math.round(raw * 10000) / 10000, tier: getTier(score), kevOverride: false };
-  }
-
-  function App() {
-    // Tier gating - Tier 1 (this page) shows optional embodiments in a
-    // locked/disabled state as an upsell. Flip to false to unlock all
-    // features in a paid Tier 2+ build.
-    const TIER2_LOCKED = true;
-    
-    const [B, setB] = useState(0);
-    const [L, setL] = useState(0);
-    const [tgaClass, setTgaClass] = useState("IIb");
-    const [kev, setKev] = useState(false);
-    const [showFormula, setShowFormula] = useState(false);
-    const [animScore, setAnimScore] = useState(0);
-    const [cveId, setCveId] = useState("");
-    const [showORS, setShowORS] = useState(false);
-    const [showDecay, setShowDecay] = useState(false);
-    const [showEnvAdj, setShowEnvAdj] = useState(false);
-    const [deviceCount, setDeviceCount] = useState(100);
-    const [scalingFn, setScalingFn] = useState("log");
-    const [decayEnabled, setDecayEnabled] = useState(false);
-    const [ztaEnabled, setZtaEnabled] = useState(false);
-    const [showRationale, setShowRationale] = useState(false);
-    const [copied, setCopied] = useState(false);
-    const [lookupLoading, setLookupLoading] = useState(false);
-    const [lookupMsg, setLookupMsg] = useState("");
-    const [publishedDate, setPublishedDate] = useState("");
-
-    // Turnstile state: token is captured from the bootstrap script via a
-    // custom event. While unverified the Lookup button is disabled with
-    // a "Verifying you're human..." label. The bootstrap also writes
-    // window.__dtvssTurnstileToken so non-React code can read it.
-    const [turnstileReady, setTurnstileReady] = useState(false);
-    React.useEffect(() => {
-      function onReady(ev) { setTurnstileReady(true); }
-      function onUnready(ev) { setTurnstileReady(false); }
-      window.addEventListener('dtvss-turnstile-ready', onReady);
-      window.addEventListener('dtvss-turnstile-unready', onUnready);
-      // If the bootstrap fired its event before this effect mounted (rare
-      // but possible if the user hits the page with an already-warm CDN),
-      // pick up the current state directly.
-      if (window.__dtvssTurnstileToken) setTurnstileReady(true);
-      return function () {
-        window.removeEventListener('dtvss-turnstile-ready', onReady);
-        window.removeEventListener('dtvss-turnstile-unready', onUnready);
-      };
-    }, []);
-
-    // Drain pending lookup when verification completes. If the user
-    // triggered lookupCVE() while we were between tokens (example card
-    // click during silent reset, etc), the queue holds the pending CVE.
-    // When turnstileReady flips true, replay it.
-    React.useEffect(() => {
-      if (turnstileReady && window.__dtvssPendingLookup) {
-        const pending = window.__dtvssPendingLookup;
-        window.__dtvssPendingLookup = null;
-        lookupCVE(pending.cve);
-      }
-    }, [turnstileReady]);
-
-    const lookupCVE = async (id) => {
-      const cve = id || cveId;
-      if (!cve.match(/^CVE-\d{4}-\d+$/i)) return;
-
-      // Token gate: if we don't have a token yet (initial page load, or
-      // the silent-reset gap between two lookups), the API will 403 if
-      // we fire now. Queue the lookup and replay when the next token
-      // arrives. This matches the index page's pending-search behavior
-      // and prevents the "Bot challenge required" message when the user
-      // triggers a lookup via the example cards or Enter key during the
-      // window between tokens.
-      if (!window.__dtvssTurnstileToken) {
-        window.__dtvssPendingLookup = { cve: cve };
-        return;
-      }
-
-      setLookupLoading(true); setLookupMsg("");
-      try {
-        // Read the cached Turnstile token captured by the bootstrap when
-        // its callback fired. Tokens are single-use, so after reading we
-        // clear the cache and reset the widget to fetch a fresh one.
-        // The widget is reset silently in the background; after the
-        // user's first successful verification the widget is hidden and
-        // stays that way (passing reason:'used' tells the bootstrap to
-        // keep it hidden rather than fading it back in).
-        let tsToken = window.__dtvssTurnstileToken || "";
-        if (tsToken) {
-          window.__dtvssTurnstileToken = "";
-          setTurnstileReady(false);
-          window.dispatchEvent(new CustomEvent('dtvss-turnstile-unready', {
-            detail: { reason: 'used' }
-          }));
-          if (window.turnstile && window.__dtvssTurnstileWidget != null) {
-            try { window.turnstile.reset(window.__dtvssTurnstileWidget); } catch (e) {}
-          }
-        }
-        const url = `/api/lookup?cve=${encodeURIComponent(cve)}` +
-                    (tsToken ? `&cf-turnstile-response=${encodeURIComponent(tsToken)}` : "");
-        const resp = await fetch(url);
-        const data = await resp.json();
-        if (data.error) {
-          setLookupMsg(data.error);
-        } else {
-          if (data.B !== undefined) setB(data.B);
-          if (data.L !== undefined) setL(data.L);
-          if (data.kev_override) setKev(true); else setKev(!!data.kev_added);
-          if (data.tga_class && TGA_CLASSES[data.tga_class]) setTgaClass(data.tga_class);
-          if (data.published) setPublishedDate(data.published);
-          setLookupMsg(`Loaded: B=${data.B} L=${data.L} ${data.tga_class || ""} ${data.kev_override ? "KEV" : ""}`);
-        }
-      } catch(err) {
-        setLookupMsg("API error: " + err.message);
-      }
-      setLookupLoading(false);
-    };
-
-    const H = TGA_CLASSES[tgaClass].H;
-    const cveYear = cveId.match(/CVE-(\d{4})/i)?.[1];
-    // Use full published date for precise age if available, else fall back to year only
-    const cveAge = (() => {
-      if (publishedDate) {
-        const pub = new Date(publishedDate);
-        if (!isNaN(pub)) return Math.max(0, (Date.now() - pub.getTime()) / (365.25 * 24 * 3600 * 1000));
-      }
-      return cveYear ? (new Date().getFullYear() - parseInt(cveYear)) : 0;
-    })();
-    const halfLife = tgaClass === "III" ? 13.9 : 10;
-    const lambda = Math.log(2) / halfLife;
-    // When TIER2_LOCKED, force L_eff=L and B_adj=B so state manipulation via
-    // devtools can't activate locked Tier 2+ features.
-    const L_eff = (!TIER2_LOCKED && decayEnabled && cveAge > 0) ? L * Math.exp(-lambda * cveAge) : L;
-    const B_adj = (!TIER2_LOCKED && ztaEnabled) ? B * 0.571 : B;
-    const result = computeDTVSS(B_adj, L_eff, H, kev);
-    const tier = result.tier;
-    const staticBaseline = Math.round((B_adj * H / 10) * 100) / 100;
-    const baseResult = (!TIER2_LOCKED && (ztaEnabled || decayEnabled)) ? computeDTVSS(B, L, H, kev) : null;
-
-    const computeF = (N) => {
-      if (scalingFn === "log") return 1 + Math.log10(Math.max(N, 1));
-      if (scalingFn === "saturating") return 1 + N / (N + 100);
-      if (scalingFn === "exponential") return 1 + (1 - Math.exp(-N / 100));
-      if (scalingFn === "tiered") { if (N <= 10) return 1; if (N <= 100) return 1.5; if (N <= 1000) return 2; return 3; }
-      return 1;
-    };
-    const F_N = computeF(deviceCount);
-    const ORS = Math.round(result.score * F_N * 100) / 100;
-
-    useEffect(() => {
-      const target = result.score, start = animScore, duration = 400, startTime = Date.now();
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        setAnimScore(start + (target - start) * eased);
-        if (progress < 1) requestAnimationFrame(animate);
-      };
-      requestAnimationFrame(animate);
-    }, [result.score]);
-
-    const shareSummary = () => {
-      const adj = [];
-      if (ztaEnabled) adj.push("ZTA");
-      if (decayEnabled && cveAge > 0) adj.push("decay " + cveAge + "yr");
-      const text = `${cveId || "CVE"} | DTVSS ${result.score.toFixed(2)} ${tier.level} | B=${B_adj.toFixed(2)} L=${L_eff.toFixed(4)} H=${H.toFixed(1)} ${tgaClass}${adj.length ? " | " + adj.join(", ") : ""}${result.kevOverride ? " | KEV" : ""}  | SLA: ${tier.sla} | dtvss.io`;
-      if (navigator.clipboard) navigator.clipboard.writeText(text);
-      setCopied(true); setTimeout(() => setCopied(false), 2000);
-    };
-
-    const loadExample = (b, l, cls, cve) => {
-      setB(b); setL(l); setTgaClass(cls); setCveId(cve);
-      setKev(false); setZtaEnabled(false); setDecayEnabled(false);
-      lookupCVE(cve);
-    };
-
-    const mono = "'IBM Plex Mono',monospace";
-    const body = "'IBM Plex Sans',sans-serif";
-    const disp = "'IBM Plex Mono',monospace";
-    const scorePct = (animScore / 10) * 100;
-
-    return e('div', { style: { background: "#080a0f", color: "#b8bcc8", minHeight: "100vh", fontFamily: body, fontSize: "13px" } },
-
-      e('div', { style: { padding: "32px 24px", display: "flex", flexDirection: "column", gap: "28px", maxWidth: "720px", margin: "0 auto", width: "100%" } },
-
-        // Score Display
-        e('div', {
-          style: {
-            background: `linear-gradient(135deg,${tier.bg},#141820)`,
-            border: `1px solid ${tier.border}`,
-            borderRadius: "12px", padding: "28px 24px",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: "8px",
-            position: "relative", overflow: "hidden"
-          }
-        },
-          e('div', { style: { position: "absolute", top: "-40px", left: "50%", transform: "translateX(-50%)", width: "200px", height: "120px", background: `radial-gradient(ellipse,${tier.color}15,transparent 70%)`, pointerEvents: "none" } }),
-          e('div', { style: { fontFamily: disp, fontSize: "56px", fontWeight: 900, color: tier.color, lineHeight: 1, letterSpacing: "-0.03em" } }, animScore.toFixed(2)),
-          e('div', { style: { width: "100%", maxWidth: "320px", height: "6px", background: "#181d2a", borderRadius: "3px", overflow: "hidden" } },
-            e('div', { style: { width: `${scorePct}%`, height: "100%", background: `linear-gradient(90deg,${tier.color}88,${tier.color})`, borderRadius: "3px", transition: "width 0.4s cubic-bezier(0.16,1,0.3,1)" } })
-          ),
-          e('div', { style: { display: "flex", gap: "8px", alignItems: "center" } },
-            e('span', { style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, color: tier.color, background: `${tier.color}18`, padding: "3px 10px", borderRadius: "4px", border: `1px solid ${tier.color}30` } },
-              (result.kevOverride ? "KEV OVERRIDE - " : "") + tier.level.toUpperCase()
-            ),
-            e('span', { style: { fontFamily: mono, fontSize: "11px", color: "#838996", background: "#0e1118", padding: "3px 8px", borderRadius: "4px", border: "1px solid #1e2433" } }, "SLA: " + tier.sla)
-          ),
-          e('div', { style: { fontFamily: body, fontSize: "11px", color: "#838996", textAlign: "center", maxWidth: "420px", lineHeight: 1.5 } }, tier.guidance),
-          e('button', { onClick: () => setShowRationale(!showRationale), style: { fontFamily: mono, fontSize: "11px", color: "#838996", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", opacity: .6 } },
-            showRationale ? "Hide rationale" : "Show rationale"
-          ),
-          showRationale && e('div', { style: { fontFamily: mono, fontSize: "11px", color: "#838996", textAlign: "center", maxWidth: "400px", opacity: .7 } }, tier.rationale),
-          e('button', {
-            onClick: shareSummary,
-            style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "4px 12px", borderRadius: "4px", cursor: "pointer", border: "1px solid #1e2433", background: copied ? "rgba(76,175,122,0.15)" : "#0e1118", color: copied ? "#48b878" : "#838996", marginTop: "4px" }
-          }, copied ? "Copied" : "Copy score summary"),
-          !result.kevOverride && e('div', { style: { fontFamily: mono, fontSize: "11px", color: "#838996", textAlign: "center" } },
-            `Static baseline (L=0): ${staticBaseline.toFixed(2)} · Temporal lift: +${(result.score - staticBaseline).toFixed(2)}`,
-            baseResult && !baseResult.kevOverride && e('span', null, ` · Unmodified: ${baseResult.score.toFixed(2)}`)
-          )
-        ),
-
-        // Input Controls
-        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", padding: "20px 16px" } },
-
-          // CVE lookup
-          e('div', { style: { marginBottom: "16px" } },
-            e('div', { style: { fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", color: "#838996", fontFamily: mono, marginBottom: "6px" } },
-              "CVE ID - enter and click Lookup to auto-populate B, L(t), H, and KEV"
-            ),
-            e('div', { style: { display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" } },
-              e('input', {
-                type: "text", value: cveId,
-                onChange: ev => setCveId(ev.target.value.toUpperCase()),
-                onKeyDown: ev => { if (ev.key === "Enter") lookupCVE(); },
-                placeholder: "CVE-2017-12718",
-                style: { width: "100%", maxWidth: "220px", background: "#080a0f", border: "1px solid #1e2433", borderRadius: "6px", padding: "8px 12px", color: "#e2e6f0", fontFamily: mono, fontSize: "12px", outline: "none" }
-              }),
-              e('button', {
-                onClick: () => lookupCVE(),
-                disabled: lookupLoading || !cveId.match(/^CVE-\d{4}-\d+$/i) || !turnstileReady,
-                style: { background: "#5b93f5", border: "none", borderRadius: "6px", padding: "8px 16px", color: "#fff", fontFamily: mono, fontSize: "11px", fontWeight: 600, cursor: "pointer", opacity: (lookupLoading || !cveId.match(/^CVE-\d{4}-\d+$/i) || !turnstileReady) ? .4 : 1, whiteSpace: "nowrap" }
-              }, lookupLoading ? "Loading..." : (turnstileReady ? "Lookup" : "Verifying you're human...")),
-              cveYear && e('span', { style: { fontFamily: mono, fontSize: "11px", color: "#838996" } }, `Year: ${cveYear} · Age: ${Math.round(cveAge)}yr`)
-            ),
-            // Turnstile widget mount point (visible flexible widget). Cloudflare
-            // renders a verification widget here on page load; the bootstrap
-            // script wires its callbacks to the dtvss-turnstile-ready /
-            // -unready events that this component listens to.
-            e('div', { id: 'dtvss-turnstile', style: { marginTop: '10px', minHeight: '65px' } }),
-            lookupMsg && e('div', { style: { fontFamily: mono, fontSize: "11px", color: lookupMsg.startsWith("Loaded") ? "#48b878" : "#e95e5e", marginTop: "6px" } }, lookupMsg)
-          ),
-
-          // Sliders: B and L
-          e('div', { style: { display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap" } },
-            ...[
-              { val: B, set: setB, min: 0, max: 10,  step: 0.01,   label: "B",    sub: "CVSS Exploitability", color: "#5b93f5", dec: 2 },
-              { val: L, set: setL, min: 0, max: 1,   step: 0.0001, label: "L(t)", sub: "EPSS Likelihood",     color: "#a070e8", dec: 4 },
-            ].map((k, i) => e('div', { key: i, style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", minWidth: "130px" } },
-              e('div', { style: { fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", color: "#838996", fontFamily: mono } }, k.label),
-              e('div', { style: { fontFamily: mono, fontSize: "22px", fontWeight: 700, color: k.color } }, k.val.toFixed(k.dec)),
-              e('input', { type: "range", min: k.min, max: k.max, step: k.step, value: k.val, onChange: ev => k.set(parseFloat(ev.target.value)), style: { width: "120px", accentColor: k.color, height: "3px" } }),
-              e('input', { type: "number", value: k.val, min: k.min, max: k.max, step: k.step, onChange: ev => { const v = parseFloat(ev.target.value); if (!isNaN(v)) k.set(Math.max(k.min, Math.min(k.max, v))); }, style: { width: "80px", background: "#080a0f", border: "1px solid #1e2433", borderRadius: "4px", padding: "4px 6px", color: k.color, fontFamily: mono, fontSize: "11px", textAlign: "center", outline: "none" } }),
-              e('div', { style: { fontSize: "11px", color: "#838996", fontFamily: mono } }, k.sub)
-            )),
-
-            // H selector
-            e('div', { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", minWidth: "130px" } },
-              e('div', { style: { fontSize: "11px", fontWeight: 600, letterSpacing: "0.1em", color: "#838996", fontFamily: mono } }, "H"),
-              e('div', { style: { fontFamily: mono, fontSize: "22px", fontWeight: 700, color: TGA_CLASSES[tgaClass].color } }, H.toFixed(1)),
-              e('div', { style: { display: "flex", gap: "4px", marginTop: "4px" } },
-                ...Object.entries(TGA_CLASSES).map(([cls, info]) => e('button', {
-                  key: cls, onClick: () => setTgaClass(cls),
-                  style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "4px 8px", borderRadius: "3px", cursor: "pointer", border: `1px solid ${tgaClass === cls ? info.color : "#1e2433"}`, background: tgaClass === cls ? `${info.color}20` : "transparent", color: tgaClass === cls ? info.color : "#838996" }
-                }, cls))
-              ),
-              e('div', { style: { fontSize: "11px", color: "#838996", fontFamily: mono } }, "Patient Harm")
-            )
-          ),
-
-          // Jurisdiction table
-          e('div', { style: { marginTop: "14px", padding: "12px", background: `${TGA_CLASSES[tgaClass].color}08`, border: `1px solid ${TGA_CLASSES[tgaClass].color}15`, borderRadius: "6px" } },
-            e('div', { style: { fontFamily: mono, fontSize: "11px", color: TGA_CLASSES[tgaClass].color, fontWeight: 600 } }, `${TGA_CLASSES[tgaClass].label} · H = ${H.toFixed(1)} - ${TGA_CLASSES[tgaClass].desc}`),
-            e('div', { style: { fontFamily: body, fontSize: "11px", color: "#838996", marginTop: "2px" } }, TGA_CLASSES[tgaClass].examples),
-            e('div', { style: { marginTop: "10px", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px", background: "#1e2433", borderRadius: "4px", overflow: "hidden" } },
-              ...Object.entries(TGA_CLASSES[tgaClass].jurisdictions).map(([j, c], i) => e('div', { key: i, style: { background: "#0e1118", padding: "6px 4px", textAlign: "center", fontFamily: mono } },
-                e('div', { style: { color: "#838996", fontSize: "11px" } }, j),
-                e('div', { style: { color: TGA_CLASSES[tgaClass].color, fontWeight: 600, fontSize: "11px", marginTop: "2px" } }, c)
-              ))
-            )
-          ),
-
-          // KEV toggle
-          e('div', { style: { display: "flex", justifyContent: "center", marginTop: "14px" } },
-            e('button', {
-              onClick: () => setKev(!kev),
-              style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${kev ? "#e95e5e" : "#1e2433"}`, background: kev ? "rgba(217,79,79,0.15)" : "transparent", color: kev ? "#e95e5e" : "#838996", animation: kev ? "pulse 1.5s infinite" : "none" }
-            }, kev ? "⚠ KEV OVERRIDE ACTIVE - SCORE FORCED TO 10.0" : "KEV Override (CISA Known Exploited)")
-          )
-        ),
-
-        // DTVSS PRO heading + Tier 2 header
-        e('div', { style: { fontFamily: mono, fontSize: "11px", color: "#838996", letterSpacing: "0.14em", textAlign: "center", marginTop: "8px" } },
-          "DTVSS PRO"
-        ),
-        e('div', {
-          style: {
-            fontFamily: mono, fontSize: "12px", fontWeight: 600,
-            padding: "10px 14px", borderRadius: "999px",
-            border: "1px solid #d4b83244", background: "rgba(212,184,50,0.08)",
-            color: "#d4b832", textAlign: "center", letterSpacing: "0.05em",
-            display: "flex", justifyContent: "center", alignItems: "center", gap: "8px"
-          }
-        },
-          e('span', null, "🔒 TIER 2"),
-          e('span', { style: { color: "#838996", fontWeight: 400 } }, "·"),
-          e('a', {
-            href: "/tiers",
-            style: { color: "#5b93f5", textDecoration: "none", fontWeight: 600 }
-          }, "find out more →")
-        ),
-
-        // Environment-Adjusted
-        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden", opacity: TIER2_LOCKED ? 0.5 : 1 } },
-          e('button', {
-            onClick: () => { if (!TIER2_LOCKED) setShowEnvAdj(!showEnvAdj); },
-            disabled: TIER2_LOCKED,
-            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: TIER2_LOCKED ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
-          },
-            e('span', { style: { color: ztaEnabled ? "#5b93f5" : "#838996", fontWeight: 600 } },
-              (TIER2_LOCKED ? "🔒 " : "") + `ENVIRONMENT-ADJUSTED EXPLOITABILITY${ztaEnabled && !TIER2_LOCKED ? " · ACTIVE" : ""}`
-            ),
-            e('span', { style: { color: "#838996", transform: showEnvAdj && !TIER2_LOCKED ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
-          ),
-          showEnvAdj && !TIER2_LOCKED && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
-            e('div', { style: { color: "#838996", fontSize: "11px", lineHeight: 1.6, marginBottom: "10px" } }, "ZTA / network segmentation reduces B by factor 0.571 (Broglio 2024)."),
-            e('button', {
-              onClick: () => setZtaEnabled(!ztaEnabled),
-              style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${ztaEnabled ? "#5b93f5" : "#1e2433"}`, background: ztaEnabled ? "rgba(79,142,247,0.15)" : "transparent", color: ztaEnabled ? "#5b93f5" : "#838996" }
-            }, ztaEnabled ? `ZTA: ON - B_adj = ${B_adj.toFixed(2)}` : "ZTA: OFF")
-          )
-        ),
-
-        // Temporal Decay
-        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden", opacity: TIER2_LOCKED ? 0.5 : 1 } },
-          e('button', {
-            onClick: () => { if (!TIER2_LOCKED) setShowDecay(!showDecay); },
-            disabled: TIER2_LOCKED,
-            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: TIER2_LOCKED ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
-          },
-            e('span', { style: { color: decayEnabled ? "#a070e8" : "#838996", fontWeight: 600 } },
-              (TIER2_LOCKED ? "🔒 " : "") + `TEMPORAL DECAY${decayEnabled && !TIER2_LOCKED ? " · ACTIVE" : ""}`
-            ),
-            e('span', { style: { color: "#838996", transform: showDecay && !TIER2_LOCKED ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
-          ),
-          showDecay && !TIER2_LOCKED && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
-            e('div', { style: { color: "#838996", fontSize: "11px", lineHeight: 1.6, marginBottom: "10px" } },
-              `L_eff = L(t) × exp(-λ × age). IIb: half-life 10yr. III: 13.9yr.${!cveId ? " Enter CVE ID above." : ""}`
-            ),
-            e('button', {
-              onClick: () => setDecayEnabled(!decayEnabled),
-              style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "6px 14px", borderRadius: "4px", cursor: "pointer", border: `1px solid ${decayEnabled ? "#a070e8" : "#1e2433"}`, background: decayEnabled ? "rgba(168,85,247,0.15)" : "transparent", color: decayEnabled ? "#a070e8" : "#838996" }
-            }, decayEnabled ? "Decay: ON" : "Decay: OFF"),
-            decayEnabled && cveAge > 0 && e('span', { style: { color: "#a070e8", fontSize: "11px", marginLeft: "10px" } }, `Age:${Math.round(cveAge)}yr · L_eff=${L_eff.toFixed(6)}`)
-          )
-        ),
-
-        // ORS
-        e('div', { style: { background: "#141820", border: "1px solid #1e2433", borderRadius: "12px", overflow: "hidden", opacity: TIER2_LOCKED ? 0.5 : 1 } },
-          e('button', {
-            onClick: () => { if (!TIER2_LOCKED) setShowORS(!showORS); },
-            disabled: TIER2_LOCKED,
-            style: { width: "100%", padding: "12px 16px", background: "transparent", border: "none", cursor: TIER2_LOCKED ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: mono, fontSize: "11px" }
-          },
-            e('span', { style: { color: showORS && !TIER2_LOCKED ? "#d4b832" : "#838996", fontWeight: 600 } },
-              (TIER2_LOCKED ? "🔒 " : "") + "ORGANISATIONAL RISK SCALING · ORS(t)"
-            ),
-            e('span', { style: { color: "#838996", transform: showORS && !TIER2_LOCKED ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" } }, "▾")
-          ),
-          showORS && !TIER2_LOCKED && e('div', { style: { padding: "0 16px 16px", fontFamily: mono, fontSize: "11px" } },
-            e('div', { style: { color: "#838996", fontSize: "11px", lineHeight: 1.6, marginBottom: "10px" } }, "ORS(t) = DTVSS(t) × F(N). Does not modify base score."),
-            e('div', { style: { display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginBottom: "10px" } },
-              e('span', { style: { color: "#838996", fontSize: "11px" } }, "N ="),
-              e('input', {
-                type: "number", value: deviceCount, min: 1, max: 100000,
-                onChange: ev => setDeviceCount(Math.max(1, parseInt(ev.target.value) || 1)),
-                style: { width: "80px", background: "#080a0f", border: "1px solid #1e2433", borderRadius: "4px", padding: "4px 8px", color: "#e2e6f0", fontFamily: mono, fontSize: "11px", outline: "none" }
-              }),
-              e('div', { style: { display: "flex", gap: "4px" } },
-                ...[{ id: "log", l: "Log" }, { id: "saturating", l: "Sat" }, { id: "exponential", l: "Exp" }, { id: "tiered", l: "Tier" }].map(fn =>
-                  e('button', {
-                    key: fn.id, onClick: () => setScalingFn(fn.id),
-                    style: { fontFamily: mono, fontSize: "11px", fontWeight: 600, padding: "3px 6px", borderRadius: "3px", cursor: "pointer", border: `1px solid ${scalingFn === fn.id ? "#d4b832" : "#1e2433"}`, background: scalingFn === fn.id ? "rgba(201,180,40,0.15)" : "transparent", color: scalingFn === fn.id ? "#d4b832" : "#838996" }
-                  }, fn.l)
-                )
-              )
-            ),
-            e('div', { style: { padding: "10px", background: "#080a0f", borderRadius: "6px", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" } },
-              e('div', null, e('div', { style: { color: "#838996", fontSize: "11px" } }, `F(${deviceCount})`), e('div', { style: { color: "#d4b832", fontSize: "16px", fontWeight: 700 } }, F_N.toFixed(2))),
-              e('div', { style: { color: "#838996", fontSize: "16px" } }, "×"),
-              e('div', null, e('div', { style: { color: "#838996", fontSize: "11px" } }, "DTVSS"), e('div', { style: { color: tier.color, fontSize: "16px", fontWeight: 700 } }, result.score.toFixed(2))),
-              e('div', { style: { color: "#838996", fontSize: "16px" } }, "="),
-              e('div', null, e('div', { style: { color: "#838996", fontSize: "11px" } }, "ORS(t)"), e('div', { style: { color: "#d4b832", fontSize: "20px", fontWeight: 900 } }, ORS.toFixed(2)))
-            )
-          )
-        ),
-
-        // Tier 3 pill
-        e('div', {
-          style: {
-            fontFamily: mono, fontSize: "12px", fontWeight: 600,
-            padding: "10px 14px", borderRadius: "999px",
-            border: "1px solid #5b93f544", background: "rgba(91,147,245,0.08)",
-            color: "#5b93f5", textAlign: "center", letterSpacing: "0.05em",
-            display: "flex", justifyContent: "center", alignItems: "center", gap: "8px",
-            marginTop: "6px"
-          }
-        },
-          e('span', null, "🔒 TIER 3"),
-          e('span', { style: { color: "#838996", fontWeight: 400 } }, "·"),
-          e('a', {
-            href: "/tiers#tier3",
-            style: { color: "#5b93f5", textDecoration: "none", fontWeight: 600 }
-          }, "find out more →")
-        ),
-
-        // Tier 4 pill
-        e('div', {
-          style: {
-            fontFamily: mono, fontSize: "12px", fontWeight: 600,
-            padding: "10px 14px", borderRadius: "999px",
-            border: "1px solid #a070e844", background: "rgba(160,112,232,0.08)",
-            color: "#a070e8", textAlign: "center", letterSpacing: "0.05em",
-            display: "flex", justifyContent: "center", alignItems: "center", gap: "8px"
-          }
-        },
-          e('span', null, "🔒 TIER 4"),
-          e('span', { style: { color: "#838996", fontWeight: 400 } }, "·"),
-          e('a', {
-            href: "/tiers#tier4",
-            style: { color: "#a070e8", textDecoration: "none", fontWeight: 600 }
-          }, "find out more →")
-        ),
-
-        // Footer
-        e('div', { style: { textAlign: "center", padding: "24px 0 0", fontFamily: body, fontSize: "12px", color: "#838996", borderTop: "1px solid #1e2433", lineHeight: 2 } },
-          e('div', {}, "© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia"),
-          e('div', { style: { marginTop: "4px", fontSize: "12px", color: "#b8bcc8" } }, "Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use"),
-          e('div', { style: { marginTop: "8px", fontSize: "13px" } },
-            e('a', { href: "/", style: { color: "#5b93f5" } }, "Search"),
-            " · ",
-            e('a', { href: "/calculator", style: { color: "#5b93f5" } }, "Calculator"),
-            " · ",
-            e('a', { href: "/calibration", style: { color: "#5b93f5" } }, "Calibration"),
-            " · ",
-            e('a', { href: "/about", style: { color: "#5b93f5" } }, "About"),
-            " · ",
-            e('a', { href: "/tiers", style: { color: "#5b93f5" } }, "Tiers"),
-            " · ",
-            e('a', { href: "/security-policy", style: { color: "#5b93f5" } }, "Security")
-          )
-        ),
-
-        // Disclaimer
-        e('div', { style: { padding: "14px 18px", marginTop: "-8px", border: "1px solid rgba(224,82,82,0.25)", borderRadius: "8px", background: "rgba(224,82,82,0.05)", fontFamily: mono, fontSize: "11px", color: "#b8bcc8", lineHeight: 1.8, textAlign: "center" } },
-          e('span', { style: { color: "#e95e5e", fontWeight: 600 } }, "RESEARCH PREVIEW"),
-          " - Tier 1 is a non-commercial research demonstration. Not a certified medical device risk management tool. Commercial licence required for production use."
-        )
-      )
-    );
-  }
-
-  ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
-})();
-
-// -----------------------------------------------------------------------------
-// Turnstile widget bootstrap
-// -----------------------------------------------------------------------------
-// Renders an invisible Turnstile widget once the script has loaded and the
-// sitekey has been fetched from the server. The widget handle is stashed on
-// window.__dtvssTurnstileWidget so the React component (above) can call
-// turnstile.getResponse(handle) per API request to retrieve the token.
-//
-// Why fetch the sitekey rather than hard-code it: it lets us deploy the same
-// HTML file across environments (staging/prod) without rebuilds, and lets us
-// rotate the sitekey via env-var redeploy without touching templates. The
-// sitekey is public by design, so /api/turnstile-config is unauthenticated.
-//
-// If TURNSTILE_SITEKEY isn't configured server-side, the endpoint returns
-// {sitekey: ""} and we skip rendering - the API will then accept requests
-// without a token (matching the server-side fail-open in dev).
-(function bootstrapTurnstile() {
-  let attempts = 0;
-  // Tracks first-ever successful verification. Once true, the widget
-  // is hidden and stays hidden across silent token resets ('used'
-  // reason). It only fades back in if verification genuinely fails
-  // ('expired' or 'error') so the user can recover.
-  let everVerified = false;
-
-  function setWidgetVisibility(visible) {
-    var c = document.getElementById('dtvss-turnstile');
-    if (!c) return;
-    if (visible) {
-      c.style.display = '';
-      c.style.opacity = '';
-      c.style.height = '';
-      c.style.overflow = '';
-      c.style.pointerEvents = '';
-    } else {
-      c.style.transition = 'opacity 300ms ease-out';
-      c.style.opacity = '0';
-      c.style.pointerEvents = 'none';
-      setTimeout(function () {
-        c.style.height = '0';
-        c.style.overflow = 'hidden';
-        c.style.transition = '';
-      }, 300);
-    }
-  }
-
-  function fireReady(token) {
-    window.__dtvssTurnstileToken = token || "";
-    window.dispatchEvent(new CustomEvent('dtvss-turnstile-ready', { detail: { token: token } }));
-    // First successful verification: fade out the widget.
-    if (token && !everVerified) {
-      everVerified = true;
-      setWidgetVisibility(false);
-    }
-  }
-  function fireUnready(reason) {
-    window.__dtvssTurnstileToken = "";
-    window.dispatchEvent(new CustomEvent('dtvss-turnstile-unready', {
-      detail: { reason: reason || 'unknown' }
-    }));
-    // 'used': silent post-search reset. Keep widget hidden if we've
-    // ever verified.
-    // 'expired' / 'error': verification genuinely needs the user's
-    // attention - bring the widget back so they can see it.
-    if (reason === 'expired' || reason === 'error') {
-      setWidgetVisibility(true);
-    }
-  }
-
-  // Listen for 'used' dispatches from the lookupCVE flow. The fetch
-  // path dispatches dtvss-turnstile-unready directly (without going
-  // through fireUnready) when consuming a token, so we mirror the
-  // visibility logic here for that path too. No-op if already hidden.
-  window.addEventListener('dtvss-turnstile-unready', function (ev) {
-    var reason = (ev.detail && ev.detail.reason) || '';
-    if (reason === 'expired' || reason === 'error') {
-      setWidgetVisibility(true);
-    }
-    // 'used' falls through: container is already hidden (everVerified
-    // was true to get to this point), so no action needed.
-  });
-
-  function tryRender() {
-    if (window.__dtvssTurnstileWidget != null) return;
-    if (!window.turnstile || typeof window.turnstile.render !== "function") {
-      // Script hasn't finished loading yet. Retry up to ~5 seconds; if
-      // it never loads (CSP block, offline, ad-blocker), give up - the
-      // Lookup button stays disabled with "Verifying..." (conservative).
-      if (++attempts > 50) return;
-      setTimeout(tryRender, 100);
-      return;
-    }
-    fetch("/api/turnstile-config")
-      .then(function (r) { return r.json(); })
-      .then(function (cfg) {
-        if (!cfg || !cfg.sitekey) {
-          // Server is in fail-open dev mode (no TURNSTILE_SECRET). Mark
-          // ready with empty token; API will accept without one.
-          fireReady("");
-          return;
-        }
-        var container = document.getElementById("dtvss-turnstile");
-        if (!container) return;
-        window.__dtvssTurnstileWidget = window.turnstile.render(container, {
-          sitekey: cfg.sitekey,
-          // 'flexible' adapts to the container width.
-          size: "flexible",
-          // Token success: cache and notify React component (or any
-          // listener) that the widget is ready.
-          callback: function (token) { fireReady(token); },
-          // Token expired (~5 min): clear cache, mark unready. Turnstile
-          // auto-resets and we'll get a fresh callback when ready again.
-          'expired-callback': function () { fireUnready('expired'); },
-          // Verification failed: mark unready; user sees error state.
-          'error-callback': function (errorCode) {
-            console.warn('Turnstile error:', errorCode);
-            fireUnready('error');
-          }
-        });
-      })
-      .catch(function () {
-        // /api/turnstile-config failed; treat as fail-open.
-        fireReady("");
-      });
-  }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", tryRender);
-  } else {
-    tryRender();
-  }
-})();
 </script>
+
 </body>
 </html>
