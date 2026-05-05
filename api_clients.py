@@ -182,26 +182,6 @@ def nvd_lookup_cve(cve_id: str, api_key: str = None) -> Optional[dict]:
     return result
 
 
-def is_lookup_error(result: Optional[dict]) -> bool:
-    """
-    Helper: True if a *_lookup_cve result is an error sentinel.
-
-    Both nvd_lookup_cve() and mitre_lookup_cve() use the convention of
-    returning either a valid result dict, an error dict {"error": "..."},
-    or None. This helper centralises the "is this a real result?" check
-    so future callers don't accidentally treat an error dict as success
-    by writing `if result:` (which is True for both).
-
-    Usage:
-        result = mitre_lookup_cve(cve_id)
-        if is_lookup_error(result):
-            ...handle error...
-        else:
-            ...use result...
-    """
-    return result is None or (isinstance(result, dict) and "error" in result)
-
-
 def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
     """
     Fallback: look up CVE from MITRE CVE.org API when NVD hasn't enriched it.
@@ -215,7 +195,8 @@ def mitre_lookup_cve(cve_id: str) -> Optional[dict]:
           compatibility with future callers that may want to distinguish
           "no result" from "error result".
 
-    Callers should use is_lookup_error() rather than a bare truthiness check.
+    Callers should check `"error" in result` rather than a bare truthiness
+    check, since both error sentinels and successful results are truthy dicts.
     """
     url = f"{MITRE_CVE_URL}/{cve_id}"
 
