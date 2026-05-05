@@ -452,6 +452,12 @@ window.addEventListener('error', function(e) {
             )
           ),
 
+          // Class I / IIa scope note
+          e('div', { style: { marginTop: "10px", padding: "8px 12px", background: "#0e1118", border: "1px solid #1e2433", borderRadius: "6px", fontFamily: body, fontSize: "11px", color: "#838996", lineHeight: 1.6 } },
+            e('span', { style: { color: "#b8bcc8", fontWeight: 600 } }, "Note. "),
+            "The patent specifies four H values (Class I = 2.0, IIa = 5.0, IIb = 7.5, III = 10.0). The calculator exposes Class IIb and Class III only because the calibration dataset and current ICSMA scope contain no Class I or Class IIa CVEs. The full four-class taxonomy applies in the patent specification."
+          ),
+
           // KEV toggle
           e('div', { style: { display: "flex", justifyContent: "center", marginTop: "14px" } },
             e('button', {
