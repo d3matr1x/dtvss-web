@@ -362,6 +362,19 @@ def security_txt_legacy():
     return redirect("/.well-known/security.txt", code=301)
 
 
+@app.route("/.well-known/pgp-key.txt")
+def pgp_key_txt():
+    # Public PGP key referenced by the Encryption: field in security.txt.
+    # Researchers fetch this URL to encrypt vulnerability reports before
+    # emailing them to the secops contact. The fingerprint published in
+    # security.txt should be verified out-of-band before the key is trusted.
+    return send_from_directory(
+        WELL_KNOWN_DIR,
+        "pgp-key.txt",
+        mimetype="application/pgp-keys",
+    )
+
+
 @app.route("/security-policy")
 def security_policy():
     return _serve_html_with_nonce(STATIC_DIR, "security-policy.html")
@@ -401,6 +414,12 @@ def caa_report():
 # Serve only whitelisted static assets (CSS, JS, images)
 STATIC_ASSET_PREFIXES = ("assets/", "css/", "js/", "img/", "fonts/")
 
+# Subset of prefixes whose contents are immutable in practice (fonts, the
+# self-hosted font CSS) - safe to cache aggressively for repeat visits.
+# Other static assets (general CSS, JS) get a shorter TTL so updates are
+# picked up without a cache-busting rename.
+LONG_CACHE_PREFIXES = ("fonts/", "css/fonts.css")
+
 
 @app.route("/<path:filename>")
 def static_asset(filename):
@@ -408,7 +427,15 @@ def static_asset(filename):
     if not filename.startswith(STATIC_ASSET_PREFIXES):
         abort(404)
     # send_from_directory protects against ../ traversal
-    return send_from_directory(STATIC_DIR, filename)
+    resp = send_from_directory(STATIC_DIR, filename)
+    # Long cache for fonts and the font CSS - they don't change. Other static
+    # assets get a 1-hour cache so iterations during deploys are visible
+    # quickly to repeat visitors.
+    if filename.startswith(LONG_CACHE_PREFIXES) or filename == "css/fonts.css":
+        resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    else:
+        resp.headers["Cache-Control"] = "public, max-age=3600"
+    return resp
 
 # -----------------------------------------------------------------------------
 # 404 handler - HTML page for browser routes, JSON for API routes

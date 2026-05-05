@@ -63,13 +63,14 @@
   }
 }
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preload" href="/fonts/ibm-plex-sans-v23-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/ibm-plex-mono-v20-latin-400.woff2" as="font" type="font/woff2" crossorigin>
 <!-- Cloudflare Turnstile (managed mode) for bot challenge on /api/lookup
      and /api/search. Loaded async; the page renders fine without it but
      API calls will surface a "Bot challenge required" error if the script
      failed to load. -->
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/fonts.css">
 <style>
 :root {
   --bg:#080a0f; --s1:#0e1118; --s2:#141820; --bd:#1e2433;
