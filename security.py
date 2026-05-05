@@ -5,17 +5,17 @@ Drop-in security hardening for the DTVSS Flask application.
 
 This module centralizes security controls identified in the penetration test:
   - XXE-safe XML parsing
-  - SSRF protection for URL fetching
+  - SSRF protection for URL fetching (with DNS pinning)
   - CORS allowlist
   - Security headers
   - Input validation helpers
-  - Safe JSON fetching with size limits
+  - Safe byte fetching with size limits
   - Error message sanitization
   - Atomic file writes
 
 USAGE:
-  from security import apply_hardening, safe_fetch_json, validate_external_url
-  
+  from security import apply_hardening, safe_fetch_bytes, validate_and_resolve_external_url
+
   app = Flask(__name__)
   apply_hardening(app)  # Adds headers, CORS, ProxyFix
 
@@ -406,22 +406,6 @@ def safe_fetch_bytes(
         return b"".join(chunks)
     finally:
         conn.close()
-
-
-def safe_fetch_json(
-    url: str,
-    headers: Optional[dict] = None,
-    timeout: int = 15,
-    max_bytes: int = MAX_RESPONSE_BYTES,
-    extra_allowed_hosts: Optional[set] = None,
-) -> Any:
-    """Fetch JSON with all safety checks. Returns parsed JSON."""
-    raw = safe_fetch_bytes(url, headers, timeout, max_bytes, extra_allowed_hosts)
-    # Reject if it looks like HTML (error page)
-    stripped = raw.lstrip()
-    if stripped.startswith(b"<"):
-        raise ValueError("Response is HTML, not JSON")
-    return json.loads(raw.decode("utf-8"))
 
 
 # XXE protection is a hard requirement. Import at module load time so a

@@ -287,14 +287,6 @@ def _query_hash(q: str) -> str:
 # -----------------------------------------------------------------------------
 # Routes: HTML pages (MED-04: explicit allowlist only)
 # -----------------------------------------------------------------------------
-STATIC_PAGES = {
-    "": "index.html",
-    "calculator": "calculator.html",
-    "calibration": "calibration.html",
-    "about": "about.html",
-    "tiers": "tiers.html",
-}
-
 @app.route("/tiers")
 def tiers():
     return _serve_html_with_nonce(STATIC_DIR, "tiers.html")
@@ -489,7 +481,7 @@ def lookup():
 
     try:
         nvd = nvd_lookup_cve(cve_id, api_key=NVD_API_KEY)
-    except Exception as e:
+    except Exception:
         log.exception("NVD lookup failed for %s", _log_safe_value(cve_id))
         return jsonify({
             "error": "Upstream lookup failed",
@@ -527,7 +519,7 @@ def lookup():
 
     try:
         epss = epss_lookup([cve_id])
-    except Exception as e:
+    except Exception:
         log.exception("EPSS lookup failed for %s", _log_safe_value(cve_id))
         epss = {}
     epss_data = epss.get(cve_id, {"epss": 0.0, "percentile": 0.0, "date": ""})
@@ -626,7 +618,7 @@ def search():
     if not query:
         return jsonify({
             "error": "Invalid or missing 'q' parameter",
-            "hint": f"Query must be 1-100 printable chars, no control chars",
+            "hint": "Query must be 1-100 printable chars, no control chars",
         }), 400
 
     tga_override = request.args.get("tga_class", "").strip()
@@ -771,7 +763,7 @@ def _search_live_nvd(query: str, tga_override: str, max_results: int):
     nvd_results_map = {}
     try:
         baseline = nvd_search_keyword(query, api_key=NVD_API_KEY, max_results=max_results) or []
-    except Exception as e:
+    except Exception:
         log.exception("NVD search failed for q_hash=%s", _query_hash(query))
         return jsonify({
             "results": [], "count": 0, "query": query,
@@ -1061,9 +1053,8 @@ except Exception as _e:
 # pay a ~1 MB JSON download. Without this, four gunicorn workers each pay the
 # cold-start cost on their first hit, blocking real user requests for several
 # seconds while CISA responds. Failure here is non-fatal - cisa_kev_check has
-# its own backoff logic.
+# its own backoff logic. cisa_kev_check is already imported at module top.
 try:
-    from api_clients import cisa_kev_check
     cisa_kev_check("CVE-0000-0000")  # any non-existent CVE triggers cache warm
     log.info("KEV catalog cache warmed at startup")
 except Exception as _e:
