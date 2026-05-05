@@ -151,7 +151,13 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
   <div>
     <h2>How k = 15 was chosen</h2>
     <p style="margin-top:10px;color:var(--dim)">
-      The DTVSS formula multiplies severity, patient harm, and a temporal amplification factor (1 + k&middot;L(t)). <a href="/about" title="DTVSS scoring methodology and the role of EPSS as a continuous daily probability">How DTVSS uses EPSS as a continuous amplification factor &rarr;</a> The constant k was calibrated against 96 real medical device CVEs as the lowest integer value satisfying four clinical criteria defined in the provisional patent. A re-run against a 362-CVE superset drawn from the current live CISA ICSMA index returns the same k.
+      The DTVSS formula multiplies severity, patient harm, and a temporal amplification factor (1 + k&middot;L(t)).
+    </p>
+    <p style="margin-top:6px;color:var(--dim)">
+      <a href="/about" title="DTVSS scoring methodology and the role of EPSS as a continuous daily probability">How DTVSS uses EPSS as a continuous amplification factor &rarr;</a>
+    </p>
+    <p style="margin-top:10px;color:var(--dim)">
+      The constant k was calibrated against 96 real medical device CVEs as the lowest integer value satisfying four clinical criteria defined in the provisional patent. A re-run against a 362-CVE superset drawn from the current live CISA ICSMA index returns the same k.
     </p>
     <div class="stats">
       <div class="stat">
