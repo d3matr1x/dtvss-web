@@ -477,17 +477,30 @@ def _hourly_pipeline():
 
 # --- Init ---
 
+# mtime of mdm_index.json at last in-memory load. Used by the reloader thread
+# to detect when another process has written a newer index to disk.
+_index_mtime = 0.0
+
+
 def _load():
-    global _index
+    """
+    Load mdm_index.json into the in-memory _index global.
+    Records the file's mtime so the reloader thread can spot future writes.
+    """
+    global _index, _index_mtime
     if os.path.exists(INDEX_FILE):
         try:
             with open(INDEX_FILE, "r") as f:
-                _index = json.load(f)
-            total = len(_index.get("manufacturers", {}))
-            with_cves = sum(1 for m in _index.get("manufacturers", {}).values()
+                new_index = json.load(f)
+            mtime = os.path.getmtime(INDEX_FILE)
+            with _lock:
+                _index = new_index
+                _index_mtime = mtime
+            total = len(new_index.get("manufacturers", {}))
+            with_cves = sum(1 for m in new_index.get("manufacturers", {}).values()
                           if m.get("status") == "has_cves")
-            total_cves = sum(len(m.get("cves", [])) for m in _index.get("manufacturers", {}).values())
-            source = _index.get("source", "unknown")
+            total_cves = sum(len(m.get("cves", [])) for m in new_index.get("manufacturers", {}).values())
+            source = new_index.get("source", "unknown")
             print(f"  MDM index: {total} vendors, {with_cves} with CVEs, {total_cves} total CVEs")
             print(f"  Source: {source}")
         except Exception as e:
@@ -496,7 +509,123 @@ def _load():
         print(f"  MDM index not found - run build_index.py")
 
 
+# --- Multi-worker coordination (Railway runs multiple gunicorn workers) ---
+#
+# Without coordination, every worker imports this module and starts its own
+# _hourly_pipeline thread. Symptoms observed in production: the same RSS
+# advisory appears 4 times in logs (once per worker), all 4 workers race to
+# atomic_write_json the same file, and only the worker that performed the
+# write has fresh in-memory state. The other 3 workers continue serving stale
+# _index data until they restart, so newly-ingested CVEs aren't visible in
+# the dropdown or search depending on which worker handles the request.
+#
+# Fix has two parts:
+#   1. _try_acquire_pipeline_leadership(): only one worker becomes the
+#      leader and runs the hourly thread. fcntl.flock on a sentinel file
+#      gives us a process-wide exclusive lock that is automatically released
+#      when the worker dies (kernel cleans up file locks on close).
+#   2. _index_reloader(): every worker runs this thread, polls mtime of
+#      mdm_index.json once a minute, and reloads from disk when the leader
+#      has written a newer file. This keeps follower workers in sync without
+#      any shared-memory primitive.
+#
+# A non-leader worker that loses contact with the leader (leader dies) will
+# eventually pick up the lock on its next minute-tick attempt and start its
+# own hourly thread. Stale-leader scenarios are bounded by the reloader
+# poll interval.
+
+_INDEX_RELOAD_POLL_SECONDS = 60
+_pipeline_lock_file_handle = None  # kept as a module global so the lock isn't
+                                    # garbage-collected and released. Only the
+                                    # leader holds a non-None value.
+
+
+def _try_acquire_pipeline_leadership() -> bool:
+    """
+    Attempt to acquire an exclusive flock on a sentinel file co-located with
+    the index. Returns True if this process is now the hourly-pipeline leader.
+    fcntl is POSIX-only; if unavailable (Windows dev), every worker becomes a
+    leader, which matches the pre-fix behavior and is acceptable for local dev.
+    """
+    global _pipeline_lock_file_handle
+    try:
+        import fcntl
+    except ImportError:
+        return True  # not POSIX, fall back to per-worker hourly thread
+
+    sentinel_path = INDEX_FILE + ".pipeline.lock"
+    try:
+        # Open in append mode so the file is created if missing without
+        # truncating an existing one. We only care about the lock, not contents.
+        fh = open(sentinel_path, "a")
+        fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        # Hold the file open for the lifetime of the process. The kernel
+        # releases the flock when the fd is closed or the process exits.
+        _pipeline_lock_file_handle = fh
+        return True
+    except (BlockingIOError, OSError):
+        # Another worker holds the lock. Close our handle so we don't leak fds
+        # on repeated attempts.
+        try:
+            fh.close()
+        except Exception:
+            pass
+        return False
+
+
+def _index_reloader():
+    """
+    Poll INDEX_FILE mtime every _INDEX_RELOAD_POLL_SECONDS and reload from
+    disk if newer than _index_mtime. Also re-attempts pipeline leadership
+    each tick: if the current leader's worker died, the kernel released its
+    flock and any worker can now take over.
+    """
+    global _index_mtime
+    while True:
+        time.sleep(_INDEX_RELOAD_POLL_SECONDS)
+        try:
+            if not os.path.exists(INDEX_FILE):
+                continue
+            current_mtime = os.path.getmtime(INDEX_FILE)
+            if current_mtime > _index_mtime:
+                _load()  # _load takes _lock and updates _index_mtime
+            # If we're not the leader, periodically attempt to take over in
+            # case the previous leader's worker died. _try_acquire returns
+            # quickly (non-blocking flock) so this is cheap.
+            if _pipeline_lock_file_handle is None:
+                if _try_acquire_pipeline_leadership():
+                    threading.Thread(
+                        target=_hourly_pipeline,
+                        name="dtvss-hourly-pipeline",
+                        daemon=True,
+                    ).start()
+                    logging.getLogger("dtvss.index_loader").info(
+                        "Hourly ICSMA pipeline started (took over leadership)"
+                    )
+        except Exception as e:
+            # Reloader failures are non-fatal; sleep and try again next tick.
+            print(f"  [Reloader] {e}")
+
+
 _seed_persistent_from_repo()
 _load()
-threading.Thread(target=_hourly_pipeline, daemon=True).start()
-logging.getLogger("dtvss.index_loader").info("Hourly ICSMA pipeline started")
+
+# Decide whether this worker runs the hourly RSS thread. Only the leader does.
+_log = logging.getLogger("dtvss.index_loader")
+if _try_acquire_pipeline_leadership():
+    threading.Thread(
+        target=_hourly_pipeline,
+        name="dtvss-hourly-pipeline",
+        daemon=True,
+    ).start()
+    _log.info("Hourly ICSMA pipeline started (leader worker)")
+else:
+    _log.info("Hourly ICSMA pipeline skipped (follower worker)")
+
+# Every worker, leader or follower, runs the reloader so disk-writes by the
+# leader are picked up everywhere.
+threading.Thread(
+    target=_index_reloader,
+    name="dtvss-index-reloader",
+    daemon=True,
+).start()
