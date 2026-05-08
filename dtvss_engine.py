@@ -110,21 +110,33 @@ def classify_device(description: str, use_openfda: bool = True) -> tuple[str | N
                 if keyword in desc_lower:
                     return dynamic[keyword], "openfda_cache"
         except Exception:  # noqa: BLE001
-            # Layer 2 (openfda_cache) failure is non-fatal — fall through
+            # Layer 2 (openfda_cache) failure is non-fatal - fall through
             # to Layer 3 (live openFDA lookup) below.
             pass
 
-    # Layer 3: openFDA single-device API lookup
-    if use_openfda:
-        try:
-            from api_clients import openfda_classify_device
-            fda_result = openfda_classify_device(description)
-            if fda_result and fda_result.get("tga_class"):
-                return fda_result["tga_class"], "openfda"
-        except Exception:  # noqa: BLE001
-            # Layer 3 (openFDA live) failure is non-fatal — fall through
-            # to Layer 4 ("manual" / unclassifiable) below.
-            pass
+    # Layer 3: live openFDA single-device API lookup - DISABLED IN REQUEST PATH.
+    #
+    # This previously did a synchronous HTTPS call to api.fda.gov on every
+    # search request that fell through Layers 1 and 2. On 2026-05-08 a
+    # gunicorn worker exceeded its 30s timeout while waiting on this call
+    # under load, sending SIGABRT and surfacing as Sentry "SystemExit: 1"
+    # at gunicorn/workers/base.py:198 (handle_abort). The circuit breaker
+    # in api_clients.openfda_classify_device caps repeated failures, but
+    # a single cold-breaker request can still exceed the worker timeout
+    # when a search hits many CVEs and Layer 3 fires for each.
+    #
+    # The right fix is to keep openFDA out of the request path entirely.
+    # Layer 1 (static keywords) and Layer 2 (cached daily refresh) cover
+    # all common medical devices. Long-tail names that none of those
+    # match fall through to Layer 4 ("manual") and the search handler
+    # defaults the TGA class to IIb in app.py. That is the same outcome
+    # Layer 3 produced when openFDA returned no match, so functionally
+    # the only thing we lose is the marginal coverage Layer 3 added for
+    # rare device names - at the cost of zero risk of worker timeouts.
+    #
+    # Deliberately ignore the use_openfda parameter rather than removing
+    # it, so callers that pass use_openfda=False explicitly still work.
+    _ = use_openfda  # silence "unused" warnings; kept for API stability
 
     # Layer 4: unclassifiable
     return None, "manual"
