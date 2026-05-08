@@ -1075,15 +1075,31 @@ _threading.Thread(
 ).start()
 
 # Warm the CISA KEV cache at startup so the first request doesn't synchronously
-# pay a ~1 MB JSON download. Without this, four gunicorn workers each pay the
-# cold-start cost on their first hit, blocking real user requests for several
-# seconds while CISA responds. Failure here is non-fatal - cisa_kev_check has
-# its own backoff logic. cisa_kev_check is already imported at module top.
-try:
-    cisa_kev_check("CVE-0000-0000")  # any non-existent CVE triggers cache warm
-    log.info("KEV catalog cache warmed at startup")
-except Exception as _e:
-    log.warning("KEV cache warm skipped: %s", sanitize_error(_e))
+# pay a ~1 MB JSON download.
+#
+# Previously this ran synchronously at module import. CISA's CDN is fast
+# enough that this rarely caused issues, but the bug shape is identical to
+# the openFDA warmup we already fixed: every gunicorn worker fetches the
+# same ~1 MB JSON at boot, and any upstream slowness can push worker boot
+# past gunicorn's timeout, causing SIGABRT and Cloudflare 522s. Moving to
+# a background daemon thread eliminates the risk entirely. Failure remains
+# non-fatal because cisa_kev_check has its own backoff logic.
+import threading as _threading_kev
+
+
+def _warm_kev_cache():
+    try:
+        cisa_kev_check("CVE-0000-0000")  # any non-existent CVE triggers cache warm
+        log.info("KEV catalog cache warmed at startup")
+    except Exception as _e:
+        log.warning("KEV cache warm skipped: %s", sanitize_error(_e))
+
+
+_threading_kev.Thread(
+    target=_warm_kev_cache,
+    name="dtvss-kev-cache-warmup",
+    daemon=True,
+).start()
 
 
 if __name__ == "__main__":
