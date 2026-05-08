@@ -582,12 +582,35 @@ FDA_TO_TGA = {
 }
 
 
+_OPENFDA_CIRCUIT = {"failure_count": 0, "open_until": 0.0}
+_OPENFDA_CIRCUIT_THRESHOLD = 3      # consecutive failures before opening
+_OPENFDA_CIRCUIT_COOLDOWN = 300     # seconds the circuit stays open after tripping
+_OPENFDA_REQUEST_TIMEOUT = 3        # seconds; was 10. classify_device runs in
+                                    # the request path, so blocking for 10s on a
+                                    # slow openFDA response can cascade into a
+                                    # gunicorn worker timeout and Cloudflare 522s.
+
+
 def openfda_classify_device(device_name: str) -> Optional[dict]:
     """
     Look up device classification from openFDA.
     Returns TGA-equivalent class and FDA product details, or None.
     This runs server-side only - the user never sees the API call.
+
+    Hardened against upstream slowness: a short request timeout plus a
+    circuit breaker that opens after N consecutive failures and stays open
+    for a cooldown window. While the circuit is open, this function returns
+    None immediately without touching the network. Cascade failure of this
+    layer falls through to "manual" classification rather than blocking the
+    request - acceptable, because Layers 1 and 2 already cover all common
+    medical devices, and this layer only fires for unusual long-tail names.
     """
+    import time as _time
+    now = _time.time()
+
+    if _OPENFDA_CIRCUIT["open_until"] > now:
+        return None  # circuit open, fail fast
+
     params = urllib.parse.urlencode({
         "search": f'device_name:"{device_name}"',
         "limit": 5,
@@ -597,9 +620,16 @@ def openfda_classify_device(device_name: str) -> Optional[dict]:
     try:
         data = _fetch_json(url, headers={
             "Accept": "application/json", "User-Agent": "DTVSS/6.0"
-        }, timeout=10)
+        }, timeout=_OPENFDA_REQUEST_TIMEOUT)
     except Exception:
+        _OPENFDA_CIRCUIT["failure_count"] += 1
+        if _OPENFDA_CIRCUIT["failure_count"] >= _OPENFDA_CIRCUIT_THRESHOLD:
+            _OPENFDA_CIRCUIT["open_until"] = now + _OPENFDA_CIRCUIT_COOLDOWN
         return None
+
+    # success - reset breaker
+    _OPENFDA_CIRCUIT["failure_count"] = 0
+    _OPENFDA_CIRCUIT["open_until"] = 0.0
 
     results = data.get("results", [])
     if not results:

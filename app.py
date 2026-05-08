@@ -1042,12 +1042,37 @@ def turnstile_config():
 # -----------------------------------------------------------------------------
 # Startup
 # -----------------------------------------------------------------------------
-try:
-    from api_clients import refresh_device_keywords
-    _keywords = refresh_device_keywords()
-    log.info("Device keywords loaded: %d", len(_keywords))
-except Exception as _e:
-    log.warning("Device keyword refresh skipped: %s", sanitize_error(_e))
+# Refresh device keyword cache from openFDA in a background thread.
+#
+# Previously this ran synchronously at module import time, performing 11
+# sequential HTTPS calls to api.fda.gov (~10s timeout each, plus 0.3s sleep
+# between). On 2026-05-07 18:37 UTC this caused a Cloudflare 522 outage when
+# a gunicorn worker hit the boot timeout mid-import and was killed while
+# waiting on openFDA. See Railway flow logs for deploymentInstanceId
+# 0ca19a95-491e-4900-9caa-e2963c7d9e18 (NO_SOCKET drops on Akamai 23.207.150.60).
+#
+# Threading model: gunicorn forks workers from a master that has already
+# imported this module, so the thread starts in each worker post-fork. A
+# daemon thread won't block worker shutdown. Failure is non-fatal -
+# classify_device() falls through to Layer 3 if the cache stays empty, and
+# Layer 3 itself is now circuit-broken (api_clients.openfda_classify_device).
+import threading as _threading
+
+
+def _warm_device_keywords():
+    try:
+        from api_clients import refresh_device_keywords
+        n = len(refresh_device_keywords())
+        log.info("Device keywords loaded: %d", n)
+    except Exception as _e:
+        log.warning("Device keyword refresh skipped: %s", sanitize_error(_e))
+
+
+_threading.Thread(
+    target=_warm_device_keywords,
+    name="dtvss-device-keyword-warmup",
+    daemon=True,
+).start()
 
 # Warm the CISA KEV cache at startup so the first request doesn't synchronously
 # pay a ~1 MB JSON download. Without this, four gunicorn workers each pay the
