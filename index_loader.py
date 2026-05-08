@@ -291,19 +291,29 @@ def _nvd_enrich_cve(cve_id):
         desc = next((d["value"] for d in cve_obj.get("descriptions", []) if d.get("lang") == "en"), "")
 
         m = cve_obj.get("metrics", {})
-        bs = sev = cv = ""
+        bs = sev = cv = vec = ""
         for vk, vl in [("cvssMetricV31","3.1"),("cvssMetricV30","3.0"),
                         ("cvssMetricV40","4.0"),("cvssMetricV2","2.0")]:
             if m.get(vk):
                 entry = next((e for e in m[vk] if e.get("type") == "Primary"), m[vk][0])
                 bs = entry.get("cvssData",{}).get("baseScore",0)
                 sev = entry.get("cvssData",{}).get("baseSeverity","")
+                # Capture the vector string so the scoring engine can
+                # compute the exploitability sub-score B. Without this,
+                # CVEs ingested by the hourly RSS path have no vector
+                # and are silently dropped at scoring time
+                # (search handler: "if not B: continue"), even though
+                # they appear in the dropdown vendor count. NVD's CVSS v2
+                # field is named vectorString; v3.x and v4.0 also use
+                # vectorString. Default empty if the entry doesn't carry one.
+                vec = entry.get("cvssData",{}).get("vectorString","")
                 cv = vl
                 break
 
         return {
             "description": desc[:300],
             "cvss_version": cv,
+            "cvss_vector": vec,
             "base_score": bs,
             "severity": sev,
             "published": cve_obj.get("published","")[:10],
@@ -449,6 +459,7 @@ def _hourly_pipeline():
                             "cve_id": cve_id,
                             "description": nvd["description"] if nvd else "",
                             "cvss_version": nvd["cvss_version"] if nvd else "",
+                            "cvss_vector": nvd.get("cvss_vector", "") if nvd else "",
                             "base_score": nvd["base_score"] if nvd else 0,
                             "severity": nvd["severity"] if nvd else "",
                             "published": nvd["published"] if nvd else "",
