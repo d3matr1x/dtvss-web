@@ -177,6 +177,43 @@ def _serve_html_with_nonce(directory: str, filename: str):
     resp.headers["Pragma"] = "no-cache"
     return resp
 
+
+# -----------------------------------------------------------------------------
+# Hardening: replace inode-derived ETags with content-hash ETags.
+#
+# Flask's default send_from_directory() generates ETags from filesystem inode
+# metadata (mtime + size + inode). This is the historical Apache pattern that
+# Nikto flags as CVE-2003-1418: an attacker who fingerprints inode numbers can
+# infer filesystem layout, useful for NFS/CIFS exploitation.
+#
+# Modern best practice is content-derived ETags: hash the response body, use
+# that as the ETag. Same caching benefit (browsers can re-validate cleanly),
+# zero filesystem disclosure. The cost is one MD5 per response, which for
+# a small static site is negligible.
+#
+# We don't override response.set_etag() per-route - the after_request hook
+# catches every response, so HTML, CSS, fonts, robots.txt, etc. all get the
+# clean ETag automatically. ETags are only set on responses that already have
+# one (i.e. send_from_directory output); we don't add ETags where Flask hadn't.
+@app.after_request
+def replace_inode_etag(response):
+    """Replace the default inode-derived ETag with a content-hash ETag."""
+    if "ETag" not in response.headers:
+        return response
+    # Only rewrite if response has a body we can hash. Streaming responses
+    # (rare in this app) have no .data attribute and we leave them alone.
+    try:
+        body = response.get_data()
+    except Exception:
+        return response
+    if not body:
+        return response
+    import hashlib
+    digest = hashlib.md5(body).hexdigest()
+    response.headers["ETag"] = f'"{digest}"'
+    return response
+
+
 # Fail loud if running in any managed deploy (Railway/Heroku/Fly/Render) without
 # persistent storage. RAIL-01 in PENTEST_RAILWAY_ADDENDUM.md. A "works, silently
 # loses data" configuration is worse than a startup crash.
