@@ -740,7 +740,17 @@ def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
                 "max-age=31536000; includeSubDomains"
             )
 
-        # CSP - strict for JSON; nonce-based for HTML.
+        # CSP - strict for non-HTML responses; nonce-based for HTML.
+        #
+        # Non-HTML responses (JSON, XML, plain text) don't execute scripts or
+        # load resources, so the full nonce-based CSP doesn't apply to them.
+        # Sending the HTML CSP on robots.txt/sitemap.xml/security.txt also
+        # breaks Cloudflare caching because each response gets a unique
+        # per-request nonce. We use 'default-src none; frame-ancestors none'
+        # for these - the strictest possible CSP, deterministic, cacheable.
+        # This closes ZAP findings on robots.txt and sitemap.xml for
+        # "CSP Header & Meta", "no fallback", "unsafe-eval", and
+        # "unsafe-inline" (the strict CSP doesn't trigger any of them).
         #
         # Strict CSP is default-on. DTVSS_CSP_STRICT=0 opts out (permissive
         # with 'unsafe-inline' as a fallback for <script>/<style> blocks)
@@ -753,8 +763,11 @@ def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
         # control. Inline style="..." attributes are permitted via
         # style-src-attr by explicit design (see rationale on lines
         # ~560-572 below).
-        if response.mimetype == "application/json":
-            response.headers["Content-Security-Policy"] = "default-src 'none'"
+        is_html = response.mimetype == "text/html"
+        if not is_html:
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+            )
         else:
             nonce = getattr(g, "csp_nonce", "")
             # Strict CSP is now the default (Fix #11). Every inline event
