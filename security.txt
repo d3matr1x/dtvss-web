@@ -17,7 +17,7 @@ Contact: https://github.com/d3matr1x/dtvss-web/security/advisories/new
 # field and recommends a value less than 12 months. Calendar reminder
 # recommended: re-sign and re-publish before this date or scanners will
 # flag the file as expired.
-Expires: 2027-04-20T00:00:00Z
+Expires: 2027-05-09T00:00:00.000Z
 
 # Languages accepted for vulnerability reports.
 Preferred-Languages: en

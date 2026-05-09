@@ -218,14 +218,42 @@ li{margin-bottom:6px}
     </div>
   </div>
 
+  <!-- Self-audit history -->
+  <div class="section">
+    <h3>Self-audit history</h3>
+    <p>
+      We periodically run automated security scanners against the production site and remediate findings. Scan reports and remediation evidence are retained in a private audit repository.
+    </p>
+    <div style="margin-top:14px">
+      <div class="timeline-row">
+        <span class="timeline-label">Nikto v2.6.0</span>
+        <span class="timeline-value">9 May 2026 - 0 critical/high; 2 low remediated</span>
+      </div>
+      <div class="timeline-row">
+        <span class="timeline-label">Nuclei v3.x</span>
+        <span class="timeline-value">9 May 2026 - 0 medium/high/critical findings</span>
+      </div>
+      <div class="timeline-row">
+        <span class="timeline-label">OWASP ZAP baseline</span>
+        <span class="timeline-value">Continuous - nightly via GitHub Actions</span>
+      </div>
+      <div class="timeline-row">
+        <span class="timeline-label">Dependency CVE scanning</span>
+        <span class="timeline-value">pip-audit + Safety, daily + on every push</span>
+      </div>
+    </div>
+    <p style="margin-top:14px;color:var(--dim);font-size:13px">
+      Next scheduled review: November 2026, or sooner if significant changes ship.
+    </p>
+  </div>
+
   <!-- Policy Metadata -->
   <div class="section" style="background:transparent;border:1px solid rgba(79,142,247,0.15)">
     <h3>Policy Metadata</h3>
     <p style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.8">
-      Last updated: 20 April 2026<br>
-      Policy expires: 20 April 2027<br>
+      Last updated: 9 May 2026<br>
+      Policy expires: 9 May 2027<br>
       Machine-readable: <a href="/.well-known/security.txt" class="highlight">/.well-known/security.txt</a><br>
-      Operational status: <a href="https://stats.uptimerobot.com/T6w3o4ynQG" rel="noopener" target="_blank" class="highlight">stats.uptimerobot.com/T6w3o4ynQG &rarr;</a><br>
       Standard: RFC 9116<br>
       Preferred languages: English
     </p>
