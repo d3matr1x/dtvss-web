@@ -188,20 +188,23 @@ def _serve_html_with_nonce(directory: str, filename: str):
 #
 # Modern best practice is content-derived ETags: hash the response body, use
 # that as the ETag. Same caching benefit (browsers can re-validate cleanly),
-# zero filesystem disclosure. The cost is one MD5 per response, which for
-# a small static site is negligible.
+# zero filesystem disclosure.
 #
-# We don't override response.set_etag() per-route - the after_request hook
-# catches every response, so HTML, CSS, fonts, robots.txt, etc. all get the
-# clean ETag automatically. ETags are only set on responses that already have
-# one (i.e. send_from_directory output); we don't add ETags where Flask hadn't.
+# Implementation note: send_from_directory() returns responses in
+# `direct_passthrough` mode for efficient file streaming. In passthrough mode,
+# response.get_data() raises RuntimeError. We must explicitly disable
+# passthrough before reading the body so we can hash it. This re-buffers the
+# response (one MD5 per file response) which is fine for a small static site.
 @app.after_request
 def replace_inode_etag(response):
     """Replace the default inode-derived ETag with a content-hash ETag."""
     if "ETag" not in response.headers:
         return response
-    # Only rewrite if response has a body we can hash. Streaming responses
-    # (rare in this app) have no .data attribute and we leave them alone.
+    # send_from_directory uses direct_passthrough; disable it so we can hash
+    # the body. This buffers the file in memory, which is safe given our
+    # static asset sizes (~25 KB max for fonts).
+    if response.direct_passthrough:
+        response.direct_passthrough = False
     try:
         body = response.get_data()
     except Exception:
