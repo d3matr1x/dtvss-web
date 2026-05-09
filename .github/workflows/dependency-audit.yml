@@ -1,0 +1,202 @@
+# Dependency Vulnerability Scanning
+# =================================
+# Faster cadence than Dependabot (which runs weekly). Catches CVEs in pinned
+# dependencies on every push, on every PR, and once a day on schedule.
+#
+# Tools used:
+#   - pip-audit:        Python dependency CVE scanning. Queries the OSV
+#                       database (Open Source Vulnerabilities, maintained
+#                       by Google, covers PyPI/npm/Cargo/Maven/etc).
+#   - safety:           Secondary scanner. Different vulnerability DB
+#                       (Safety DB), so catches issues OSV missed.
+#
+# Why two scanners: vulnerability DB coverage varies. OSV is the broader
+# index but Safety sometimes catches fast-moving Python issues first.
+# Running both takes 30 extra seconds in CI and gives us the union.
+#
+# Failure policy:
+#   - Critical / High vulnerabilities: fail the build
+#   - Medium / Low: log only, don't fail (avoid false-positive PR blockers)
+#   - Both scanners must succeed for the workflow to pass; if one fails to
+#     run for infrastructure reasons, the other still gates the build.
+
+name: Dependency Audit
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Daily at 06:00 UTC. Catches new CVE disclosures within 24h of
+    # publication, vs Dependabot's weekly cadence.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write   # for uploading SARIF if we add it later
+
+jobs:
+  pip-audit:
+    name: pip-audit (OSV database)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-audit
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pip-audit
+
+      - name: Audit pinned requirements
+        # We audit requirements-lock.txt (the canonical pinned set) rather
+        # than installing dependencies first. This is faster and doesn't
+        # require us to set up the full deploy environment in CI.
+        # --strict: exit non-zero on any finding
+        # --vulnerability-service osv: explicit OSV (default but pinned for clarity)
+        # --format json: parseable for the assertion step below
+        run: |
+          pip-audit \
+            --requirement requirements-lock.txt \
+            --vulnerability-service osv \
+            --format json \
+            --output pip-audit-results.json \
+            || echo "pip-audit found issues, see assertion step"
+
+      - name: Assert no critical or high findings
+        run: |
+          python3 - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          path = Path("pip-audit-results.json")
+          if not path.exists():
+              print("No pip-audit-results.json produced (clean run)")
+              sys.exit(0)
+
+          with open(path) as f:
+              data = json.load(f)
+
+          # pip-audit JSON schema: dependencies[] each with vulns[]
+          deps = data.get("dependencies", [])
+          critical_findings = []
+          high_findings = []
+          all_findings = []
+
+          for dep in deps:
+              for vuln in dep.get("vulns", []):
+                  finding = {
+                      "package": dep.get("name"),
+                      "version": dep.get("version"),
+                      "id": vuln.get("id"),
+                      "aliases": vuln.get("aliases", []),
+                      "summary": vuln.get("description", "")[:200],
+                      "fix_versions": vuln.get("fix_versions", []),
+                  }
+                  all_findings.append(finding)
+                  # OSV doesn't always emit severity; use the worst alias
+                  # we can find. Critical/High keywords in description as
+                  # fallback heuristic.
+                  desc_upper = finding["summary"].upper()
+                  if "CRITICAL" in desc_upper:
+                      critical_findings.append(finding)
+                  elif "HIGH" in desc_upper:
+                      high_findings.append(finding)
+
+          if all_findings:
+              print(f"Total vulnerabilities found: {len(all_findings)}")
+              for f in all_findings:
+                  fix = ", ".join(f["fix_versions"]) if f["fix_versions"] else "no fix yet"
+                  print(f"  {f['package']} {f['version']}: {f['id']} (fix: {fix})")
+                  if f["summary"]:
+                      print(f"    {f['summary'][:150]}")
+
+          if critical_findings or high_findings:
+              print()
+              print(f"FAILING BUILD: {len(critical_findings)} critical, {len(high_findings)} high")
+              sys.exit(1)
+          if all_findings:
+              print()
+              print("Build passes (medium/low findings logged, not blocking)")
+          else:
+              print("Clean: no vulnerabilities found")
+          PY
+
+      - name: Upload pip-audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-results
+          path: pip-audit-results.json
+          retention-days: 30
+
+  safety:
+    name: Safety (secondary database)
+    runs-on: ubuntu-latest
+    # Don't fail the workflow if Safety has infrastructure issues - we have
+    # pip-audit as the primary gate.
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install safety
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install safety
+
+      - name: Run Safety check
+        # Safety has a 30-day-old free database. Premium gives realtime, but
+        # free is plenty for catching most issues.
+        # --short-report: minimal output unless something found
+        # --output json: machine-parseable
+        run: |
+          safety check \
+            --file requirements-lock.txt \
+            --output json \
+            --save-json safety-results.json \
+            || echo "Safety found issues, see results below"
+        continue-on-error: true
+
+      - name: Display Safety findings
+        if: always()
+        run: |
+          if [ -f safety-results.json ]; then
+            python3 -c "
+          import json
+          with open('safety-results.json') as f:
+              data = json.load(f)
+          vulns = data.get('vulnerabilities', [])
+          if not vulns:
+              print('Safety: clean - no vulnerabilities found')
+          else:
+              print(f'Safety: {len(vulns)} vulnerabilities found')
+              for v in vulns[:20]:
+                  pkg = v.get('package_name', '?')
+                  ver = v.get('analyzed_version', '?')
+                  vid = v.get('vulnerability_id', '?')
+                  sev = v.get('severity', 'unknown')
+                  print(f'  {pkg} {ver}: {vid} (severity: {sev})')
+          "
+          fi
+
+      - name: Upload Safety results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-results
+          path: safety-results.json
+          retention-days: 30

@@ -1,0 +1,169 @@
+# OWASP ZAP Nightly Baseline Scan
+# ================================
+# Continuous security baseline. Catches regressions in security headers,
+# misconfigurations, and exposed paths on every deployment.
+#
+# Why baseline (not full active scan):
+#   - Baseline is passive: it crawls the site and inspects responses.
+#     No attack payloads sent. Safe to run against production.
+#   - Full active scan launches SQLi/XSS/RCE/etc. payloads. Would create
+#     false-positive WAF events, trip rate limits, and violate CF ToS for
+#     unauthorized testing if scope wasn't clearly defined.
+#   - Baseline catches 80% of what an automated scanner finds anyway:
+#     missing security headers, exposed admin paths, info disclosure.
+#
+# Cadence:
+#   - Nightly at 04:00 UTC (low-traffic window for AU users)
+#   - On manual dispatch (workflow_dispatch) for ad-hoc verification
+#   - NOT on every push - too noisy for dev velocity
+#
+# Output:
+#   - HTML report uploaded as artifact (30-day retention)
+#   - JSON report parsed in assertion step
+#   - GitHub Issue auto-created if NEW findings vs baseline
+#
+# What this workflow DOES NOT do:
+#   - Active SQL injection / XSS / command injection probing
+#   - Authentication bypass attempts
+#   - DoS or brute-force testing
+#   - Anything that violates Cloudflare or Railway ToS
+#
+# If active scanning becomes worthwhile later, set up a Railway preview
+# environment with WAF disabled and run the full scan against THAT, never
+# against production dtvss.io.
+
+name: ZAP Baseline Scan
+
+on:
+  schedule:
+    # Nightly at 04:00 UTC = 14:00 Sydney (AEST) / 13:00 (AEDT)
+    # Picks a low-traffic window for the public site.
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Target URL to scan (default: production)'
+        required: false
+        default: 'https://dtvss.io'
+
+permissions:
+  contents: read
+  issues: write           # for creating findings issues
+  security-events: write  # for SARIF upload
+
+jobs:
+  zap-baseline:
+    name: ZAP Baseline Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine target URL
+        id: target
+        run: |
+          if [ -n "${{ github.event.inputs.target_url }}" ]; then
+            echo "url=${{ github.event.inputs.target_url }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "url=https://dtvss.io" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: ${{ steps.target.outputs.url }}
+          # Configuration:
+          #   -I        : do not return failure on warnings (we handle that ourselves)
+          #   -j        : run AJAX spider in addition to traditional spider
+          #               (catches JS-rendered links - your calculator etc)
+          #   -m 5      : max time in minutes per attack rule (cap aggressive rules)
+          #   -T 10     : max total time in minutes (10-min ceiling)
+          #   -d        : show debug output if scan fails
+          cmd_options: '-I -j -m 5 -T 10'
+          # Allow_issue_writing: true creates a GitHub issue if findings exist.
+          # Useful for tracking baseline drift over time. Disable if noisy.
+          allow_issue_writing: true
+          # Custom rules file lets us tune which checks fire. We'll add this
+          # as the scan output stabilises - for now, defaults are fine.
+          # rules_file_name: '.zap/rules.tsv'
+          # Fail action on these severities or worse:
+          fail_action: false  # don't fail the workflow yet, just log
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse ZAP JSON report
+        if: always()
+        run: |
+          if [ -f report_json.json ]; then
+            python3 - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          with open('report_json.json') as f:
+              data = json.load(f)
+
+          # ZAP report schema: site -> alerts -> instances
+          # Severity scale: High > Medium > Low > Informational
+          alerts_by_severity = {'High': [], 'Medium': [], 'Low': [], 'Informational': []}
+
+          for site in data.get('site', []):
+              site_name = site.get('@name', 'unknown')
+              for alert in site.get('alerts', []):
+                  severity = alert.get('riskdesc', '').split(' ')[0]
+                  if severity not in alerts_by_severity:
+                      severity = 'Informational'
+                  alerts_by_severity[severity].append({
+                      'name': alert.get('name', ''),
+                      'description': alert.get('desc', '')[:200],
+                      'count': len(alert.get('instances', [])),
+                      'cwe': alert.get('cweid', ''),
+                  })
+
+          print("=" * 60)
+          print(f"ZAP Baseline Scan Results")
+          print("=" * 60)
+          for sev in ('High', 'Medium', 'Low', 'Informational'):
+              count = len(alerts_by_severity[sev])
+              print(f"  {sev}: {count}")
+
+          if alerts_by_severity['High'] or alerts_by_severity['Medium']:
+              print()
+              print("ACTIONABLE FINDINGS:")
+              for sev in ('High', 'Medium'):
+                  for f in alerts_by_severity[sev]:
+                      print(f"  [{sev}] {f['name']} ({f['count']} instances)")
+                      if f['cwe']:
+                          print(f"         CWE-{f['cwe']}")
+              # Don't fail the workflow yet - baseline drift detection
+              # comes later. For now, surface findings without blocking.
+          else:
+              print()
+              print("CLEAN: no high or medium findings")
+          PY
+          else
+            echo "No JSON report produced - scan may have failed early"
+          fi
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-html-report
+          path: report_html.html
+          retention-days: 30
+
+      - name: Upload JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-json-report
+          path: report_json.json
+          retention-days: 30
+
+      - name: Upload Markdown report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-markdown-report
+          path: report_md.md
+          retention-days: 30

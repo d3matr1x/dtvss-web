@@ -675,6 +675,15 @@ def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
         x_port=0,
         x_prefix=0,
     )
+
+    # Cloudflare-only origin enforcement. No-op unless
+    # DTVSS_CLOUDFLARE_ONLY=1 is set. Must come after ProxyFix so
+    # request.remote_addr reflects the actual TCP peer.
+    try:
+        from cloudflare_only import install_cloudflare_only_check
+        install_cloudflare_only_check(app)
+    except ImportError:
+        log.info("cloudflare_only module not available; skipping origin check")
     
     # CORS with allowlist
     try:
