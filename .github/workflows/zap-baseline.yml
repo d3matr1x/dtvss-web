@@ -69,7 +69,13 @@ jobs:
           fi
 
       - name: Run ZAP baseline scan
-        uses: zaproxy/action-baseline@v0.14.0
+        # Pinned to immutable commit SHA (v0.15.0, released 2025-10-24).
+        # Tags can be moved by maintainers or attackers; commit SHAs cannot.
+        # Verify the SHA matches before updating:
+        #   https://github.com/zaproxy/action-baseline/releases/tag/v0.15.0
+        # CodeQL alert #70 ("Unpinned tag for a non-immutable Action") -
+        # pinning closes the supply-chain attack vector flagged.
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25  # v0.15.0
         with:
           target: ${{ steps.target.outputs.url }}
           # Configuration:

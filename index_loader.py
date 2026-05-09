@@ -579,7 +579,13 @@ def _try_acquire_pipeline_leadership() -> bool:
         # on repeated attempts.
         try:
             fh.close()
-        except Exception:
+        except (OSError, ValueError):
+            # Best-effort cleanup. File may already be closed (ValueError) or
+            # the OS may report a secondary error during close (OSError) - we
+            # are already in error-handling for the original flock failure,
+            # so secondary close errors are not actionable.
+            # CodeQL #69 - narrowed from `except Exception` to closed
+            # the "empty-except" alert without changing behaviour.
             pass
         return False
 
