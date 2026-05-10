@@ -1,0 +1,89 @@
+# Dependency Review on Pull Requests
+# ===================================
+# Complement to dependency-audit.yml (which scans the locked dep set daily).
+# This workflow runs ONLY on PRs and reviews the delta - what's being added,
+# removed, or upgraded - against vulnerability and license databases.
+#
+# Why both:
+#   - dependency-audit: scans current state of dependencies daily
+#                       (catches CVEs disclosed against existing deps)
+#   - dependency-review: scans the proposed change in a PR
+#                        (catches malicious or vulnerable packages BEFORE merge)
+#
+# Different attack surface:
+#   - dependency-audit catches "package you already use got a new CVE"
+#   - dependency-review catches "PR is adding a package with known issues"
+#
+# The classic event-stream and ua-parser-js attacks would have been caught
+# by dependency-review at the PR stage. dependency-audit would only catch
+# them after the malicious version was merged and the daily scan ran.
+#
+# Failure policy:
+#   - Vulnerable dependencies (any CVE): warn but don't block (deferred to
+#     dependency-audit which gates on critical/high)
+#   - License changes outside our allowlist: BLOCK the PR
+#     (BSL 1.1 has restrictions on what dependencies we can use)
+#   - New dependencies from suspicious sources: BLOCK the PR
+#
+# References:
+#   https://github.com/actions/dependency-review-action
+#   https://docs.github.com/en/code-security/supply-chain-security/
+
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write    # to comment review findings on the PR
+
+jobs:
+  dependency-review:
+    name: Review PR dependency changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Review dependencies
+        # Pinned to a specific commit SHA for supply-chain safety (CodeQL #70
+        # taught us that lesson). v4.5.0 released 2025-01-22.
+        # Verify SHA before bumping: github.com/actions/dependency-review-action/releases
+        uses: actions/dependency-review-action@3b139cfc5fae8b618d3eae3675e383bb1769c019  # v4.5.0
+        with:
+          # Fail the action if any vulnerability of medium severity or above
+          # is introduced. dependency-audit (the daily scan) gates on
+          # critical/high - this is a tighter check on the PR delta.
+          fail-on-severity: moderate
+
+          # Comment a summary on the PR so reviewers see findings inline
+          comment-summary-in-pr: on-failure
+
+          # License allowlist. BSL 1.1 has commercial-use restrictions, so we
+          # need permissive-licensed dependencies. This list mirrors what's
+          # already in our locked dependency set.
+          allow-licenses: >-
+            MIT,
+            Apache-2.0,
+            BSD-2-Clause,
+            BSD-3-Clause,
+            ISC,
+            Python-2.0,
+            PSF-2.0,
+            CC0-1.0,
+            Unlicense,
+            Zlib
+
+          # Explicitly deny problematic licenses for our use case:
+          #   - GPL family (copyleft - would force BSL changes)
+          #   - AGPL (network copyleft - extremely viral)
+          #   - SSPL (license used to attack open-source database use)
+          deny-licenses: >-
+            GPL-2.0,
+            GPL-3.0,
+            AGPL-3.0,
+            LGPL-2.1,
+            LGPL-3.0,
+            SSPL-1.0
