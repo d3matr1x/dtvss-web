@@ -7,6 +7,29 @@ sentry-sdk[flask]==2.18.0    # error monitoring + CAA violation alerts
 # Security hardening — pins added per PENTEST_REPORT findings
 defusedxml==0.7.1          # CRIT-01: XXE-safe XML parsing (HARD REQUIREMENT)
 
+# Application-layer encryption for customer database (Tier 2, ADR D14).
+# Records in customers.json are stored as Fernet ciphertext rather than
+# plaintext on the Railway volume. Defends against anyone with read access
+# to the volume but not the CUSTOMERS_ENCRYPTION_KEY env var (Railway
+# employees, account compromises that don't reach the running Flask
+# process, backups restored to a wrong context). Does NOT defend against
+# code execution inside the Flask process itself.
+#
+# Version pin rationale:
+#   - `cryptography` is from the PyCA / OpenSSL team and follows strict
+#     semver; the lockfile (requirements-lock.txt) pins the exact version
+#     with hashes for supply-chain integrity.
+#   - >= 46.0.5 because CVE-2026-26007 (high severity, CVSS 8.2) affects
+#     all earlier versions in our intended range (42-45). The CVE is a
+#     subgroup-validation bug in SECT (binary) elliptic curves. DTVSS
+#     itself is not exploitable by this because Fernet uses symmetric
+#     crypto (AES-128-CBC + HMAC-SHA256) and we don't touch SECT curves,
+#     but the CI policy correctly blocks adding a known-vulnerable
+#     dependency regardless of whether we call the affected functions.
+#   - < 47 to allow patch updates within 46.x but require a deliberate
+#     review for the next major.
+cryptography>=46.0.5,<47
+
 # Dependency pin rationale (per Fix #7 in PATCHES_v2.md):
 #
 #   flask==3.1.3      — CVE-2026-27205: missing Vary: Cookie header on

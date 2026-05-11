@@ -1,0 +1,68 @@
+[
+  {
+    "label": "DNSSEC enabled for dtvss.io",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "Registrar dashboard, threat-model.md v0.2 changelog"
+  },
+  {
+    "label": "CAA records configured",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "Cloudflare DNS, CAA limited to Let's Encrypt; threat-model.md v0.2 changelog"
+  },
+  {
+    "label": "GitHub 2FA enforced for the d3matr1x account",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "GitHub Settings -> Password and authentication; threat-model.md v0.2 changelog"
+  },
+  {
+    "label": "Branch protection on main",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "GitHub Branch protection ruleset enforcing 'Canonical (offline, must match patent exactly)' calibration CI before merge; threat-model.md v0.2 changelog"
+  },
+  {
+    "label": "Required signed commits",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "Deliberately NOT enforced at branch-protection level - sole-maintainer trade-off documented in threat-model.md S4 and v0.2 changelog. Recorded here as verified to reflect the deliberate decision."
+  },
+  {
+    "label": "GitHub secret scanning enabled",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "GitHub Settings -> Code security -> Secret scanning; threat-model.md v0.2 changelog"
+  },
+  {
+    "label": "Railway 2FA enabled",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "Railway Account -> Security; threat-model.md v0.2 changelog. Layered on top of GitHub OAuth."
+  },
+  {
+    "label": "Cloudflare 2FA + hardware key",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "Cloudflare Account -> Authentication; threat-model.md v0.2 changelog. Layered on top of GitHub OAuth."
+  },
+  {
+    "label": "Cloudflare 5 custom WAF rules active",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "Cloudflare Security -> WAF -> Custom rules (5 rules + managed); threat-model.md v0.2 changelog"
+  },
+  {
+    "label": "Domain registrar 2FA",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "Registrar account settings; threat-model.md v0.2 changelog. Independent of GitHub OAuth chain - prevents complete domain takeover even on GitHub compromise."
+  },
+  {
+    "label": "Pre-commit hooks configured",
+    "verified_on": "2026-05-09",
+    "verified_by": "Andrew Broglio",
+    "evidence": "Deliberately NOT configured - sole-maintainer trade-off documented in threat-model.md I5 and v0.2 changelog. Mitigating controls: GitHub secret scanning, .gitignore, dotenv pattern. Recorded here as verified to reflect the deliberate decision."
+  }
+]

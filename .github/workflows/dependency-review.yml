@@ -64,6 +64,14 @@ jobs:
           # License allowlist. BSL 1.1 has commercial-use restrictions, so we
           # need permissive-licensed dependencies. This list mirrors what's
           # already in our locked dependency set.
+          #
+          # Anything NOT on this list is rejected. That includes copyleft
+          # licences (GPL, LGPL, AGPL) which would force BSL changes, and
+          # SSPL which has been used to attack open-source database use.
+          # We do not need a separate deny-licenses list because the
+          # allowlist already excludes everything else by definition; the
+          # dependency-review-action refuses to run with both set
+          # (`You cannot specify both allow-licenses and deny-licenses`).
           allow-licenses: >-
             MIT,
             Apache-2.0,
@@ -75,15 +83,3 @@ jobs:
             CC0-1.0,
             Unlicense,
             Zlib
-
-          # Explicitly deny problematic licenses for our use case:
-          #   - GPL family (copyleft - would force BSL changes)
-          #   - AGPL (network copyleft - extremely viral)
-          #   - SSPL (license used to attack open-source database use)
-          deny-licenses: >-
-            GPL-2.0,
-            GPL-3.0,
-            AGPL-3.0,
-            LGPL-2.1,
-            LGPL-3.0,
-            SSPL-1.0
