@@ -474,8 +474,9 @@ class Encryption(_BaseCase):
             tc.load_customers()
         user_warnings = [w for w in caught if issubclass(w.category, UserWarning)]
         self.assertGreaterEqual(len(user_warnings), 1)
-        self.assertIn("DEV sentinel", user_warnings[0].message.args[0]) if False else None
-        # ^ that line is intentionally unreachable; the assert below is the real one
+        # The exact warning wording uses "sentinel" (lower-cased); a stricter
+        # check for the more verbose phrasing was tried during development but
+        # the case-insensitive substring check below is the stable assertion.
         self.assertIn("sentinel", str(user_warnings[0].message).lower())
 
     def test_malformed_key_refuses(self):

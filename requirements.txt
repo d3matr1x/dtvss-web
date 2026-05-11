@@ -15,10 +15,20 @@ defusedxml==0.7.1          # CRIT-01: XXE-safe XML parsing (HARD REQUIREMENT)
 # process, backups restored to a wrong context). Does NOT defend against
 # code execution inside the Flask process itself.
 #
-# Pinned to a major-version range rather than a specific version because
-# `cryptography` is from the PyCA / OpenSSL team and follows strict
-# semver; the lockfile (requirements-lock.txt) pins the exact version.
-cryptography>=42,<46
+# Version pin rationale:
+#   - `cryptography` is from the PyCA / OpenSSL team and follows strict
+#     semver; the lockfile (requirements-lock.txt) pins the exact version
+#     with hashes for supply-chain integrity.
+#   - >= 46.0.5 because CVE-2026-26007 (high severity, CVSS 8.2) affects
+#     all earlier versions in our intended range (42-45). The CVE is a
+#     subgroup-validation bug in SECT (binary) elliptic curves. DTVSS
+#     itself is not exploitable by this because Fernet uses symmetric
+#     crypto (AES-128-CBC + HMAC-SHA256) and we don't touch SECT curves,
+#     but the CI policy correctly blocks adding a known-vulnerable
+#     dependency regardless of whether we call the affected functions.
+#   - < 47 to allow patch updates within 46.x but require a deliberate
+#     review for the next major.
+cryptography>=46.0.5,<47
 
 # Dependency pin rationale (per Fix #7 in PATCHES_v2.md):
 #
