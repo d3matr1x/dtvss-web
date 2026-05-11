@@ -48,6 +48,28 @@ all 95 of which change score when L is zeroed.
 | `results_live_index_362cve.json`  | Sweep results against the 362-CVE dataset. k = 15 still holds, because the binding criterion depends on patent-frozen test values. |
 | `README.md`                       | This file.                                                       |
 
+### Schema note: `L` vs `epss_pct` in `source_96cve_filing.csv`
+
+The source CSV contains two related EPSS columns for the same CVE on the
+same snapshot date:
+
+- **`L`** — the EPSS *score* in `[0.0, 1.0]`. This is the probability used as
+  the L(t) variable in the DTVSS scoring formula (patent [0021]). The
+  calibration code reads this column.
+- **`epss_pct`** — the EPSS *percentile* in `[0.0, 1.0]`. This is where the
+  CVE ranks among all CVEs by predicted exploitation probability on the
+  snapshot date. **It is not used in scoring** and is included only for
+  human inspection.
+
+A reader diffing the two columns by name will see different numbers for
+the same CVE on the same date and conclude there is a contradiction.
+There is not — they are different quantities. Anyone using
+`source_96cve_filing.csv` for analysis should treat `L` as authoritative
+for any DTVSS scoring claim and `epss_pct` as an informational ranking
+column only. The schema produced by `build_dataset.py` (`dataset.csv`)
+emits only the score, under the column name `epss`, to remove this
+ambiguity from the calibration path.
+
 ## How to reproduce
 
 ### Run the canonical calibration (fast, offline)
