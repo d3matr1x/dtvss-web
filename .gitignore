@@ -237,3 +237,4 @@ temp/
 dtvss_pentest/
 reqdiff.txt
 cleanup_note_alerts.py 
+private/ 
