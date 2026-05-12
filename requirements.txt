@@ -55,4 +55,4 @@ redis>=5.0.0
 # urllib3.connection.HTTPSConnection takes server_hostname (SNI) and
 # assert_hostname (cert validation) as separate kwargs, so we connect to
 # the validator-returned IP while TLS still validates against the hostname.
-urllib3==2.6.3
+urllib3==2.7.0          # CVE-2026-21441/44432: decompression-bomb fix
