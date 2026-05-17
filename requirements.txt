@@ -2,7 +2,7 @@ flask==3.1.3
 flask-cors==6.0.2
 flask-limiter==4.1.1
 gunicorn==25.3.0
-sentry-sdk[flask]==2.18.0    # error monitoring + CAA violation alerts
+sentry-sdk[flask]==2.60.0    # error monitoring + CAA violation alerts
 
 # Security hardening — pins added per PENTEST_REPORT findings
 defusedxml==0.7.1          # CRIT-01: XXE-safe XML parsing (HARD REQUIREMENT)
