@@ -26,9 +26,14 @@ defusedxml==0.7.1          # CRIT-01: XXE-safe XML parsing (HARD REQUIREMENT)
 #     crypto (AES-128-CBC + HMAC-SHA256) and we don't touch SECT curves,
 #     but the CI policy correctly blocks adding a known-vulnerable
 #     dependency regardless of whether we call the affected functions.
-#   - < 47 to allow patch updates within 46.x but require a deliberate
-#     review for the next major.
-cryptography>=48.0.0,<49
+#   - < 49 widened from < 47 on 2026-05-18. Cryptography 48.0 removed
+#     SECT curves entirely - this is a hardening change that aligns with
+#     our exposure: we never used them. Cryptography 47.0 + 48.0 also
+#     drop OpenSSL 1.1.x support (3.0.0+ required); Railway's Python 3.12
+#     base image already ships OpenSSL 3.x so this is a no-op for us.
+#     Upper bound retained at < 49 to require deliberate review for the
+#     next major.
+cryptography>=46.0.5,<49
 
 # Dependency pin rationale (per Fix #7 in PATCHES_v2.md):
 #
