@@ -180,7 +180,11 @@ def _serve_html_with_nonce(directory: str, filename: str):
         body = fh.read()
     body = _inject_csp_nonce(body, nonce)
     from flask import Response
-    resp = Response(body, mimetype="text/html; charset=utf-8")
+    # Flask auto-appends "; charset=utf-8" to text mimetypes, so setting
+    # the full string here would duplicate it (producing
+    # "text/html; charset=utf-8; charset=utf-8"). Pass just the base
+    # mimetype and let Flask add the charset once.
+    resp = Response(body, mimetype="text/html")
     # Each response carries a unique nonce. Caches must not share these
     # across requests or the nonce-CSP pairing breaks for the next user.
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"

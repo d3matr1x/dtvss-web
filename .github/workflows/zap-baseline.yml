@@ -89,9 +89,10 @@ jobs:
           # Allow_issue_writing: true creates a GitHub issue if findings exist.
           # Useful for tracking baseline drift over time. Disable if noisy.
           allow_issue_writing: true
-          # Custom rules file lets us tune which checks fire. We'll add this
-          # as the scan output stabilises - for now, defaults are fine.
-          # rules_file_name: '.zap/rules.tsv'
+          # Custom rules file: suppress documented false positives.
+          # Every IGNORE/INFO entry in .zap/rules.tsv has a comment
+          # explaining what was verified and when. Review quarterly.
+          rules_file_name: '.zap/rules.tsv'
           # Fail action on these severities or worse:
           fail_action: false  # don't fail the workflow yet, just log
           token: ${{ secrets.GITHUB_TOKEN }}
