@@ -1101,7 +1101,11 @@ def turnstile_config():
 @app.route("/tier2/ping/<token>")
 @limiter.limit(TIER2_RATE_LIMIT, key_func=tier2_rate_limit_key)
 @require_tier2
-def tier2_ping(token):
+def tier2_ping():
+    # NB: NO `token` parameter. @require_tier2 pops the token from kwargs
+    # before calling this view. Declaring `token` here causes a TypeError
+    # at request time. Use g.customer inside the view to access the
+    # validated customer record.
     return tier2_ping_view()
 
 
