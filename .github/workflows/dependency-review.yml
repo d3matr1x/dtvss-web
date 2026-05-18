@@ -45,13 +45,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Review dependencies
         # Pinned to a specific commit SHA for supply-chain safety (CodeQL #70
         # taught us that lesson). v4.5.0 released 2025-01-22.
         # Verify SHA before bumping: github.com/actions/dependency-review-action/releases
-        uses: actions/dependency-review-action@3b139cfc5fae8b618d3eae3675e383bb1769c019  # v4.5.0
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294  # v5.0.0
         with:
           # Fail the action if any vulnerability of medium severity or above
           # is introduced. dependency-audit (the daily scan) gates on
