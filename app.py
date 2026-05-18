@@ -1090,54 +1090,6 @@ def turnstile_config():
 
 
 # -----------------------------------------------------------------------------
-# TEMPORARY DEBUG ENDPOINT: /api/debug-xff
-# -----------------------------------------------------------------------------
-# Used to empirically verify the X-Forwarded-For chain so DTVSS_PROXY_HOPS
-# can be set correctly. UNDERCOUNTING trusts attacker-forged XFF values
-# (security issue); OVERCOUNTING reaches past the real client IP into
-# attacker-controlled territory. Both worse than leaving it default.
-#
-# REMOVAL: this endpoint MUST be removed before any customer is onboarded
-# to Tier 2 production use. It's gated by DTVSS_DEBUG_XFF=1 so accidentally
-# leaving the code in place still requires explicit opt-in to expose it.
-#
-# What it returns:
-#   - The raw X-Forwarded-For header (chain of proxies)
-#   - The pre-ProxyFix REMOTE_ADDR (what gunicorn saw before middleware)
-#   - The post-ProxyFix request.remote_addr (what application code sees)
-#
-# What it does NOT return: customer data, secrets, headers other than XFF.
-# Safe to call from outside the network; reveals only what hits the edge.
-#
-# How to use:
-#   1. Set DTVSS_DEBUG_XFF=1 in Railway, redeploy
-#   2. From a known external network, curl https://dtvss.io/api/debug-xff
-#   3. Count IPs in xff_raw (comma-separated)
-#   4. The number of HOPS = number of IPs in the chain that are TRUSTED proxies
-#   5. Unset DTVSS_DEBUG_XFF after collecting the data, redeploy
-@app.route("/api/debug-xff")
-@_cheap
-def debug_xff():
-    if os.environ.get("DTVSS_DEBUG_XFF", "0") != "1":
-        abort(404)
-    return jsonify({
-        "xff_raw": request.headers.get("X-Forwarded-For", "(header missing)"),
-        "xff_count": len([
-            ip.strip() for ip in
-            request.headers.get("X-Forwarded-For", "").split(",")
-            if ip.strip()
-        ]),
-        "remote_addr_pre_proxyfix": request.environ.get("REMOTE_ADDR", "(missing)"),
-        "remote_addr_post_proxyfix": request.remote_addr or "(none)",
-        "proxy_hops_setting": os.environ.get("DTVSS_PROXY_HOPS", "1 (default)"),
-        "_warning": (
-            "TEMPORARY DIAGNOSTIC ENDPOINT. Should not be enabled in normal "
-            "production. Remove DTVSS_DEBUG_XFF env var after verification."
-        ),
-    })
-
-
-# -----------------------------------------------------------------------------
 # Tier 2 health-check endpoint (Stage 2)
 # -----------------------------------------------------------------------------
 # Permanent endpoint customers use to verify their token is still valid.
