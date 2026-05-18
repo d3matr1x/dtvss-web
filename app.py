@@ -59,6 +59,16 @@ from security import (
 # substring-based filter.
 from medical_scope import is_in_scope, filter_scored_results
 
+# Tier 2 RSS authentication middleware (Stage 2). The decorator, audit
+# logging, Sentry failure reporting, and the /tier2/ping view live in
+# tier2_auth.py; the route is registered below near the other API routes.
+from tier2_auth import (
+    require_tier2,
+    tier2_ping_view,
+    tier2_rate_limit_key,
+    TIER2_RATE_LIMIT,
+)
+
 # -----------------------------------------------------------------------------
 # Sentry error monitoring (MUST initialize before Flask app creation)
 # -----------------------------------------------------------------------------
@@ -1077,6 +1087,22 @@ def turnstile_config():
     return jsonify({
         "sitekey": os.environ.get("TURNSTILE_SITEKEY", "").strip(),
     })
+
+
+# -----------------------------------------------------------------------------
+# Tier 2 health-check endpoint (Stage 2)
+# -----------------------------------------------------------------------------
+# Permanent endpoint customers use to verify their token is still valid.
+# Returns 200 + JSON on success; 404 on every failure path (no info leak
+# about why). Per-token rate limit is OUTSIDE @require_tier2 deliberately:
+# a malformed-token flood gets rate-limited before doing regex / DB work,
+# and the key_func keys by token prefix pre-validation, customer-id post-
+# validation. See ADR 002-stage2-rss-auth-middleware.md decision D10.
+@app.route("/tier2/ping/<token>")
+@limiter.limit(TIER2_RATE_LIMIT, key_func=tier2_rate_limit_key)
+@require_tier2
+def tier2_ping(token):
+    return tier2_ping_view()
 
 
 # -----------------------------------------------------------------------------
