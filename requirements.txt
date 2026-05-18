@@ -28,7 +28,7 @@ defusedxml==0.7.1          # CRIT-01: XXE-safe XML parsing (HARD REQUIREMENT)
 #     dependency regardless of whether we call the affected functions.
 #   - < 47 to allow patch updates within 46.x but require a deliberate
 #     review for the next major.
-cryptography>=46.0.5,<47
+cryptography>=48.0.0,<49
 
 # Dependency pin rationale (per Fix #7 in PATCHES_v2.md):
 #
