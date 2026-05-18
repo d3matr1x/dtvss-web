@@ -104,7 +104,7 @@ jobs:
 
       - name: Upload results.json as artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: calibration-results-canonical
           path: results.json
@@ -160,7 +160,7 @@ jobs:
 
       - name: Upload live results.json as artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: calibration-results-live
           path: results.json
