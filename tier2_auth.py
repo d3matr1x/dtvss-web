@@ -67,7 +67,7 @@ from typing import Any, Callable
 
 from flask import abort, g, jsonify, request
 
-from tier2_customers import Customer, validate_token
+from tier2_customers import validate_token
 
 log = logging.getLogger(__name__)
 
@@ -172,9 +172,20 @@ def _client_ip() -> str:
     request.remote_addr because app.py installs ProxyFix at the WSGI layer
     (see security.py). Returns "unknown" if extraction fails so audit log
     entries never have a null IP field.
+
+    Defence-in-depth: strip ASCII control characters before returning,
+    so that even if ProxyFix is misconfigured or an attacker controls the
+    XFF chain in a future deployment, they cannot forge multiline log
+    entries by stuffing CR/LF/NUL into the IP field. Closes CodeQL
+    py/log-injection.
     """
     try:
-        return request.remote_addr or "unknown"
+        raw_ip = request.remote_addr or "unknown"
+        # Remove ASCII control characters (0x00-0x1f, 0x7f). These should
+        # never appear in a valid IP literal; if they do, the input is
+        # adversarial.
+        safe_ip = re.sub(r"[\x00-\x1f\x7f]+", " ", raw_ip).strip()
+        return safe_ip or "unknown"
     except Exception:  # noqa: BLE001 - defence in depth, never break the request
         return "unknown"
 
@@ -325,6 +336,14 @@ def require_tier2(view_func: Callable) -> Callable:
         #    - status == "active"
         #    - expires_at not in the past
         # If any of those fail, validate_token returns None and we 404.
+        #
+        # Pre-initialise to None so static analysers (CodeQL
+        # py/uninitialized-local-variable) can prove the post-try
+        # `if customer is None` check has a defined operand. The except
+        # branch calls abort() which raises, so this never actually reads
+        # the None at runtime — but proving that requires whole-program
+        # analysis CodeQL won't do.
+        customer = None
         try:
             customer = validate_token(token)
         except Exception as e:  # noqa: BLE001
