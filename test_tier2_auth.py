@@ -534,3 +534,80 @@ class TestTokenPrefix:
 
     def test_prefix_shorter_than_8(self):
         assert tier2_auth._token_prefix("abc") == "abc"
+
+
+# ---------------------------------------------------------------------------
+# Client IP sanitisation (closes CodeQL py/log-injection)
+# ---------------------------------------------------------------------------
+class TestClientIPSanitisation:
+    """The _client_ip() helper must return only valid IPv4/IPv6 literals,
+    or the literal string "unknown". Anything else is a log-injection
+    vector — see ADR-002 D5 and the CodeQL finding.
+    """
+
+    def _ip_with_mocked_remote_addr(self, app, value):
+        """Helper: simulate request.remote_addr = value and call _client_ip."""
+        with app.test_request_context("/"):
+            with patch.object(
+                __import__("flask").request.__class__, "remote_addr",
+                new_callable=lambda: value,
+            ):
+                # Easier: just patch the attribute via a wrapper context
+                pass
+
+    def test_valid_ipv4_passes_through(self, app):
+        from flask import request as flask_request
+        with app.test_request_context("/", environ_overrides={"REMOTE_ADDR": "192.168.1.1"}):
+            assert tier2_auth._client_ip() == "192.168.1.1"
+
+    def test_valid_ipv6_canonicalised(self, app):
+        # 2001:0db8::0001 → 2001:db8::1 (canonical form)
+        with app.test_request_context("/", environ_overrides={"REMOTE_ADDR": "2001:0db8::0001"}):
+            assert tier2_auth._client_ip() == "2001:db8::1"
+
+    def test_loopback_passes(self, app):
+        with app.test_request_context("/", environ_overrides={"REMOTE_ADDR": "127.0.0.1"}):
+            assert tier2_auth._client_ip() == "127.0.0.1"
+
+    def test_newline_injection_rejected(self, app):
+        # The classic log-injection payload
+        with app.test_request_context("/", environ_overrides={
+            "REMOTE_ADDR": "1.2.3.4\nINJECTED: fake audit entry"
+        }):
+            assert tier2_auth._client_ip() == "unknown"
+
+    def test_crlf_injection_rejected(self, app):
+        with app.test_request_context("/", environ_overrides={
+            "REMOTE_ADDR": "1.2.3.4\r\nHost: evil.com"
+        }):
+            assert tier2_auth._client_ip() == "unknown"
+
+    def test_null_byte_rejected(self, app):
+        with app.test_request_context("/", environ_overrides={
+            "REMOTE_ADDR": "1.2.3.4\x00garbage"
+        }):
+            assert tier2_auth._client_ip() == "unknown"
+
+    def test_ansi_escape_rejected(self, app):
+        # ANSI escape sequences in a terminal log would clear screen / move cursor
+        with app.test_request_context("/", environ_overrides={
+            "REMOTE_ADDR": "1.2.3.4\x1b[2J"
+        }):
+            assert tier2_auth._client_ip() == "unknown"
+
+    def test_hostname_rejected(self, app):
+        # A hostname is not an IP literal; reject it.
+        with app.test_request_context("/", environ_overrides={
+            "REMOTE_ADDR": "evil.example.com"
+        }):
+            assert tier2_auth._client_ip() == "unknown"
+
+    def test_empty_falls_back_to_unknown(self, app):
+        with app.test_request_context("/", environ_overrides={"REMOTE_ADDR": ""}):
+            assert tier2_auth._client_ip() == "unknown"
+
+    def test_garbage_rejected(self, app):
+        with app.test_request_context("/", environ_overrides={
+            "REMOTE_ADDR": "this is not an IP"
+        }):
+            assert tier2_auth._client_ip() == "unknown"

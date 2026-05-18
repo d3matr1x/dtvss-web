@@ -56,6 +56,7 @@ Copyright 2026 Andrew Broglio. Licensed under BSL 1.1.
 """
 from __future__ import annotations
 
+import ipaddress
 import json
 import logging
 import os
@@ -173,19 +174,33 @@ def _client_ip() -> str:
     (see security.py). Returns "unknown" if extraction fails so audit log
     entries never have a null IP field.
 
-    Defence-in-depth: strip ASCII control characters before returning,
-    so that even if ProxyFix is misconfigured or an attacker controls the
-    XFF chain in a future deployment, they cannot forge multiline log
-    entries by stuffing CR/LF/NUL into the IP field. Closes CodeQL
-    py/log-injection.
+    Defence-in-depth: strip ASCII control characters, then require a
+    syntactically valid IP literal via ipaddress.ip_address(). This
+    prevents forged multiline log entries (CR/LF injection), ANSI escape
+    sequences, and any other attacker-crafted non-IP strings if upstream
+    proxy handling is ever misconfigured. Anything that isn't a real
+    IPv4 or IPv6 address becomes "unknown" — never logged verbatim.
+    Closes CodeQL py/log-injection.
     """
     try:
         raw_ip = request.remote_addr or "unknown"
-        # Remove ASCII control characters (0x00-0x1f, 0x7f). These should
-        # never appear in a valid IP literal; if they do, the input is
-        # adversarial.
-        safe_ip = re.sub(r"[\x00-\x1f\x7f]+", " ", raw_ip).strip()
-        return safe_ip or "unknown"
+        # First: strip ASCII control characters (0x00-0x1f, 0x7f). These
+        # should never appear in a valid IP literal; if they do, the
+        # input is adversarial.
+        safe_ip = re.sub(r"[\x00-\x1f\x7f]+", "", raw_ip).strip()
+        if not safe_ip:
+            return "unknown"
+        # Second: must parse as a valid IP literal. ipaddress.ip_address
+        # accepts both IPv4 ("1.2.3.4") and IPv6 ("::1", "2001:db8::1")
+        # and rejects everything else, including hostnames, ANSI escapes,
+        # and any leftover non-IP characters the regex didn't catch.
+        # Returning str(ip_address(...)) canonicalises the form (e.g.
+        # "2001:0db8::0001" -> "2001:db8::1") which makes log analysis
+        # consistent.
+        try:
+            return str(ipaddress.ip_address(safe_ip))
+        except ValueError:
+            return "unknown"
     except Exception:  # noqa: BLE001 - defence in depth, never break the request
         return "unknown"
 
