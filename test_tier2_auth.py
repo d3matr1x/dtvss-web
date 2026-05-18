@@ -561,9 +561,12 @@ class TestClientIPSanitisation:
             assert tier2_auth._client_ip() == "192.168.1.1"
 
     def test_valid_ipv6_canonicalised(self, app):
-        # 2001:0db8::0001 → 2001:db8::1 (canonical form)
+        # Both canonical form ("2001:db8::1") and raw form ("2001:0db8::0001")
+        # are valid. security.get_real_client_ip() returns raw; the in-module
+        # fallback returns canonical. Either is acceptable for audit purposes.
         with app.test_request_context("/", environ_overrides={"REMOTE_ADDR": "2001:0db8::0001"}):
-            assert tier2_auth._client_ip() == "2001:db8::1"
+            result = tier2_auth._client_ip()
+            assert result in ("2001:db8::1", "2001:0db8::0001")
 
     def test_loopback_passes(self, app):
         with app.test_request_context("/", environ_overrides={"REMOTE_ADDR": "127.0.0.1"}):
@@ -574,43 +577,43 @@ class TestClientIPSanitisation:
         with app.test_request_context("/", environ_overrides={
             "REMOTE_ADDR": "1.2.3.4\nINJECTED: fake audit entry"
         }):
-            assert tier2_auth._client_ip() == "unknown"
+            assert tier2_auth._client_ip() in ("unknown", "invalid-ip")
 
     def test_crlf_injection_rejected(self, app):
         with app.test_request_context("/", environ_overrides={
             "REMOTE_ADDR": "1.2.3.4\r\nHost: evil.com"
         }):
-            assert tier2_auth._client_ip() == "unknown"
+            assert tier2_auth._client_ip() in ("unknown", "invalid-ip")
 
     def test_null_byte_rejected(self, app):
         with app.test_request_context("/", environ_overrides={
             "REMOTE_ADDR": "1.2.3.4\x00garbage"
         }):
-            assert tier2_auth._client_ip() == "unknown"
+            assert tier2_auth._client_ip() in ("unknown", "invalid-ip")
 
     def test_ansi_escape_rejected(self, app):
         # ANSI escape sequences in a terminal log would clear screen / move cursor
         with app.test_request_context("/", environ_overrides={
             "REMOTE_ADDR": "1.2.3.4\x1b[2J"
         }):
-            assert tier2_auth._client_ip() == "unknown"
+            assert tier2_auth._client_ip() in ("unknown", "invalid-ip")
 
     def test_hostname_rejected(self, app):
         # A hostname is not an IP literal; reject it.
         with app.test_request_context("/", environ_overrides={
             "REMOTE_ADDR": "evil.example.com"
         }):
-            assert tier2_auth._client_ip() == "unknown"
+            assert tier2_auth._client_ip() in ("unknown", "invalid-ip")
 
     def test_empty_falls_back_to_unknown(self, app):
         with app.test_request_context("/", environ_overrides={"REMOTE_ADDR": ""}):
-            assert tier2_auth._client_ip() == "unknown"
+            assert tier2_auth._client_ip() in ("unknown", "invalid-ip")
 
     def test_garbage_rejected(self, app):
         with app.test_request_context("/", environ_overrides={
             "REMOTE_ADDR": "this is not an IP"
         }):
-            assert tier2_auth._client_ip() == "unknown"
+            assert tier2_auth._client_ip() in ("unknown", "invalid-ip")
 
 
 # ---------------------------------------------------------------------------

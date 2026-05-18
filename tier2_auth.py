@@ -169,40 +169,47 @@ def _utcnow_iso() -> str:
 
 
 def _client_ip() -> str:
-    """Best-effort client IP extraction. Uses the ProxyFix-corrected
-    request.remote_addr because app.py installs ProxyFix at the WSGI layer
-    (see security.py). Returns "unknown" if extraction fails so audit log
-    entries never have a null IP field.
+    """Return the real client IP for audit logging and Sentry diagnostics.
 
-    Defence-in-depth: strip ASCII control characters, then require a
-    syntactically valid IP literal via ipaddress.ip_address(). This
-    prevents forged multiline log entries (CR/LF injection), ANSI escape
-    sequences, and any other attacker-crafted non-IP strings if upstream
-    proxy handling is ever misconfigured. Anything that isn't a real
-    IPv4 or IPv6 address becomes "unknown" — never logged verbatim.
-    Closes CodeQL py/log-injection.
+    Delegates to security.get_real_client_ip(), which reads request.remote_addr
+    AFTER Werkzeug's ProxyFix middleware has rewritten it from Railway's
+    internal mesh IP (100.64.x.x) to the original client IP based on the
+    X-Forwarded-For chain. ProxyFix is installed by security.apply_hardening()
+    at app boot, so by the time the decorator runs, request.remote_addr is
+    already the rewritten value.
+
+    Defence-in-depth (closes CodeQL py/log-injection): get_real_client_ip()
+    validates via ipaddress.ip_address() and returns the literal string
+    "invalid-ip" on anything that isn't a real IPv4/IPv6 address. The
+    returned value is therefore never user-controlled freeform text and
+    is safe to log unescaped.
+
+    Edge case: if security.py cannot be imported (e.g. during partial test
+    setup), fall back to a safer-than-nothing local validation. Same
+    semantics, same security posture; just doesn't share the
+    "invalid-ip" telemetry with the rest of the app.
+
+    Returns:
+        A validated IPv4/IPv6 literal, or "invalid-ip" if no valid IP could
+        be determined. Never returns user-controlled freeform text.
     """
     try:
-        raw_ip = request.remote_addr or "unknown"
-        # First: strip ASCII control characters (0x00-0x1f, 0x7f). These
-        # should never appear in a valid IP literal; if they do, the
-        # input is adversarial.
-        safe_ip = re.sub(r"[\x00-\x1f\x7f]+", "", raw_ip).strip()
-        if not safe_ip:
-            return "unknown"
-        # Second: must parse as a valid IP literal. ipaddress.ip_address
-        # accepts both IPv4 ("1.2.3.4") and IPv6 ("::1", "2001:db8::1")
-        # and rejects everything else, including hostnames, ANSI escapes,
-        # and any leftover non-IP characters the regex didn't catch.
-        # Returning str(ip_address(...)) canonicalises the form (e.g.
-        # "2001:0db8::0001" -> "2001:db8::1") which makes log analysis
-        # consistent.
+        from security import get_real_client_ip
+        return get_real_client_ip()
+    except Exception:  # noqa: BLE001
+        # Fallback path: same validation logic, just doesn't share the
+        # operator-visible "invalid-ip" telemetry from security.py.
         try:
-            return str(ipaddress.ip_address(safe_ip))
-        except ValueError:
+            raw_ip = request.remote_addr or "unknown"
+            safe_ip = re.sub(r"[\x00-\x1f\x7f]+", "", raw_ip).strip()
+            if not safe_ip:
+                return "unknown"
+            try:
+                return str(ipaddress.ip_address(safe_ip))
+            except ValueError:
+                return "unknown"
+        except Exception:  # noqa: BLE001
             return "unknown"
-    except Exception:  # noqa: BLE001 - defence in depth, never break the request
-        return "unknown"
 
 
 def _route_pattern() -> str:
