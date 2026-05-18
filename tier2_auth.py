@@ -312,14 +312,15 @@ def require_tier2(view_func: Callable) -> Callable:
     Usage:
         @app.route("/rss/feed/<token>.xml")
         @require_tier2
-        def rss_feed():
+        def rss_feed():  # NO `token` parameter — decorator pops it
             customer = g.customer
             return generate_feed(customer)
 
-    The token is taken from the `token` URL kwarg (Flask path converter).
-    Routes that need the decorator MUST capture the token segment as
-    `<token>`. Using a different name will cause a 404 because no token
-    is found.
+    The token IS captured by Flask's URL routing as `<token>`, but the
+    decorator removes it from kwargs before calling the view. Views must
+    NOT declare `token` in their signature or Python raises
+    `TypeError: missing 1 required positional argument: 'token'`. Use
+    `g.customer` to access the validated customer instead.
 
     Success: sets `g.customer` to the Customer record and calls view_func
     with the original args/kwargs minus the token (which is removed from

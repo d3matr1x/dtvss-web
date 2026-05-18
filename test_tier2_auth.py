@@ -611,3 +611,37 @@ class TestClientIPSanitisation:
             "REMOTE_ADDR": "this is not an IP"
         }):
             assert tier2_auth._client_ip() == "unknown"
+
+
+# ---------------------------------------------------------------------------
+# Regression: views must NOT declare `token` in their signature
+# ---------------------------------------------------------------------------
+# Captured production bug 2026-05-18: app.py declared `def tier2_ping(token):`
+# which raised TypeError because @require_tier2 pops `token` from kwargs
+# before calling the view. This test documents the contract.
+class TestViewSignatureContract:
+    def test_view_without_token_param_works(self, app, active_customer):
+        """Views must NOT declare `token` — the decorator pops it."""
+        record, plaintext = active_customer
+        # Route already registered in fixture as `def ping():` (no token param)
+        resp = app.test_client().get(f"/tier2/ping/{plaintext}")
+        assert resp.status_code == 200
+
+    def test_view_with_token_param_raises_typeerror(self, app, active_customer):
+        """If a view DOES declare `token`, the decorator's kwargs.pop()
+        leaves nothing to pass, and Python raises TypeError. This test
+        documents that contract so it shows up in test output if anyone
+        re-introduces the bug. In production, Flask catches the TypeError
+        and serves a 500; in test mode (TESTING=True) the exception
+        propagates and pytest catches it via pytest.raises."""
+        record, plaintext = active_customer
+
+        @app.route("/tier2/buggy/<token>")
+        @tier2_auth.require_tier2
+        def buggy_view(token):  # WRONG — declares token
+            return "should never reach here"
+
+        # In test mode the TypeError propagates rather than being converted
+        # to a 500 response. Either way, the bug surfaces clearly.
+        with pytest.raises(TypeError, match="missing 1 required positional argument"):
+            app.test_client().get(f"/tier2/buggy/{plaintext}")
