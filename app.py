@@ -485,13 +485,18 @@ def static_asset(filename):
 @app.errorhandler(404)
 def page_not_found(e):
     """Custom 404. JSON for API routes (matches existing 4xx shape);
-    styled HTML page for everything else."""
+    styled HTML page for everything else. The HTML page is served
+    through _serve_html_with_nonce() so inline <style> and <script>
+    blocks pick up the per-request CSP nonce; otherwise the strict
+    CSP would block them and the page would render unstyled."""
     if request.path.startswith("/api/"):
         return jsonify({
             "error": "Not found",
             "request_id": getattr(g, "request_id", None),
         }), 404
-    return send_from_directory(STATIC_DIR, "404.html"), 404
+    response = _serve_html_with_nonce(STATIC_DIR, "404.html")
+    response.status_code = 404
+    return response
 
 # -----------------------------------------------------------------------------
 # Health check (INFO-03: decoupled from business logic)
