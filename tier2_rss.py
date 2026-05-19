@@ -58,7 +58,6 @@ Copyright 2026 Andrew Broglio. Licensed under BSL 1.1.
 """
 from __future__ import annotations
 
-import html
 import logging
 from datetime import UTC, datetime
 from email.utils import format_datetime, parsedate_to_datetime

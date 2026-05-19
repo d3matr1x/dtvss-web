@@ -20,7 +20,6 @@ Copyright 2026 Andrew Broglio. Licensed under BSL 1.1.
 from __future__ import annotations
 
 import re
-from datetime import UTC, datetime
 from unittest.mock import patch
 from xml.etree import ElementTree as ET
 
