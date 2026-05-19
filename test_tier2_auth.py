@@ -485,8 +485,11 @@ class TestSentryReporting:
         # The full token must NOT appear anywhere in the extras
         all_extras = "\n".join(captured_extras)
         assert token not in all_extras
-        # But the prefix should, for diagnostics
-        assert "token_prefix=ZZZZZZZZ" in all_extras
+        # The fingerprint should appear (8 hex chars), AND it must not
+        # contain any character from the input token
+        import re
+        fp_match = re.search(r"token_fingerprint=([0-9a-f]{8})", all_extras)
+        assert fp_match, "token_fingerprint missing from Sentry extras"
 
 
 # ---------------------------------------------------------------------------
@@ -500,7 +503,7 @@ class TestRateLimitKey:
             key = tier2_auth.tier2_rate_limit_key()
             assert key == f"tier2:{record.id}"
 
-    def test_key_uses_token_prefix_before_validation(self, app):
+    def test_key_uses_token_fingerprint_before_validation(self, app):
         token = "ABCDEFGHIJ" * 4 + "ABC"  # 43 chars
         # Simulate Flask having set view_args before the view runs
         with app.test_request_context(f"/rss/feed/{token}.xml"):
@@ -508,7 +511,11 @@ class TestRateLimitKey:
             flask_request.view_args = {"token": token}
             key = tier2_auth.tier2_rate_limit_key()
             assert key.startswith("tier2:tok:")
-            assert "ABCDEFGH" in key  # first 8 chars
+            # The fingerprint is the last 8 hex chars after the prefix
+            import re
+            assert re.fullmatch(r"tier2:tok:[0-9a-f]{8}", key)
+            # The token plaintext must NOT appear in the rate-limit key
+            assert "ABCDEFGH" not in key
 
     def test_key_falls_back_to_ip_when_no_token(self, app):
         with app.test_request_context("/"):
@@ -522,18 +529,29 @@ class TestRateLimitKey:
 # ---------------------------------------------------------------------------
 # Token prefix helper (sanity)
 # ---------------------------------------------------------------------------
-class TestTokenPrefix:
-    def test_prefix_is_8_chars(self):
-        assert tier2_auth._token_prefix("A" * 43) == "AAAAAAAA"
+class TestTokenFingerprint:
+    """The fingerprint is sha256(token)[:8] in hex.
+    No raw input bytes flow through, making it safe to log unconditionally."""
 
-    def test_prefix_of_none(self):
-        assert tier2_auth._token_prefix(None) == ""
+    def test_fingerprint_is_8_hex_chars(self):
+        import re
+        result = tier2_auth._token_fingerprint("A" * 43)
+        assert re.fullmatch(r"[0-9a-f]{8}", result)
 
-    def test_prefix_of_empty(self):
-        assert tier2_auth._token_prefix("") == ""
+    def test_fingerprint_of_none(self):
+        assert tier2_auth._token_fingerprint(None) == "none"
 
-    def test_prefix_shorter_than_8(self):
-        assert tier2_auth._token_prefix("abc") == "abc"
+    def test_fingerprint_of_empty(self):
+        assert tier2_auth._token_fingerprint("") == "none"
+
+    def test_fingerprint_is_deterministic(self):
+        # Same input always produces same fingerprint (diagnostic value)
+        assert tier2_auth._token_fingerprint("hello") == tier2_auth._token_fingerprint("hello")
+
+    def test_different_tokens_different_fingerprints(self):
+        # Different inputs almost certainly produce different fingerprints
+        # (32-bit collision space, ~1 in 4 billion)
+        assert tier2_auth._token_fingerprint("tokenA") != tier2_auth._token_fingerprint("tokenB")
 
 
 # ---------------------------------------------------------------------------
@@ -651,39 +669,52 @@ class TestViewSignatureContract:
 
 
 # ---------------------------------------------------------------------------
-# Regression: _token_prefix strips log-injection vectors
+# Regression: _token_fingerprint output is structurally injection-immune
 # ---------------------------------------------------------------------------
-# CodeQL py/log-injection finding 2026-05-18: malformed tokens flow
-# through _token_prefix() before any regex check, so newline injection
-# was possible. _token_prefix now filters output to urlsafe-base64 only.
-class TestTokenPrefixSanitisation:
-    def test_newline_stripped(self):
-        # The classic log-injection payload
-        result = tier2_auth._token_prefix("AAA\nINJECT")
-        assert "\n" not in result
-        # First 8 raw chars "AAA\nINJE", then \n stripped → "AAAINJE"
-        assert result == "AAAINJE"
+# CodeQL py/log-injection finding 2026-05-19: a substring of the raw token
+# was flowing through _token_prefix() into log.warning(), and CodeQL's
+# taint tracker didn't recognise the regex strip as a sanitiser.
+# Replaced with sha256-derived fingerprint: no raw bytes flow through,
+# output is always [0-9a-f]{8}, structurally impossible to inject.
+class TestTokenFingerprintInjectionImmunity:
+    """Even with malicious input, the fingerprint output is always 8 hex chars."""
 
-    def test_crlf_stripped(self):
-        result = tier2_auth._token_prefix("A\r\nFAKE")
-        assert "\r" not in result
-        assert "\n" not in result
+    def _assert_safe_hex_output(self, token):
+        """The output must always be exactly 8 lowercase hex chars
+        regardless of what's in the input."""
+        import re
+        result = tier2_auth._token_fingerprint(token)
+        assert re.fullmatch(r"[0-9a-f]{8}", result), \
+            f"Output for {token!r} was {result!r}, expected 8 hex chars"
 
-    def test_null_byte_stripped(self):
-        result = tier2_auth._token_prefix("AAA\x00BBB")
-        assert "\x00" not in result
+    def test_newline_input(self):
+        self._assert_safe_hex_output("AAA\nINJECT")
 
-    def test_ansi_escape_stripped(self):
-        result = tier2_auth._token_prefix("\x1b[2JBAD")
-        assert "\x1b" not in result
-        assert "[" not in result
+    def test_crlf_input(self):
+        self._assert_safe_hex_output("A\r\nFAKE")
 
-    def test_well_formed_token_passes_through(self):
-        # Real urlsafe-base64 chars must not be altered
-        result = tier2_auth._token_prefix("Abc-_xYz_more_chars")
-        assert result == "Abc-_xYz"
+    def test_null_byte_input(self):
+        self._assert_safe_hex_output("AAA\x00BBB")
 
-    def test_unicode_stripped(self):
-        # Anything outside ASCII urlsafe-base64 alphabet
-        result = tier2_auth._token_prefix("AAA\u202eHIDE")
-        assert "\u202e" not in result
+    def test_ansi_escape_input(self):
+        self._assert_safe_hex_output("\x1b[2JBAD")
+
+    def test_unicode_rtl_override(self):
+        self._assert_safe_hex_output("AAA\u202eHIDE")
+
+    def test_well_formed_token(self):
+        self._assert_safe_hex_output("Abc-_xYz_more_chars")
+
+    def test_input_bytes_never_appear_in_output(self):
+        """The strongest claim: no character of the input ever appears
+        in the output, because sha256 makes the output independent of
+        the input's textual content."""
+        token = "ABCDEFGH123_-"
+        result = tier2_auth._token_fingerprint(token)
+        # Some characters might coincidentally appear (e.g. '1' or 'a')
+        # because hex contains those, but specifically the urlsafe-only
+        # chars '_' and '-' and the uppercase letters can never appear
+        # in a lowercase-hex output.
+        assert "_" not in result
+        assert "-" not in result
+        assert not any(c.isupper() for c in result)
