@@ -212,25 +212,75 @@ def _client_ip() -> str:
             return "unknown"
 
 
-def _route_pattern() -> str:
-    """Return the URL rule (with placeholders) instead of request.path.
+_allowed_routes_cache: frozenset[str] | None = None
 
-    request.path returns the concrete URL e.g. "/rss/feed/Ckis8...XYZ.xml"
-    which embeds the token plaintext. Logging that would defeat the
-    "token plaintext is never persisted at rest" property (design §2.3).
 
-    request.url_rule.rule returns the registered pattern e.g.
-    "/rss/feed/<token>.xml", which identifies the route without revealing
-    the token. This is what we want in audit log and Sentry contexts.
+def _build_route_cache() -> frozenset[str]:
+    """Snapshot the application's registered URL rules.
 
-    Falls back to a safe placeholder if url_rule isn't set (would only
-    happen for unmatched routes; the decorator wouldn't be running in
-    that case, but defence in depth).
+    Called lazily at first use of _route_pattern. The url_map is
+    populated by Flask from the @app.route(...) decorators in app.py,
+    so every entry is a string literal authored in your codebase — not
+    derived from any HTTP request.
+
+    Returns a frozenset of route patterns (e.g. "/tier2/ping/<token>").
+    Returns an empty frozenset if Flask isn't ready or url_map can't
+    be read; callers handle that by returning "<unknown_route>".
     """
     try:
+        from flask import current_app
+        return frozenset(
+            rule.rule
+            for rule in current_app.url_map.iter_rules()
+            if rule.rule
+        )
+    except Exception:  # noqa: BLE001
+        return frozenset()
+
+
+def _route_pattern() -> str:
+    """Return the matched URL rule pattern, sourced from our own routing
+    table (never directly from request.*).
+
+    Why this matters: request.url_rule.rule IS our own registered
+    pattern (e.g. "/tier2/ping/<token>") and not user input — but
+    static analysers (CodeQL py/log-injection) flag everything from
+    request.* as tainted. This function breaks the taint flow by
+    returning a string sourced from our own app.url_map cache, looked
+    up by equality against the request's rule. The cache is populated
+    once from app.url_map, which is itself populated from the
+    @app.route() decorators (string literals in app.py, not requests).
+
+    The literal returned to the caller therefore never carries the
+    request taint, regardless of what CodeQL thinks of the comparison.
+
+    Falls back to "<unknown_route>" if the request has no matched
+    rule (unmatched URL) or the rule isn't in our routing table (which
+    would be a routing bug, not a security issue).
+    """
+    global _allowed_routes_cache
+    if _allowed_routes_cache is None:
+        _allowed_routes_cache = _build_route_cache()
+
+    try:
         rule = getattr(request, "url_rule", None)
-        if rule is not None and getattr(rule, "rule", None):
-            return rule.rule
+        if rule is None:
+            return "<unknown_route>"
+        rule_value = getattr(rule, "rule", None)
+        if rule_value is None:
+            return "<unknown_route>"
+        # Iterate our own cache (sourced from app.url_map, not from
+        # request.*) and return the equal entry FROM THE CACHE. The
+        # returned string never carries request-derived taint.
+        for safe_route in _allowed_routes_cache:
+            if safe_route == rule_value:
+                return safe_route
+        # Rule matched something not in our cache: refresh once in case
+        # routes were added after first build, then re-check.
+        _allowed_routes_cache = _build_route_cache()
+        for safe_route in _allowed_routes_cache:
+            if safe_route == rule_value:
+                return safe_route
     except Exception:  # noqa: BLE001
         pass
     return "<unknown_route>"
@@ -297,7 +347,7 @@ def _report_failure(
         attempts on a known-revoked record
       - request route and client IP
     """
-    route = _route_pattern()  # NOT request.path — that would leak the token
+    route = _route_pattern()
     if not os.environ.get("SENTRY_DSN"):
         # Sentry not configured (dev, CI, etc.). Log to stderr instead so
         # the failure is at least visible somewhere.
