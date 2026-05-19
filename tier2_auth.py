@@ -236,31 +236,35 @@ def _route_pattern() -> str:
     return "<unknown_route>"
 
 
-def _token_prefix(token: str | None) -> str:
-    """Return the first 8 characters of a token for audit log diagnostics,
-    with all non-tokenchars stripped.
+def _token_fingerprint(token: str | None) -> str:
+    """Return the first 8 hex characters of sha256(token) for log
+    diagnostics. NEVER returns any byte derived from the raw token.
 
-    Eight characters of urlsafe-base64 is 48 bits, which is too short to
-    brute-force the rest from a hash but long enough to distinguish
-    different rejected attempts when investigating an incident. Full
-    plaintext tokens are NEVER written to the audit log or Sentry, by
-    design (tier2-design §2.3).
+    Why a fingerprint and not a substring of the token:
+      - Closes CodeQL py/log-injection definitively. The output is the
+        result of hashlib.sha256().hexdigest()[:8], which CodeQL's taint
+        tracker recognises as fully sanitising — no input byte flows to
+        the output, so the value is always [0-9a-f]+ and safe to log.
+      - A substring approach (token[:8] with character-class filtering)
+        still has the input as a tainted source even after filtering;
+        CodeQL doesn't always recognise regex filters as sanitisers.
+      - Hex fingerprint is deterministic, so the same token always
+        produces the same fingerprint. Diagnostic value preserved:
+        "all the failed attempts have fingerprint a3f2c9d1" still
+        identifies a repeated stale token.
+      - 8 hex chars = 32 bits of entropy, distinguishing distinct
+        rejected tokens without enabling collision-search attacks
+        against the underlying token.
+      - sha256 is one-way: an attacker who reads the fingerprint
+        cannot recover any byte of the original token.
 
-    Defence-in-depth (closes CodeQL py/log-injection): well-formed tokens
-    are filtered upstream by the TOKEN_REGEX check in the decorator, but
-    _report_failure() is also called BEFORE that check fires (for
-    "malformed" reason) which means the raw user input flows through
-    this function. An attacker could supply a malformed token starting
-    with `\\n` or `\\r` to inject a forged log line. Filtering out
-    anything outside the base64url alphabet on the way out makes the
-    output safe to log unescaped regardless of input.
+    Returns the literal string "none" for None/empty input so the
+    log field is always populated.
     """
     if not token:
-        return ""
-    # Take the first 8 raw chars, then strip anything that isn't in the
-    # urlsafe-base64 alphabet. If the input is well-formed, nothing
-    # changes. If it isn't, we drop the injection vectors.
-    return re.sub(r"[^A-Za-z0-9_-]", "", str(token)[:8])
+        return "none"
+    import hashlib
+    return hashlib.sha256(str(token).encode("utf-8", errors="replace")).hexdigest()[:8]
 
 
 # ---------------------------------------------------------------------------
@@ -298,11 +302,11 @@ def _report_failure(
         # Sentry not configured (dev, CI, etc.). Log to stderr instead so
         # the failure is at least visible somewhere.
         log.warning(
-            "Tier 2 auth failure: reason=%s route=%s ip=%s token_prefix=%s customer=%s",
+            "Tier 2 auth failure: reason=%s route=%s ip=%s token_fp=%s customer=%s",
             reason,
             route,
             _client_ip(),
-            _token_prefix(token),
+            _token_fingerprint(token),
             customer_id or "",
         )
         return
@@ -312,7 +316,7 @@ def _report_failure(
 
     with sentry_sdk.push_scope() as scope:
         scope.set_tag("tier2.auth_failure", reason)
-        scope.set_extra("token_prefix", _token_prefix(token))
+        scope.set_extra("token_fingerprint", _token_fingerprint(token))
         scope.set_extra("route", route)
         scope.set_extra("source_ip", _client_ip())
         if customer_id:
@@ -449,7 +453,7 @@ def tier2_rate_limit_key() -> str:
     # includes before the decorator. So we can read the in-flight token here.
     token = (request.view_args or {}).get("token") if request else None
     if token and isinstance(token, str):
-        return f"tier2:tok:{_token_prefix(token)}"
+        return f"tier2:tok:{_token_fingerprint(token)}"
     return f"tier2:ip:{_client_ip()}"
 
 
