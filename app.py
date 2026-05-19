@@ -69,6 +69,10 @@ from tier2_auth import (
     TIER2_RATE_LIMIT,
 )
 
+# Tier 2 RSS feed generation (Stage 3). Same decorator + rate-limit key
+# as the ping endpoint; the view function is in tier2_rss.py.
+from tier2_rss import tier2_rss_feed_view
+
 # -----------------------------------------------------------------------------
 # Sentry error monitoring (MUST initialize before Flask app creation)
 # -----------------------------------------------------------------------------
@@ -1116,6 +1120,22 @@ def tier2_ping():
     # at request time. Use g.customer inside the view to access the
     # validated customer record.
     return tier2_ping_view()
+
+
+# -----------------------------------------------------------------------------
+# Tier 2 RSS feed endpoint (Stage 3)
+# -----------------------------------------------------------------------------
+# The actual customer-facing product: a manufacturer-filtered RSS feed
+# scored using the DTVSS algorithm. Decorator chain matches /tier2/ping:
+# limiter outermost (rate-limit malformed-token floods before doing
+# regex/DB work), @require_tier2 inner (validates the token, sets
+# g.customer). See ADR 003-stage3-rss-feed-generation.md.
+@app.route("/rss/feed/<token>.xml")
+@limiter.limit(TIER2_RATE_LIMIT, key_func=tier2_rate_limit_key)
+@require_tier2
+def tier2_rss_feed():
+    # Same view-signature contract as tier2_ping: NO `token` parameter.
+    return tier2_rss_feed_view()
 
 
 # -----------------------------------------------------------------------------
