@@ -174,28 +174,36 @@ def _client_ip() -> str:
     Delegates to security.get_real_client_ip(), which reads request.remote_addr
     AFTER Werkzeug's ProxyFix middleware has rewritten it from Railway's
     internal mesh IP (100.64.x.x) to the original client IP based on the
-    X-Forwarded-For chain. ProxyFix is installed by security.apply_hardening()
-    at app boot, so by the time the decorator runs, request.remote_addr is
-    already the rewritten value.
+    X-Forwarded-For chain.
 
-    Defence-in-depth (closes CodeQL py/log-injection): get_real_client_ip()
-    validates via ipaddress.ip_address() and returns the literal string
-    "invalid-ip" on anything that isn't a real IPv4/IPv6 address. The
-    returned value is therefore never user-controlled freeform text and
-    is safe to log unescaped.
+    CodeQL py/log-injection closure: security.get_real_client_ip() validates
+    via ipaddress.ip_address() but returns the original string, which CodeQL
+    sees as still-tainted from request.remote_addr. We RE-CANONICALISE the
+    returned value through ipaddress.ip_address() one more time at this
+    boundary. The output is a fresh string constructed by Python's stdlib,
+    which severs the taint flow even though the IP value is the same. Both
+    a defensive validation AND a CodeQL sanitiser in one step.
 
-    Edge case: if security.py cannot be imported (e.g. during partial test
-    setup), fall back to a safer-than-nothing local validation. Same
-    semantics, same security posture; just doesn't share the
-    "invalid-ip" telemetry with the rest of the app.
+    The returned value is guaranteed to be one of:
+      - A canonical IPv4 literal (e.g. "203.0.113.42")
+      - A canonical IPv6 literal (e.g. "2001:db8::1")
+      - The literal string "unknown" or "invalid-ip" (from security.py)
 
-    Returns:
-        A validated IPv4/IPv6 literal, or "invalid-ip" if no valid IP could
-        be determined. Never returns user-controlled freeform text.
+    Never returns user-controlled freeform text.
     """
     try:
         from security import get_real_client_ip
-        return get_real_client_ip()
+        raw = get_real_client_ip()
+        # Re-canonicalise to break CodeQL's taint flow. Sentinel strings
+        # like "invalid-ip" pass through unchanged; real IPs become fresh
+        # stdlib-constructed strings.
+        try:
+            return str(ipaddress.ip_address(raw))
+        except (ValueError, TypeError):
+            # Sentinel value from security.py ("invalid-ip" etc) or
+            # something unexpected. Return a fixed literal — never the
+            # input.
+            return "invalid-ip" if "invalid" in str(raw) else "unknown"
     except Exception:  # noqa: BLE001
         # Fallback path: same validation logic, just doesn't share the
         # operator-visible "invalid-ip" telemetry from security.py.
@@ -351,6 +359,14 @@ def _report_failure(
     if not os.environ.get("SENTRY_DSN"):
         # Sentry not configured (dev, CI, etc.). Log to stderr instead so
         # the failure is at least visible somewhere.
+        #
+        # All five values flowing into this log statement are either
+        # constant strings from our code (`reason`), drawn from a
+        # cache populated by our own routing table (`route`), the
+        # output of a stdlib IP canonicaliser (`_client_ip()`), a
+        # sha256 hex digest (`_token_fingerprint()`), or an internal
+        # record ID format `cust_YYYY_NNNN` (`customer_id`). None
+        # carry direct request taint at the log boundary.
         log.warning(
             "Tier 2 auth failure: reason=%s route=%s ip=%s token_fp=%s customer=%s",
             reason,
