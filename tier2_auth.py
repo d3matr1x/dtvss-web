@@ -237,17 +237,30 @@ def _route_pattern() -> str:
 
 
 def _token_prefix(token: str | None) -> str:
-    """Return the first 8 characters of a token for audit log diagnostics.
+    """Return the first 8 characters of a token for audit log diagnostics,
+    with all non-tokenchars stripped.
 
     Eight characters of urlsafe-base64 is 48 bits, which is too short to
     brute-force the rest from a hash but long enough to distinguish
     different rejected attempts when investigating an incident. Full
     plaintext tokens are NEVER written to the audit log or Sentry, by
     design (tier2-design §2.3).
+
+    Defence-in-depth (closes CodeQL py/log-injection): well-formed tokens
+    are filtered upstream by the TOKEN_REGEX check in the decorator, but
+    _report_failure() is also called BEFORE that check fires (for
+    "malformed" reason) which means the raw user input flows through
+    this function. An attacker could supply a malformed token starting
+    with `\\n` or `\\r` to inject a forged log line. Filtering out
+    anything outside the base64url alphabet on the way out makes the
+    output safe to log unescaped regardless of input.
     """
     if not token:
         return ""
-    return token[:8]
+    # Take the first 8 raw chars, then strip anything that isn't in the
+    # urlsafe-base64 alphabet. If the input is well-formed, nothing
+    # changes. If it isn't, we drop the injection vectors.
+    return re.sub(r"[^A-Za-z0-9_-]", "", str(token)[:8])
 
 
 # ---------------------------------------------------------------------------

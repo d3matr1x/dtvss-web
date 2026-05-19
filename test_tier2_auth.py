@@ -648,3 +648,42 @@ class TestViewSignatureContract:
         # to a 500 response. Either way, the bug surfaces clearly.
         with pytest.raises(TypeError, match="missing 1 required positional argument"):
             app.test_client().get(f"/tier2/buggy/{plaintext}")
+
+
+# ---------------------------------------------------------------------------
+# Regression: _token_prefix strips log-injection vectors
+# ---------------------------------------------------------------------------
+# CodeQL py/log-injection finding 2026-05-18: malformed tokens flow
+# through _token_prefix() before any regex check, so newline injection
+# was possible. _token_prefix now filters output to urlsafe-base64 only.
+class TestTokenPrefixSanitisation:
+    def test_newline_stripped(self):
+        # The classic log-injection payload
+        result = tier2_auth._token_prefix("AAA\nINJECT")
+        assert "\n" not in result
+        # First 8 raw chars "AAA\nINJE", then \n stripped → "AAAINJE"
+        assert result == "AAAINJE"
+
+    def test_crlf_stripped(self):
+        result = tier2_auth._token_prefix("A\r\nFAKE")
+        assert "\r" not in result
+        assert "\n" not in result
+
+    def test_null_byte_stripped(self):
+        result = tier2_auth._token_prefix("AAA\x00BBB")
+        assert "\x00" not in result
+
+    def test_ansi_escape_stripped(self):
+        result = tier2_auth._token_prefix("\x1b[2JBAD")
+        assert "\x1b" not in result
+        assert "[" not in result
+
+    def test_well_formed_token_passes_through(self):
+        # Real urlsafe-base64 chars must not be altered
+        result = tier2_auth._token_prefix("Abc-_xYz_more_chars")
+        assert result == "Abc-_xYz"
+
+    def test_unicode_stripped(self):
+        # Anything outside ASCII urlsafe-base64 alphabet
+        result = tier2_auth._token_prefix("AAA\u202eHIDE")
+        assert "\u202e" not in result
