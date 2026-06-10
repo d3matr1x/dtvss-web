@@ -565,6 +565,13 @@ def _try_acquire_pipeline_leadership() -> bool:
         return True  # not POSIX, fall back to per-worker hourly thread
 
     sentinel_path = INDEX_FILE + ".pipeline.lock"
+    # Pre-bind so the except block below can safely reference fh even when
+    # open() itself raised (e.g. the index directory does not exist yet,
+    # such as a fresh DTVSS_DATA_DIR volume before the first pipeline run).
+    # Previously fh was only bound on successful open, so an OSError from
+    # open() cascaded into UnboundLocalError in the handler and crashed the
+    # whole module at import time.
+    fh = None
     try:
         # Open in append mode so the file is created if missing without
         # truncating an existing one. We only care about the lock, not contents.
@@ -575,10 +582,12 @@ def _try_acquire_pipeline_leadership() -> bool:
         _pipeline_lock_file_handle = fh
         return True
     except (BlockingIOError, OSError):
-        # Another worker holds the lock. Close our handle so we don't leak fds
-        # on repeated attempts.
+        # Another worker holds the lock (or open() itself failed and fh is
+        # still None). Close our handle so we don't leak fds on repeated
+        # attempts.
         try:
-            fh.close()
+            if fh is not None:
+                fh.close()
         except (OSError, ValueError):
             # Best-effort cleanup. File may already be closed (ValueError) or
             # the OS may report a secondary error during close (OSError) - we

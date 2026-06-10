@@ -73,7 +73,18 @@ DEVICE_KEYWORDS = {
     "abbott pacemaker": "III", "abbott defibrillator": "III",
     "boston scientific": "III",
     "biotronik": "III",
-    "zoll": "IIb",
+    # Zoll: Class III, matching build_dataset.py's CLASS_III vendor list and
+    # the patent calibration dataset ([0025] counts the Zoll CVEs among the
+    # Class III implantable-cardiac set; 6 of the 9 filing-time Class III
+    # CVEs are Zoll). This was previously "IIb" here, so a live lookup of a
+    # Zoll CVE whose description didn't independently match "defibrillator"
+    # or "implantable" scored at H=7.5 instead of the H=10.0 used in the
+    # calibration - an inconsistency in the UNSAFE direction. Zoll also
+    # makes external/wearable devices (AEDs, LifeVest) that are IIb in
+    # isolation; until per-product classification exists, III is the
+    # conservative choice for a harm-weighted score and the one consistent
+    # with the filed calibration.
+    "zoll": "III",
     "implantable": "III",
     # PACS / imaging systems - IIb
     "pacs": "IIb", "dicom": "IIb", "synapse": "IIb",

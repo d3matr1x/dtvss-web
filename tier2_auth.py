@@ -39,6 +39,22 @@ Security properties (per design §5.2 Assertions 5–10):
   - Token replay (RSS readers poll repeatedly) → permitted up to the
     per-token rate limit (60/hour by default)
 
+Token-in-URL residual risk (documented in threat-model.md §I and the
+Trust Centre draft):
+
+  - RSS readers cannot set custom headers, so the capability token must
+    travel in the URL path. The application never logs the full token
+    (audit log stores the route PATTERN and a token prefix only), but
+    the full request path - token included - appears in Cloudflare and
+    Railway access logs and in any intermediary that logs URLs.
+  - Mitigations: edge log retention is the operator's exposure window
+    and should be kept short; tokens are revocable and individually
+    rotatable (customer_revoke.py / reissue); responses on Tier 2
+    routes carry `Referrer-Policy: no-referrer` (set by the decorator
+    below) so a browser viewing a feed never leaks the tokened URL via
+    the Referer header; Tier 2 responses must never embed outbound
+    links that a browser would follow from the tokened page.
+
 Path-handling threat model (Stage 2 risk: auth bypass via URL parsing):
 
   - The token segment is captured by Flask's URL converter, not parsed
@@ -488,7 +504,20 @@ def require_tier2(view_func: Callable) -> Callable:
             "user_agent": (request.headers.get("User-Agent") or "")[:200],
         })
 
-        return view_func(*args, **kwargs)
+        resp = view_func(*args, **kwargs)
+
+        # Token-in-URL hardening: the request URL contains the capability
+        # token, so make sure a browser rendering this response never
+        # forwards that URL in a Referer header. The global default
+        # (strict-origin-when-cross-origin, set in security.py) still
+        # sends the FULL URL on same-origin navigation; no-referrer is
+        # the only value that never leaks the path. make_response()
+        # normalises whatever the view returned (Response, tuple, str)
+        # into a Response we can set headers on.
+        from flask import make_response
+        resp = make_response(resp)
+        resp.headers["Referrer-Policy"] = "no-referrer"
+        return resp
 
     return wrapper
 

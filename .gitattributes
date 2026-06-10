@@ -1,0 +1,40 @@
+# Normalize line endings. The repo accumulated CRLF in most .py files
+# (Windows checkout without autocrlf guidance); this pins LF in the repo
+# for everything text, with explicit rules for the few cases that matter.
+#
+# After committing this file, run once:
+#   git add --renormalize .
+#   git commit -m "Normalize line endings via .gitattributes"
+# That rewrites the index copies to LF; working trees pick it up on the
+# next checkout. (The renormalize commit is whitespace-only - review it
+# with `git diff --ignore-cr-at-eol` to confirm it is content-neutral.)
+
+* text=auto eol=lf
+
+*.py    text eol=lf
+*.md    text eol=lf
+*.html  text eol=lf
+*.css   text eol=lf
+*.js    text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.toml  text eol=lf
+*.txt   text eol=lf
+*.csv   text eol=lf
+*.tsv   text eol=lf
+
+# Windows batch/PowerShell scripts need CRLF to run correctly
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# Binary - never touch
+*.png   binary
+*.ico   binary
+*.pdf   binary
+*.docx  binary
+*.pptx  binary
+*.xlsx  binary
+*.woff  binary
+*.woff2 binary

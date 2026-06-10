@@ -208,11 +208,19 @@ def _serve_html_with_nonce(directory: str, filename: str):
 # that as the ETag. Same caching benefit (browsers can re-validate cleanly),
 # zero filesystem disclosure.
 #
+# Hash choice: SHA-256 truncated to 32 hex chars. ETags are opaque cache
+# validators, not a security boundary, so MD5 would be functionally fine -
+# but SHA-256 costs nothing extra at our response sizes, keeps FIPS-mode
+# hosts happy (hashlib.md5 raises under FIPS unless usedforsecurity=False),
+# and avoids tripping naive "MD5 detected" scanner findings. Truncation to
+# 128 bits keeps the header compact; collision resistance at 128 bits is
+# far beyond what a cache validator needs.
+#
 # Implementation note: send_from_directory() returns responses in
 # `direct_passthrough` mode for efficient file streaming. In passthrough mode,
 # response.get_data() raises RuntimeError. We must explicitly disable
 # passthrough before reading the body so we can hash it. This re-buffers the
-# response (one MD5 per file response) which is fine for a small static site.
+# response (one hash per file response) which is fine for a small static site.
 @app.after_request
 def replace_inode_etag(response):
     """Replace the default inode-derived ETag with a content-hash ETag."""
@@ -229,8 +237,7 @@ def replace_inode_etag(response):
         return response
     if not body:
         return response
-    import hashlib
-    digest = hashlib.md5(body).hexdigest()
+    digest = hashlib.sha256(body).hexdigest()[:32]
     response.headers["ETag"] = f'"{digest}"'
     return response
 
@@ -239,30 +246,15 @@ def replace_inode_etag(response):
 # persistent storage. RAIL-01 in PENTEST_RAILWAY_ADDENDUM.md. A "works, silently
 # loses data" configuration is worse than a startup crash.
 #
-# BUG FIX: previously this checked RAILWAY_ENVIRONMENT == "production", but
-# Railway sets RAILWAY_ENVIRONMENT to whatever the user named their environment
-# in the dashboard - "production" is only the default. Renamed environments
-# (staging, prod, main, etc.) silently bypassed the guard, which was the exact
-# failure mode this check was designed to prevent. We now trigger on ANY
-# Railway-/Heroku-/Fly-/Render-style env var, with an explicit DTVSS_ALLOW_EPHEMERAL
-# escape hatch for users who really do want ephemeral storage.
-def _is_managed_deploy() -> bool:
-    """True if running on Railway, Heroku, Fly, Render, or similar PaaS."""
-    return any(
-        os.environ.get(k)
-        for k in (
-            "RAILWAY_ENVIRONMENT",
-            "RAILWAY_ENVIRONMENT_NAME",
-            "RAILWAY_PROJECT_ID",
-            "DYNO",                         # Heroku
-            "FLY_APP_NAME",                 # Fly.io
-            "RENDER",                       # Render
-            "DTVSS_REQUIRE_PERSISTENT",     # explicit opt-in for any other host
-        )
-    )
+# The managed-deploy detector lives in security.is_managed_deploy() so the
+# Turnstile decorator can share it (it fails CLOSED in managed deploys when
+# TURNSTILE_SECRET is missing - see require_turnstile_or_api_key). It was
+# previously a private function here; the BUG FIX history (renamed Railway
+# environments bypassing a RAILWAY_ENVIRONMENT == "production" check) is
+# documented on the function itself.
+from security import is_managed_deploy
 
-
-if _is_managed_deploy():
+if is_managed_deploy():
     if not os.environ.get("DTVSS_DATA_DIR") and not os.environ.get("DTVSS_ALLOW_EPHEMERAL"):
         raise RuntimeError(
             "DTVSS_DATA_DIR must be set in managed deploys. "
@@ -275,7 +267,54 @@ if _is_managed_deploy():
     if not os.environ.get("DTVSS_CORS_ORIGINS"):
         logging.warning(
             "DTVSS_CORS_ORIGINS is not set - CORS will use default allowlist "
-            "which probably doesn't match your production domain."
+            "which probably doesn't match your production domain. If your "
+            "frontend is served from both the apex and www, list BOTH "
+            "(e.g. DTVSS_CORS_ORIGINS=https://dtvss.io,https://www.dtvss.io); "
+            "listing only one is the root cause of the "
+            "cors.allowed_origin_not_reflected pentest finding."
+        )
+
+    # Turnstile: in a managed (production-like) deploy a missing secret no
+    # longer fails open. require_turnstile_or_api_key returns 503 on the
+    # protected endpoints until the secret is configured (or the operator
+    # explicitly sets DTVSS_ALLOW_NO_TURNSTILE=1). Warn at startup so the
+    # misconfiguration is visible in deploy logs, not just per-request.
+    if (
+        not os.environ.get("TURNSTILE_SECRET", "").strip()
+        and not os.environ.get("DTVSS_ALLOW_NO_TURNSTILE")
+    ):
+        logging.error(
+            "TURNSTILE_SECRET is not set in a managed deploy. Bot-protected "
+            "endpoints (/api/lookup, /api/search, /api/score) will return "
+            "503 until it is configured. Set TURNSTILE_SECRET, or set "
+            "DTVSS_ALLOW_NO_TURNSTILE=1 to explicitly accept running "
+            "without bot protection."
+        )
+
+    # Rate limiting: the memory:// default keeps per-worker buckets, so with
+    # N gunicorn workers every limit is silently multiplied by N. With the
+    # current Procfile (no -w flag, WEB_CONCURRENCY unset) gunicorn runs a
+    # single worker and memory:// is merely restart-amnesiac - warn. If the
+    # deploy scales workers without Redis, that's a real integrity gap in
+    # the rate limits - refuse to start unless explicitly allowed.
+    if not os.environ.get("REDIS_URL"):
+        try:
+            _workers = int(os.environ.get("WEB_CONCURRENCY", "1") or "1")
+        except ValueError:
+            _workers = 1
+        if _workers > 1 and not os.environ.get("DTVSS_ALLOW_MEMORY_RATELIMIT"):
+            raise RuntimeError(
+                f"REDIS_URL is not set but WEB_CONCURRENCY={_workers}. "
+                "In-memory rate-limit storage is per-worker, so every "
+                "limit would be multiplied by the worker count. Provision "
+                "Redis and set REDIS_URL, or set "
+                "DTVSS_ALLOW_MEMORY_RATELIMIT=1 to accept weakened limits."
+            )
+        logging.warning(
+            "REDIS_URL is not set - rate limits use in-process memory "
+            "storage (reset on every restart; per-worker if you ever "
+            "scale WEB_CONCURRENCY above 1). Fine for a single-worker "
+            "deploy; set REDIS_URL before scaling."
         )
 
 # Apply all Flask-level security hardening at once
@@ -328,7 +367,29 @@ try:
         return limiter.limit(RATE_LIMIT_CHEAP)(fn)
 
 except ImportError:
-    log.warning("Flask-Limiter not installed; running without rate limiting")
+    log.warning(
+        "Flask-Limiter not installed; running WITHOUT rate limiting "
+        "(all limiter decorators, including /tier2/ping, become no-ops)"
+    )
+
+    class _NoopLimiter:
+        """Stand-in for flask_limiter.Limiter when the package is absent.
+
+        Routes decorate with `@limiter.limit(...)` directly (the Tier 2
+        ping route does), so the name `limiter` must exist even on the
+        fallback path. Previously only _expensive/_cheap were defined
+        here and the module crashed with NameError at import time the
+        moment any route used `@limiter.limit` - the "graceful
+        degradation" path was actually a guaranteed crash. The stub
+        accepts the same call shape and returns the view unchanged.
+        """
+
+        def limit(self, *args, **kwargs):
+            def decorator(fn):
+                return fn
+            return decorator
+
+    limiter = _NoopLimiter()
 
     def _expensive(fn):
         return fn
@@ -1155,6 +1216,7 @@ def tier2_rss_feed():
 # daemon thread won't block worker shutdown. Failure is non-fatal -
 # classify_device() falls through to Layer 3 if the cache stays empty, and
 # Layer 3 itself is now circuit-broken (api_clients.openfda_classify_device).
+# (Single threading import shared by both warmup threads below.)
 import threading as _threading
 
 
@@ -1183,7 +1245,6 @@ _threading.Thread(
 # past gunicorn's timeout, causing SIGABRT and Cloudflare 522s. Moving to
 # a background daemon thread eliminates the risk entirely. Failure remains
 # non-fatal because cisa_kev_check has its own backoff logic.
-import threading as _threading_kev
 
 
 def _warm_kev_cache():
@@ -1194,7 +1255,7 @@ def _warm_kev_cache():
         log.warning("KEV cache warm skipped: %s", sanitize_error(_e))
 
 
-_threading_kev.Thread(
+_threading.Thread(
     target=_warm_kev_cache,
     name="dtvss-kev-cache-warmup",
     daemon=True,
