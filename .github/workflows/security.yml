@@ -102,11 +102,25 @@ jobs:
         run: python -m pip install --upgrade pip pip-tools
 
       - name: Verify lockfile is in sync with requirements.txt
-        # Regenerate the lockfile in a tempfile and diff against the
-        # checked-in version. Any *content* difference means someone
-        # updated requirements.txt without running `pip-compile
-        # --generate-hashes`. That's the failure mode this job exists
-        # to catch.
+        # Regenerate the lockfile and diff against the checked-in version.
+        # The failure mode this job catches: someone edited
+        # requirements.txt without re-running pip-compile.
+        #
+        # DE-FLAKED (2026-06-10): the previous version resolved from
+        # scratch into an empty tempfile, so ANY new compatible release
+        # on PyPI (e.g. cryptography 48.0.0 -> 48.0.1 inside our
+        # >=46.0.5,<49 range) turned the gate red with zero repo changes.
+        # pip-compile anchors to pins already present in its output file,
+        # so we seed the tempfile with the committed lock first: existing
+        # pins that still satisfy requirements.txt are kept, and only a
+        # real requirements.txt change produces a diff. Deliberate
+        # upgrades still happen via `pip-compile --upgrade-package` (or
+        # dependabot), regenerating the committed lock.
+        #
+        # Also pinned --no-strip-extras explicitly: the committed lock is
+        # generated with it (see its header), and pip-tools 8.0 flips the
+        # default, which would have silently broken this comparison on
+        # the next runner image update.
         #
         # We strip leading comment lines from both files before diffing
         # because the checked-in lockfile carries an explanatory header
@@ -115,7 +129,8 @@ jobs:
         # list and the hashes, both of which pip-compile produces
         # deterministically.
         run: |
-          pip-compile --generate-hashes --quiet \
+          cp requirements-lock.txt /tmp/requirements-lock.regenerated.txt
+          pip-compile --generate-hashes --no-strip-extras --quiet \
             --output-file=/tmp/requirements-lock.regenerated.txt \
             requirements.txt
 
@@ -129,7 +144,7 @@ jobs:
           if ! diff -u <(strip_header requirements-lock.txt) \
                        <(strip_header /tmp/requirements-lock.regenerated.txt); then
             echo "::error::requirements-lock.txt content drift from requirements.txt"
-            echo "::error::Run: pip-compile --generate-hashes -o requirements-lock.txt requirements.txt"
+            echo "::error::Run: pip-compile --generate-hashes --no-strip-extras -o requirements-lock.txt requirements.txt"
             echo "::error::Then commit both files together (preserving the header comment block)."
             exit 1
           fi
