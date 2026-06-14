@@ -33,7 +33,7 @@ defusedxml==0.7.1          # CRIT-01: XXE-safe XML parsing (HARD REQUIREMENT)
 #     base image already ships OpenSSL 3.x so this is a no-op for us.
 #     Upper bound retained at < 49 to require deliberate review for the
 #     next major.
-cryptography>=46.0.5,<49
+cryptography>=49.0.0,<50
 
 # Dependency pin rationale (per Fix #7 in PATCHES_v2.md):
 #
