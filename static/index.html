@@ -259,7 +259,7 @@ html{scroll-padding-top:60px}
     <a href="/calculator" style="color:var(--dim);text-decoration:none">Calculator</a>
     <a href="/calibration" style="color:var(--dim);text-decoration:none">Calibration</a>
     <a href="/about" style="color:var(--dim);text-decoration:none">About</a>
-    <a href="/tiers" style="color:var(--dim);text-decoration:none">Tiers</a>
+    <!-- <a href="/tiers" style="color:var(--dim);text-decoration:none">Tiers</a> --> <!-- TIERS DISABLED 2026-06-10 -->
     <a href="/security-policy" style="color:var(--dim);text-decoration:none">Security</a>
   </span>
 </div>
@@ -365,7 +365,7 @@ html{scroll-padding-top:60px}
     <div>© 2026 Andrew Broglio · DTVSS™ · Patent Pending - IP Australia</div>
     <div style="margin-top:4px;font-size:12px;color:var(--tx)">Licensed under BSL 1.1 · Non-commercial use permitted · Commercial licence required for production use</div>
     <div style="margin-top:8px;font-size:13px">
-      <a href="/">Search</a> · <a href="/calculator">Calculator</a> · <a href="/calibration">Calibration</a> · <a href="/about">About</a> · <a href="/tiers">Tiers</a> · <a href="/security-policy">Security</a>
+      <a href="/">Search</a> · <a href="/calculator">Calculator</a> · <a href="/calibration">Calibration</a> · <a href="/about">About</a><!-- · <a href="/tiers">Tiers</a> --> · <a href="/security-policy">Security</a>
     </div>
   </div>
 
@@ -378,6 +378,12 @@ html{scroll-padding-top:60px}
 
 </main>
 
+<script>
+// TIERS_ENABLED master switch (2026-06-10): false parks the tier teaser
+// site-wide. Set to true to bring it back (also uncomment the #tierFloat
+// block at the bottom of this file and re-enable the /tiers route in app.py).
+window.TIERS_ENABLED = false;
+</script>
 <script>
 // -----------------------------------------------------------------------------
 // XSS helpers (Pentest Fix #6)
@@ -844,7 +850,7 @@ function showSingleResult(r) {
 
   // Hide search results, show score card
   document.getElementById('resultsList').classList.remove('visible');
-  document.getElementById('tierFloat').style.display = 'flex';
+  if (window.TIERS_ENABLED) { var _tf = document.getElementById('tierFloat'); if (_tf) _tf.style.display = 'flex'; }
 
   const card = document.getElementById('scoreCard');
   card.classList.add('visible');
@@ -1028,7 +1034,7 @@ function showSearchResults(data, page) {
   // by the <div class="tier-float"> block below. We just toggle visibility here.
   list.innerHTML = html;
   list.classList.add('visible');
-  document.getElementById('tierFloat').style.display = 'flex';
+  if (window.TIERS_ENABLED) { var _tf = document.getElementById('tierFloat'); if (_tf) _tf.style.display = 'flex'; }
 }
 
 function lookupCVE(cveId) {
@@ -1163,7 +1169,10 @@ function backToResults() {
 })();
 </script>
 
-<!-- Sticky tier CTA: desktop sidebar, mobile bottom bar. Hidden until search runs. -->
+<!-- TIERS TEASER DISABLED (2026-06-10): parked until the commercial
+     offering is ready to announce. TO RE-ENABLE: uncomment this block and
+     set TIERS_ENABLED = true in the script below. -->
+<!--
 <div id="tierFloat" class="tier-float" style="display:none">
   <a href="/tiers" class="tier-pill t2">
     🔒 TIER 2 <span class="sep">·</span> <span class="act">find out more →</span>
@@ -1175,6 +1184,7 @@ function backToResults() {
     🔒 TIER 4 <span class="sep">·</span> <span class="act">find out more →</span>
   </a>
 </div>
+-->
 
 </body>
 </html>

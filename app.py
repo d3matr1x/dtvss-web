@@ -408,6 +408,16 @@ def _query_hash(q: str) -> str:
 # -----------------------------------------------------------------------------
 @app.route("/tiers")
 def tiers():
+    # TIERS PAGE DISABLED (2026-06-10): the tier marketing page is parked
+    # until the commercial offering is ready to announce. Returning 404
+    # (not serving the page, not redirecting) keeps it fully off the site
+    # and out of the user's hands. tiers.html is retained in STATIC_DIR.
+    #
+    # TO RE-ENABLE: delete the abort() line below, restore the teaser
+    # block in index.html (search "TIERS TEASER DISABLED"), flip
+    # TIERS_ENABLED to true in index.html, and re-add the /tiers <loc> to
+    # sitemap.xml.
+    abort(404)
     return _serve_html_with_nonce(STATIC_DIR, "tiers.html")
 
 @app.route("/")

@@ -20,11 +20,8 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  <url>
-    <loc>https://dtvss.io/tiers</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
+  <!-- /tiers <url> block removed 2026-06-10: tier page disabled (returns 404).
+       Re-add the full <url><loc>https://dtvss.io/tiers</loc>...</url> when re-enabled. -->
   <url>
     <loc>https://dtvss.io/security-policy</loc>
     <changefreq>yearly</changefreq>
