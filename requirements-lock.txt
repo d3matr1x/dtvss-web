@@ -308,9 +308,9 @@ redis==8.0.0 \
     --hash=sha256:a00c5355432051ac14e593b8b197fc76c887ee12d55a0984f69328a1115fdc49 \
     --hash=sha256:c938c18338585009f0bc310f4c7e4e4b4d37639356c4ac072cedf3af570c8dc7
     # via -r requirements.txt
-sentry-sdk[flask]==2.61.1 \
-    --hash=sha256:9c6adccb3feefa9ba032c8d295ca477575c2f11896046a2b0ad686c47c4af555 \
-    --hash=sha256:fa36eaf4b8ad708f718500d4bdcc1532637526a22beb874d88cbc0a46458b5ae
+sentry-sdk[flask]==2.62.0 \
+    --hash=sha256:27f61d13a86c3c1648dec666dd5a64f79772dd6a84b446f11866601ecab24f6f \
+    --hash=sha256:3c870b9f50d9fd15b58c817dbde1c7cfaa9fe3f05df0a4c6edd5571cb82f5491
     # via -r requirements.txt
 typing-extensions==4.15.0 \
     --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
