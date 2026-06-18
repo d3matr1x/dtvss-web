@@ -685,6 +685,7 @@ def test_response_size_cap():
             self._body = body
             self._cl = content_length
             self.was_read = False
+            self.status = 200  # safe_fetch_bytes now checks resp.status (real urllib3 responses always carry it)
         def getheader(self, name, default=None):
             if name.lower() == "content-length" and self._cl is not None:
                 return self._cl
