@@ -2,50 +2,86 @@
 
 [![Calibration](https://github.com/d3matr1x/dtvss-web/actions/workflows/calibration.yml/badge.svg)](https://github.com/d3matr1x/dtvss-web/actions/workflows/calibration.yml)
 
-Executable record of the temporal amplification constant **k = 15** used in the
-DTVSS scoring formula, backing the empirical calibration claim in provisional
-patent paragraphs [0023] and [0025]:
+Reproducible record of the temporal amplification constant **k = 15** used in the
+DTVSS scoring formula. k = 15 is a **stated amplification policy**: at even-odds
+exploitation likelihood (EPSS = 0.5) a vulnerability's base patient-risk score is
+amplified 8.5-fold, and at near-certain exploitation 16-fold. It is set as an
+explicit risk-appetite policy, not fitted to the data. This package states k and
+uses the frozen 96-CVE filing dataset to validate that the policy produces a
+sensible distribution. Every figure in the validation record below reproduces
+exactly against the committed dataset.
 
-> "k = 15 is the lowest value satisfying all four of the following clinical
-> criteria."
+> **Note on framing.** k was originally described (provisional patent [0023],
+> [0025]) as "the lowest integer satisfying four clinical criteria." Those
+> criteria anchor to where individual CVEs cross the Critical threshold, which
+> ties the constant to specific EPSS readings — and EPSS is re-estimated
+> continuously. DTVSS therefore states k as an explicit amplification policy and
+> uses the dataset to validate it, rather than solving for a value that depends
+> on any single CVE's current EPSS.
 
-This package runs the sweep and produces the evidence. On the committed
-filing-time dataset, every patent number reproduces exactly.
+## What the calibration checks
 
-## Results summary
+k = 15 is the policy. Its profile, the multiplier `1 + k·L` applies to the base
+patient-risk score:
 
-Running `calibrate_k.py` against `dataset.csv`:
+- EPSS 0.25 → ×4.75
+- EPSS 0.50 (even odds) → ×8.5
+- EPSS 1.00 (near-certain) → ×16
 
-| Patent claim                              | Patent value | This repo | Match |
-| ----------------------------------------- | ------------ | --------- | ----- |
-| Dataset size                              | 96 CVEs      | 96        | exact |
-| Score span across dataset                 | 9.62         | 9.62      | exact |
-| Max score in the low-risk subset          | 0.98         | 0.98      | exact |
-| Lowest integer k satisfying all criteria  | 15           | 15        | exact |
-| CVE-2017-12718 score at k=15 (criterion i) | >= 8.0      | 8.03      | passes |
-| CVE-2017-12718 score at k=14              | < 8.0        | 7.60      | fails (correct) |
-| CVE-2020-11896 score at k=15 (criterion iii) | >= 8.0    | 10.00     | passes |
-| CVEs whose score changes when L zeroed    | 95 of 96     | 95 of 96  | exact |
-| CVEs crossing risk tiers due to L(t)      | 34           | 34        | exact |
+Running `calibrate_k.py` against `dataset.csv` (96 CVEs, 87 Class IIb + 9 Class III)
+validates three properties of the resulting distribution:
 
-The "95 of 96" figure is correctly computed by excluding KEV-overridden CVEs
-from the denominator, because those CVEs are pinned to score 10.0 under
-Equation 1's KEV branch and cannot change when L(t) is varied. In the
-filing-time dataset exactly one CVE is KEV-listed (CVE-2020-11899, Treck
-Ripple20, in CISA KEV since 2022-03-03); excluding it leaves 95 non-KEV CVEs,
-all 95 of which change score when L is zeroed.
+| Check                              | Criterion   | Value           | Result |
+| ---------------------------------- | ----------- | --------------- | ------ |
+| Share of CVEs reaching Critical    | 3–8% band   | 5.21% (5 of 96) | passes |
+| Highest score in the low-risk subset | ≤ 5.5     | 0.98            | passes |
+| Score span across the dataset      | ≥ 4.0       | 9.44            | passes |
+
+These confirm that the stated k produces a sensible distribution — a small,
+stable share reaching Critical, low-exploitability findings staying low, and the
+scale spreading across its range. They **validate** k = 15; they do not derive it.
+
+Two CVEs that the earlier formulation used as anchors are still recorded, now as
+**observations rather than gates**, because their scores move with EPSS:
+
+| Observation (one EPSS snapshot)                | Inputs                     | Score |
+| ---------------------------------------------- | -------------------------- | ----- |
+| CVE-2017-12718 (ICU Medical Plum 360, Class IIb) | B=2.20, L=0.2577, H=7.5   | 8.03  |
+| CVE-2020-11896 (Treck Ripple20, Class IIb)     | B=3.90, L=0.4263, H=7.5    | 9.74  |
+
+Both are time-relative: L is one day's EPSS reading and the score moves with it.
+
+## The amplifier and the soft cap
+
+The DTVSS score multiplies a vulnerability's base patient-risk score
+(`B/10 × H/10 × 10`) by the temporal factor `(1 + k·L(t))`, where L(t) is the daily
+EPSS probability of exploitation. With k = 15 the multiplier runs from ×1 at
+L = 0 to ×16 at L = 1.0.
+
+Because the multiplier can drive the product past 10, scores are shaped at the top
+of the range rather than hard-clipped: scores below 8.0 are exact, and above 8.0
+the overshoot is compressed asymptotically toward 10 without ever reaching it
+(knee at 8.0). This preserves the difference between a serious and an extreme
+finding, and keeps Critical membership identical to a hard clip (raw ≥ 8 ⟺
+score ≥ 8). An exact 10.0 is reserved for one case: a CVE in the CISA KEV catalog,
+which is forced to 10.0 regardless of k.
+
+The same soft cap is used in `dtvss_engine.py`, `calculator.html`, and
+`calibrate_k.py`, so the validation reflects production scoring. The score span is
+**9.44** under the soft cap, slightly below the 9.62 a hard clip produces, because
+the top no longer pins to a flat 10.
 
 ## Files
 
 | File                              | Purpose                                                         |
 | --------------------------------- | --------------------------------------------------------------- |
-| `source_96cve_filing.csv`         | The frozen 96-CVE export that backs the patent's claims. Exported from the DTVSS application on 2026-04-09 with EPSS snapshot from 2026-04-08. This is the source of truth for the empirical calibration; treat as immutable. |
+| `source_96cve_filing.csv`         | The frozen 96-CVE export that backs the published figures. Exported from the DTVSS application on 2026-04-09 with EPSS snapshot from 2026-04-08. Source of truth; treat as immutable. |
 | `build_dataset.py`                | Reshapes `source_96cve_filing.csv` into the calibration schema and writes `dataset.csv`. Optionally rebuilds from the live ICSMA index with `--from-index`. |
 | `dataset.csv`                     | The working calibration dataset in the schema `calibrate_k.py` expects (96 rows, canonical). Regenerated from the source file by `build_dataset.py`. |
-| `calibrate_k.py`                  | Sweeps k from 1 to 30, evaluates the four criteria, reports the lowest satisfying k and supplementary KEV-aware statistics. No network I/O. |
-| `results.json`                    | Full sweep written by `calibrate_k.py`. Re-run to refresh.    |
-| `dataset_live_index_362cve.csv`   | Larger dataset built via `build_dataset.py --from-index` against the current live ICSMA index. 362 CVEs (323 Class IIb + 39 Class III). Included for re-validation against a superset of the filing-time data. |
-| `results_live_index_362cve.json`  | Sweep results against the 362-CVE dataset. k = 15 still holds, because the binding criterion depends on patent-frozen test values. |
+| `calibrate_k.py`                  | States k = 15 as an amplification policy and validates it against `dataset.csv` (distribution checks). Standard library only; `--live` fetches current EPSS to confirm the policy still validates. |
+| `results.json`                    | Calibration record written by `calibrate_k.py`: the stated k, the amplification profile, and the validation figures. Re-run to refresh. |
+| `dataset_live_index_362cve.csv`   | Larger dataset built via `build_dataset.py --from-index` (362 CVEs: 323 Class IIb + 39 Class III). A bigger sample for re-validating the distribution. The committed copy carries an EPSS = 0.0 placeholder from a sandboxed build; `--from-index` with network access populates it. |
+| `results_live_index_362cve.json`  | Calibration output against the 362-CVE dataset. Supplementary; regenerate via `--from-index`. |
 | `README.md`                       | This file.                                                       |
 
 ### Schema note: `L` vs `epss_pct` in `source_96cve_filing.csv`
@@ -72,15 +108,16 @@ ambiguity from the calibration path.
 
 ## How to reproduce
 
-### Run the canonical calibration (fast, offline)
+### Run the canonical validation (fast, offline)
 
 ```bash
 cd calibration
 python3 calibrate_k.py
 ```
 
-Reads `dataset.csv`, runs in under a second, outputs the boundary table and
-concludes `Lowest integer k satisfying all four criteria: k = 15`.
+Reads `dataset.csv`, runs in under a second, and prints the stated k and the
+validation result (`k = 15` as a stated amplification policy, with the three
+distribution checks passing).
 
 ### Rebuild `dataset.csv` from the frozen source (offline, idempotent)
 
@@ -101,78 +138,39 @@ python3 calibrate_k.py
 ```
 
 Rebuilds `dataset.csv` from `../static/data/mdm_index.json`, fetches live EPSS
-from `api.first.org`, and runs the calibration against that larger dataset.
-Expected runtime ~2 minutes dominated by EPSS API calls. k = 15 should still
-be reported because the binding criterion (i) depends on patent-frozen test
-values.
+from `api.first.org`, and runs the validation against that larger dataset.
+Expected runtime ~2 minutes dominated by EPSS API calls. k is **stated**, so it
+does not re-derive; what this checks is whether the distribution stays sensible
+(the Critical share in band) as live EPSS evolves. Out-of-band is a signal for an
+operational triage layer to resize its Critical bucket, not a reason to change k.
 
-Use this path periodically (every 3-6 months) to confirm new ICSMA advisories
-have not introduced CVEs that would disrupt the calibration. The resulting
-`dataset.csv` is a superset of the canonical 96; if you run it, you will
-overwrite the canonical and should re-run `python3 build_dataset.py` afterward
-to restore the canonical 96-CVE dataset.
+Running `--from-index` overwrites the canonical `dataset.csv`; re-run
+`python3 build_dataset.py` afterward to restore the canonical 96-CVE dataset.
 
-## Criteria evaluated
+## How the policy is validated
 
-The four criteria are defined in patent paragraph [0025]:
+`calibrate_k.py` applies the stated policy (k = 15, soft cap) to every CVE in
+`dataset.csv` and checks three properties of the resulting distribution.
 
-**(i)** CVE-2017-12718 (ICU Medical Plum 360 / Smiths Medfusion infusion
-pump, B=2.20, L=0.2577, H=7.5 per Class IIb) scores >= 8.0 Critical.
+**(1) A small, stable share reaches Critical.** Target band 3–8%. Observed 5.21%
+(5 of 96). This keeps the Critical tier meaningful — neither empty nor flooded.
 
-This is the **binding constraint**. At k=14 the score is 7.60 (Critical tier
-begins at 8.0, so it fails). At k=15 the score is 8.03 (passes). The arithmetic:
+**(2) Low-exploitability findings stay low.** Every CVE with B ≤ 1.5 and
+L ≤ 0.002 scores ≤ 5.5. Highest observed: 0.98.
 
-    DTVSS = (2.20/10) x (7.5/10) x (1 + k x 0.2577) x 10
-          = 1.65 x (1 + 0.2577 x k)
+**(3) The scale discriminates.** Score span across the dataset ≥ 4.0. Observed
+9.44.
 
-    Setting DTVSS >= 8.0:
-          1.65 x (1 + 0.2577 x k) >= 8.0
-          1 + 0.2577 x k >= 4.848
-          k >= 14.93
+These are checks on the stated policy, not a derivation of it. The value of k is
+a risk-appetite choice; the dataset confirms that choice is not absurd.
 
-Lowest integer satisfying: k = 15.
+### Why k is stated, not solved for
 
-**(ii)** All low-risk CVEs (B <= 1.5, L <= 0.002) score <= 5.5.
-
-Sanity check. The highest-scoring low-risk CVE in the dataset is at 0.98
-(matches patent). Passes at all k in [1, 30].
-
-**(iii)** CVE-2020-11896 (Treck TCP/IP stack, Ripple20, B=3.90, L=0.4263,
-H=7.5) scores >= 8.0 Critical.
-
-Passes at much lower k than criterion (i) and is therefore non-binding. At
-k=15 it scores 10.00 (capped at maximum). Passes at all k >= 3.
-
-**(iv)** Score span across the dataset >= 4.0 points.
-
-Sanity check. Observed span is 9.62, matching the patent exactly. Passes at
-all k in [1, 30].
-
-Only criterion (i) binds. The rest are sanity checks verifying that the k
-chosen for (i) is not absurd.
-
-## Two datasets, one conclusion
-
-The package ships with two calibration datasets because they answer two
-different questions.
-
-**`dataset.csv` (96 CVEs, canonical):** built from the filing-time export.
-This is the patent's dataset, used to generate the patent's specific numeric
-claims. The 95/96 and 34 figures are exact against this dataset. Use this for
-any claim that references the patent's calibration.
-
-**`dataset_live_index_362cve.csv` (362 CVEs):** built from the current live
-ICSMA index at time of package creation. Useful to demonstrate that k = 15 is
-not fragile to dataset growth - on a ~3.8x larger dataset including hundreds
-of additional CVEs from recent ICSMA advisories, k = 15 remains the lowest
-satisfying value. The supplementary statistics differ against this larger
-dataset because most CVEs have EPSS = 0.0 placeholder from a sandboxed build;
-re-running `build_dataset.py --from-index` with network access will populate
-them.
-
-Both datasets agree on the k = 15 outcome because the binding constraint is
-criterion (i), whose inputs are patent-frozen and do not depend on the rest
-of the dataset.
+An amplification constant should not move when one CVE's exploitation probability
+is revised, and EPSS values are revised constantly. Anchoring the constant to
+where a single named CVE crosses the Critical threshold makes it sensitive to that
+CVE's daily EPSS score. Stating k as a policy removes that sensitivity: the
+meaning of k is fixed, and the dataset validates it rather than determining it.
 
 ## How B and H are assigned
 
@@ -204,19 +202,15 @@ vendors -> IIb).
 
 ## KEV handling
 
-Per patent Equation 1, CVEs listed in the CISA Known Exploited Vulnerabilities
-catalog have their score forced to 10.0 Critical regardless of B, L, and H.
-This is implemented in the scoring path (not in this calibration script,
-which sweeps the non-KEV branch), but matters for the supplementary statistics.
+Per the scoring formula, CVEs listed in the CISA Known Exploited Vulnerabilities
+catalog have their score forced to 10.0 regardless of B, L, and H. This is
+implemented in the scoring path, not in this calibration script, which evaluates
+the non-KEV multiplicative branch. A KEV-overridden score is L-independent by
+construction: it is 10.0 whether L is live or zero.
 
-A KEV-overridden CVE's score is L-independent by construction: it is 10.0
-whether L is live or zero. Counting it as "unchanged when L is zeroed" would
-be misleading because the zero-L reading of its score is also 10.0 (via the
-KEV override), not via the multiplicative formula. The correct denominator
-for the "score changes when L is zeroed" statistic is the set of non-KEV CVEs,
-which is 95 in the filing-time dataset.
-
-The patent figure of 95 matches this interpretation exactly.
+The filing dataset contains exactly one KEV-listed CVE (CVE-2020-11899, Treck
+Ripple20, in CISA KEV since 2022-03-03). It is the single exact 10.0 in the set;
+the soft cap holds every other score below 10.
 
 ## Note on "11 Class III CVEs"
 
@@ -224,18 +218,16 @@ Patent [0025] describes "11 Class III implantable cardiac device CVEs from
 Zoll Medical and Abbott." The filing-time dataset contains 9 Class III CVEs
 (6 Zoll + 3 Abbott). This is a minor arithmetic slip in the patent text; the
 calibration itself was correctly performed against the 9 CVEs actually in
-the dataset. Does not affect any criterion.
+the dataset. Does not affect any check.
 
 ## What this package does not do
 
-- **Does not modify the live engine.** `dtvss_engine.py` continues to use its
-  hardcoded `K_TEMPORAL = 15.0`. This package is evidentiary only.
+- **Does not re-fit k.** k = 15 is a stated policy; `calibrate_k.py` validates
+  it, it does not search for it.
 
-- **Does not monitor ongoing EPSS drift.** The script uses the
-  patent-frozen L values for CVE-2017-12718 and CVE-2020-11896 so that
-  criterion evaluation is reproducible. If you want to verify the patent
-  against today's live EPSS for those specific CVEs, that is a separate
-  monitoring task.
+- **Mirrors, but does not change, production scoring.** `calibrate_k.py` uses the
+  same formula and soft cap as `dtvss_engine.py` so the validation reflects what
+  the live engine produces. Engine behaviour is set there, not here.
 
 - **Does not subsample or re-weight the dataset.** The 96 CVEs in the source
   export are used verbatim.

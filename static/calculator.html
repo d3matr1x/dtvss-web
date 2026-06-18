@@ -113,6 +113,16 @@ window.addEventListener('error', function(e) {
 
   const K = 15;
 
+  // Soft saturation cap - must match dtvss_engine.soft_cap exactly.
+  // Identity below the knee; smooth asymptotic compression toward 10 above it,
+  // so harm and exploitability keep separating the top instead of pinning to 10.
+  const SOFT_CAP_KNEE = 8, SOFT_CAP_SCALE = 10 - SOFT_CAP_KNEE;
+  function softCap(raw) {
+    if (raw <= SOFT_CAP_KNEE) return raw;
+    const x = raw - SOFT_CAP_KNEE;
+    return SOFT_CAP_KNEE + (10 - SOFT_CAP_KNEE) * (x / (x + SOFT_CAP_SCALE));
+  }
+
   const TGA_CLASSES = {
     IIb: {
       H: 7.5, label: "Class IIb", desc: "Moderate-high risk - Network-connected therapeutic devices",
@@ -150,7 +160,7 @@ window.addEventListener('error', function(e) {
       rationale: "Indicates credible exploitation risk with potential clinical impact." },
     { max: 10.1, level: "Critical", color: "#e95e5e", bg: "rgba(217,79,79,0.08)",   border: "rgba(217,79,79,0.25)",   sla: "Immediate",
       guidance: "Initiate incident response immediately. Isolate or remove affected systems.",
-      rationale: "Represents active exploitation or severe patient safety risk. k=15 calibration criterion satisfied." },
+      rationale: "Represents active exploitation or severe patient safety risk." },
   ];
 
   function getTier(s) {
@@ -161,7 +171,7 @@ window.addEventListener('error', function(e) {
   function computeDTVSS(B, L, H, kev) {
     if (kev) return { score: 10, raw: null, tier: THRESHOLDS[3], kevOverride: true };
     const raw = (B / 10) * (H / 10) * (1 + K * L) * 10;
-    const score = Math.round(Math.min(raw, 10) * 100) / 100;
+    const score = Math.round(softCap(raw) * 100) / 100;
     return { score, raw: Math.round(raw * 10000) / 10000, tier: getTier(score), kevOverride: false };
   }
 

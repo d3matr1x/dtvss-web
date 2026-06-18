@@ -7,10 +7,40 @@
 DTVSS Scoring Engine
 ====================
 DTVSS(t) = (B/10 × H/10 × (1 + 15 × L(t))) × 10
-Output capped at 10.0. KEV override forces 10.0 post-scoring.
+Output soft-capped to [0, 10): identity below the Critical threshold, smooth
+asymptotic compression toward 10 above it (see soft_cap). KEV override forces
+an exact 10.0 post-scoring, which sits strictly above every formula-derived score.
 """
 
 K_TEMPORAL = 15.0
+
+# ---------------------------------------------------------------------------
+# Soft saturation cap (replaces the former hard min(raw, 10.0)).
+#
+# Below the knee, scores are exact. Within the Critical band, the temporal
+# amplifier's overshoot is compressed smoothly toward 10 instead of being
+# hard-clipped, so patient harm and exploitability keep separating the most
+# urgent CVEs rather than all of them pinning to 10.0. Monotonic and
+# order-preserving; identity for raw <= knee; asymptotic to (but never
+# reaching) 10 above it; C1-smooth at the join, since SOFT_CAP_SCALE = 10 - knee
+# gives unit slope there.
+#
+# Tier memberships are unchanged: raw >= 8 still maps to score >= 8 (Critical),
+# so the calibration's Critical-fraction check is unaffected. KEV still forces
+# an exact 10.0, which now sits strictly above every formula-derived score.
+# ---------------------------------------------------------------------------
+SOFT_CAP_KNEE = 8.0
+SOFT_CAP_SCALE = 10.0 - SOFT_CAP_KNEE  # = 2.0
+
+
+def soft_cap(raw: float) -> float:
+    """Bounded [0, 10), monotonic, order-preserving saturation. Identity below
+    the knee; smooth asymptotic compression above it."""
+    if raw <= SOFT_CAP_KNEE:
+        return raw
+    x = raw - SOFT_CAP_KNEE
+    return SOFT_CAP_KNEE + (10.0 - SOFT_CAP_KNEE) * (x / (x + SOFT_CAP_SCALE))
+
 
 TGA_CLASSES = {
     "IIb": {"H": 7.5, "label": "Class IIb", "desc": "Moderate-high risk",
@@ -204,7 +234,7 @@ def compute_dtvss(B: float, L: float, H: float, kev: bool = False,
         }
 
     raw = (B / 10.0) * (H / 10.0) * (1.0 + K_TEMPORAL * L) * 10.0
-    score = round(min(raw, 10.0), 2)
+    score = round(soft_cap(raw), 2)
     static_baseline = round(B * H / 10, 2)
 
     risk_level = guidance = ""

@@ -114,7 +114,7 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
   <div class="section">
     <h3>The Problem</h3>
     <p>
-      Static vulnerability scoring systems like CVSS assign the same severity to a compromised printer and a compromised infusion pump. They measure technical severity, not clinical impact. A <span class="pill pill-med">MEDIUM</span> on a pacemaker gets deprioritised while a <span class="pill pill-high">HIGH</span> on a workstation gets patched first.
+      Static vulnerability scoring systems like CVSS assign the same severity to a compromised printer and a compromised infusion pump. They measure technical severity, not risk: they carry no signal for how likely a flaw is to be exploited, nor for what the device does to a patient. So two flaws that score alike are treated alike, even when one sits on a device with a patient on the other end and, at the same exploitation likelihood, should be first in the queue.
     </p>
     <p style="margin-top:10px">
       Meanwhile, the attack surface has moved onto the patient's body. Insulin pumps communicate over Bluetooth. Pacemakers transmit to cloud platforms. Wearable CGMs stream data through smartphones 24 hours a day. The risk is no longer static. The scoring should not be either.
@@ -221,13 +221,13 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
       <span style="color:var(--high)">H</span> - Patient harm modifier from medical device regulatory classification (TGA / Medsafe / EU MDR / MHRA / FDA)<br>
       <span style="color:var(--purple)">L(t)</span> - Daily exploitation probability (EPSS API from FIRST.org)<br>
       <span style="color:var(--crit)">KEV override</span> - Confirmed active exploitation (CISA KEV catalog) forces score to 10.0<br>
-      <span style="color:var(--hd)">k = 15</span> - Empirically calibrated temporal amplification constant
+      <span style="color:var(--hd)">k = 15</span> - Temporal amplification constant, set as an explicit policy: even-odds exploitation (EPSS 0.5) amplifies the base risk score 8.5x
     </p>
     <div style="margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--dim)">
       B is computed per the <a href="https://www.first.org/cvss/v3-1/specification-document" target="_blank" rel="noopener noreferrer" style="color:var(--acc)">CVSS v3.1 Specification (FIRST.org)</a>. For CVSS v4.0 vectors, the v3.1-compatible AV/AC/PR/UI components are extracted with AT mapped to AC equivalent. For v2.0, the exploitabilityScore is used directly from NVD.
     </div>
     <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;font-size:13px;line-height:1.7">
-      The constant k = 15 was calibrated against 96 real medical device CVEs as the lowest integer satisfying four clinical criteria from the provisional patent. <a href="/calibration" style="color:var(--acc);font-weight:500" title="Full k-sweep, binding constraint, and 362-CVE out-of-sample re-run">See the k = 15 calibration evidence &rarr;</a> Full sweep, the binding constraint, and an out-of-sample re-run against 362 CVEs.
+      The constant k = 15 is a stated amplification policy: a vulnerability at even-odds exploitation likelihood (EPSS 0.5) has its base patient-risk score amplified 8.5-fold, and a near-certain one 16-fold. Rather than being fitted to any single CVE, it is validated against 96 real medical device CVEs, where a small, stable fraction registers Critical and low-risk flaws stay low. <a href="/calibration" style="color:var(--acc);font-weight:500" title="How k = 15 is defined as an amplification policy and validated on the filing dataset">See how k = 15 is defined and validated &rarr;</a>
     </div>
   </div>
 

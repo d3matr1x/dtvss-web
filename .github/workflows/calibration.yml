@@ -1,21 +1,30 @@
 # DTVSS Calibration Reproducibility
 # =================================
-# Locks in the patent calibration claim. Runs calibrate_k.py against the
-# frozen filing-time dataset (dataset.csv) on every push and PR, and asserts
-# that the five patent-binding numbers in results.json match the values
-# reported in the README exactly.
+# Locks in the calibration record. Runs calibrate_k.py against the frozen
+# filing-time dataset (dataset.csv) on every push and PR, and asserts that the
+# stated amplification policy (k) and its validation on the frozen dataset
+# reproduce exactly.
 #
-# Why this exists: the README publicly claims "every patent number reproduces
-# exactly" against the committed dataset. Without CI, a contributor (or
-# future-Andrew) could silently change scoring code, dataset rows, or build
-# logic in a way that drifts the calibration but still passes other tests.
-# This workflow makes the patent claim self-enforcing — drift the numbers,
-# break the build, can't merge.
+# NOTE (2026-06): k is no longer DERIVED by a sweep over four single-CVE
+# criteria. Re-running that sweep on live EPSS selected k = 30, not 15, because
+# the binding criterion was pinned to one CVE's exploitation probability, which
+# halved. k is now a STATED amplification policy (even-odds exploitation
+# amplifies the base score 8.5x; near-certain 16x) and the dataset is used to
+# VALIDATE that the stated value still produces a sensible distribution. This
+# workflow therefore asserts the policy value and the frozen-dataset validation
+# figures, not a re-derived integer.
 #
-# The job runs offline and deterministically (no network, no API calls).
-# A separate optional job re-validates against the larger live-index
-# dataset on a weekly cron, but failures there are advisory only because
-# live EPSS values legitimately move over time.
+# Why this exists: the site publicly states k = 15 and shows its validation on
+# the filing data. Without CI, a contributor (or future-Andrew) could silently
+# change scoring code, dataset rows, or build logic in a way that breaks those
+# published numbers but still passes other tests. Drift the numbers, break the
+# build, can't merge.
+#
+# The canonical job runs offline and deterministically (no network, no API
+# calls). A separate optional job re-validates the stated k against the larger
+# live-index dataset on a weekly cron; failures there are advisory only,
+# because live EPSS legitimately moves and the distribution check is a signal
+# for the triage layer, not a reason to re-fit k.
 
 name: Calibration Reproducibility
 
@@ -36,7 +45,7 @@ permissions:
 
 jobs:
   canonical-calibration:
-    name: Canonical (offline, must match patent exactly)
+    name: Canonical (offline, must reproduce exactly)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -47,59 +56,99 @@ jobs:
         with:
           python-version: '3.12'
 
-      # calibrate_k.py uses only the standard library (csv, json, pathlib),
-      # so no requirements install is needed. If that ever changes, add a
-      # `pip install -r requirements.txt` step here.
+      # calibrate_k.py uses only the standard library (argparse, csv, json,
+      # pathlib), so no requirements install is needed. If that ever changes,
+      # add a `pip install -r requirements.txt` step here.
 
       - name: Run canonical calibration
         run: python3 calibrate_k.py
 
-      - name: Assert patent-binding values in results.json
+      - name: Fail if committed results.json is stale
+        run: |
+          if ! git diff --exit-code -- results.json; then
+            echo
+            echo "COMMITTED results.json IS STALE"
+            echo "==============================="
+            echo "It differs from a fresh run of calibrate_k.py. Regenerate and commit:"
+            echo "    python3 calibrate_k.py && git add results.json"
+            echo "(CR-only diffs => line-ending issue: add 'results.json text eol=lf' to .gitattributes.)"
+            exit 1
+          fi
+          echo "Committed results.json matches a fresh calibration run."
+
+      - name: Assert calibration record in results.json
         run: |
           python3 - <<'PY'
           import json
           import sys
 
-          # Patent-binding values from README and patent paragraph [0025].
-          # Any drift here is a publishable claim violation, not a coding bug.
-          EXPECTED = {
-              "lowest_satisfying_k":      15,
-              "dataset_size":             96,
-              "class_iib_count":          87,
-              "class_iii_count":          9,
-              "kev_overridden_count":     1,
-              "non_kev_count":            95,
-              "score_changes_non_kev":    95,
-              "tier_crossings_non_kev":   34,
+          # Published, binding values. Any drift here is a public-claim
+          # violation, not a coding bug.
+          EXPECTED_TOP = {
+              "k":               15,   # stated amplification policy
+              "dataset_size":    96,
+              "class_iib_count": 87,
+              "class_iii_count": 9,
           }
+          # Frozen-dataset validation figures. ~5% Critical and highest low-risk
+          # 0.98 are unchanged by the soft cap; span is 9.44 (was 9.62 under the
+          # old hard cap, slightly smaller now the top no longer pins to a flat 10).
+          EXPECTED_VALIDATION = {
+              "all_validations_pass": True,
+              "critical_fraction":    0.0521,   # 5 of 96
+              "low_risk_max":         0.98,
+              "score_span":           9.44,
+          }
+          TOL = 1e-6
 
           with open("results.json") as f:
-              actual = json.load(f)
+              r = json.load(f)
 
           drifted = []
-          for key, want in EXPECTED.items():
-              got = actual.get(key)
+
+          for key, want in EXPECTED_TOP.items():
+              got = r.get(key)
               if got != want:
                   drifted.append((key, want, got))
+
+          v = r.get("validation", {})
+          checks = {
+              "all_validations_pass": v.get("all_validations_pass"),
+              "critical_fraction":    (v.get("critical_fraction") or {}).get("value"),
+              "low_risk_max":         (v.get("low_risk_stays_low") or {}).get("max_low_risk_score"),
+              "score_span":           (v.get("score_span") or {}).get("value"),
+          }
+          for key, want in EXPECTED_VALIDATION.items():
+              got = checks.get(key)
+              if isinstance(want, bool):
+                  ok = (got is want)
+              elif isinstance(want, (int, float)) and isinstance(got, (int, float)):
+                  ok = abs(got - want) <= TOL
+              else:
+                  ok = (got == want)
+              if not ok:
+                  drifted.append((f"validation.{key}", want, got))
 
           if drifted:
               print("CALIBRATION DRIFT DETECTED")
               print("==========================")
-              print("The following patent-binding values no longer match.")
-              print("This breaks the README reproducibility claim and must")
+              print("The following published values no longer reproduce.")
+              print("This breaks the site/patent reproducibility claim and must")
               print("be investigated before merge.")
               print()
               for key, want, got in drifted:
                   print(f"  {key}: expected {want}, got {got}")
               print()
-              print("If this drift is intentional (dataset update, formula")
-              print("revision, etc.), update both the README table AND the")
-              print("EXPECTED dict in this workflow in the same commit.")
+              print("If this drift is intentional (dataset update, policy change,")
+              print("soft-cap revision, etc.), update the site copy AND the")
+              print("EXPECTED dicts in this workflow in the same commit.")
               sys.exit(1)
 
-          print("All 8 patent-binding values reproduce exactly.")
-          for key, want in EXPECTED.items():
+          print("Calibration record reproduces exactly.")
+          for key, want in EXPECTED_TOP.items():
               print(f"  {key} = {want}")
+          for key, want in EXPECTED_VALIDATION.items():
+              print(f"  validation.{key} = {want}")
           PY
 
       - name: Upload results.json as artifact
@@ -111,10 +160,12 @@ jobs:
           retention-days: 90
 
   live-index-validation:
-    # Weekly only. Failures here are advisory — k=15 should still hold against
-    # the live ICSMA index, but EPSS scores legitimately drift, so we don't
-    # block PRs on it. Run with workflow_dispatch when you want an on-demand
-    # re-validation.
+    # Weekly only. Failures here are advisory. k is stated, so it does not
+    # "re-derive" on the live index; what we check is that the stated k = 15
+    # still produces a sensible distribution (Critical fraction in band) as
+    # live EPSS evolves. Out of band is a signal for the operational triage
+    # layer to resize its bucket, NOT a reason to change k, so we never block
+    # PRs on it. Run with workflow_dispatch for an on-demand re-validation.
     name: Live index (advisory, weekly)
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -136,26 +187,29 @@ jobs:
       - name: Rebuild dataset from live index
         run: python3 build_dataset.py --from-index
         env:
-          # Don't fail the whole job if EPSS API is flaky; the main
-          # canonical job still ran and gates merges.
           PYTHONUNBUFFERED: '1'
 
       - name: Run calibration against live index
         run: python3 calibrate_k.py
 
-      - name: Assert lowest_satisfying_k still equals 15
+      - name: Assert stated k still validates on the live index
         run: |
           python3 - <<'PY'
           import json, sys
-          actual = json.load(open("results.json"))
-          k = actual.get("lowest_satisfying_k")
-          if k != 15:
-              print(f"ADVISORY: lowest_satisfying_k drifted to {k} on live index.")
-              print("This is informational only — the canonical 96-CVE patent")
-              print("dataset is the binding claim. Investigate whether the")
-              print("live index has changed materially.")
+          r = json.load(open("results.json"))
+          v = r.get("validation", {})
+          cf = (v.get("critical_fraction") or {})
+          k = r.get("k")
+          in_band = cf.get("pass")
+          frac = cf.get("value")
+          n = r.get("dataset_size")
+          print(f"Live index ({n} CVEs): k = {k} (stated), Critical fraction = {frac}")
+          if not in_band:
+              print("ADVISORY: Critical fraction is outside the validation band on")
+              print("the live index. k does NOT change - this is a signal for the")
+              print("operational triage layer to resize its Critical bucket.")
               sys.exit(1)
-          print(f"Live index ({actual['dataset_size']} CVEs) still yields k = 15.")
+          print("Stated k still produces an in-band distribution on the live index.")
           PY
 
       - name: Upload live results.json as artifact

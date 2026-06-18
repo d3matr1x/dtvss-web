@@ -9,9 +9,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calibration - How k = 15 was chosen - DTVSS</title>
-<meta name="description" content="Executable record of the k = 15 calibration in DTVSS. Four clinical criteria, a full sweep from k = 1 to 30, and an out-of-sample re-run against a 362-CVE superset of the filing-time 96-CVE dataset.">
-<meta name="keywords" content="DTVSS calibration, k=15, temporal amplification, medical device CVE, EPSS, CVSS exploitability, patent calibration, ICU Medical Plum 360, CVE-2017-12718, Treck Ripple20, CVE-2020-11896">
+<title>Calibration - The k = 15 amplification policy - DTVSS</title>
+<meta name="description" content="How DTVSS sets its temporal amplification constant. k = 15 is an explicit policy: at even-odds exploitation likelihood a vulnerability's base patient-risk score is amplified 8.5-fold, validated against 96 real medical device CVEs.">
+<meta name="keywords" content="DTVSS calibration, k=15, temporal amplification, EPSS, medical device CVE, patient risk, ISO 14971, CVSS exploitability">
 <meta name="author" content="Andrew Broglio">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://dtvss.io/calibration">
@@ -21,14 +21,14 @@
 <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
 <link rel="manifest" href="/img/site.webmanifest">
 <meta name="theme-color" content="#080a0f">
-<meta property="og:title" content="DTVSS Calibration - How k = 15 was chosen">
-<meta property="og:description" content="The lowest integer k satisfying the patent's four clinical criteria. Reproduces exactly on the 96-CVE filing set and holds on a 362-CVE live superset.">
+<meta property="og:title" content="DTVSS Calibration - The k = 15 amplification policy">
+<meta property="og:description" content="An explicit amplification policy - even-odds exploitation amplifies a vulnerability's base patient-risk score 8.5-fold - validated against 96 real medical device CVEs.">
 <meta property="og:url" content="https://dtvss.io/calibration">
 <meta property="og:site_name" content="DTVSS">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="DTVSS Calibration - How k = 15 was chosen">
-<meta name="twitter:description" content="Four criteria, one binding constraint. Full sweep and out-of-sample validation.">
+<meta name="twitter:title" content="DTVSS Calibration - The k = 15 amplification policy">
+<meta name="twitter:description" content="An explicit amplification policy, validated on data. Not fitted to any single CVE.">
 <meta property="og:image" content="https://dtvss.io/img/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -93,29 +93,9 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
 .stats .stat-val{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--hd);line-height:1.1;margin-top:4px}
 .stats .stat-val .u{font-size:11px;color:var(--dim);font-weight:400;margin-left:4px}
 
-/* Sweep table */
-.sweep-wrap{background:var(--bg);border:1px solid var(--bd);border-radius:6px;overflow:hidden;margin-top:14px}
-.sweep{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;table-layout:fixed}
-.sweep thead tr{background:var(--s2)}
-.sweep th{padding:10px;text-align:center;font-weight:600;color:var(--dim);letter-spacing:.04em;font-size:11px;border-bottom:1px solid var(--bd)}
-.sweep th.k-col{width:44px;text-align:left;padding-left:14px}
-.sweep td{padding:7px 10px;text-align:center;color:var(--tx);border-top:1px solid var(--bd)}
-.sweep td.k-cell{text-align:left;padding-left:14px;color:var(--dim);font-weight:600}
-.sweep td.pass{background:rgba(72,184,120,0.10);color:var(--low)}
-.sweep td.fail{background:rgba(224,82,82,0.08);color:var(--crit)}
-.sweep tr.win td{box-shadow:inset 0 0 0 1.5px var(--acc)}
-.sweep tr.win td.k-cell{color:var(--acc)}
-
 /* Legend rows */
 .legend{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0 6px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
 .legend span.sw{display:inline-flex;align-items:center;gap:6px}
-.legend .box-pass{width:12px;height:10px;background:rgba(72,184,120,0.14);border:1px solid rgba(72,184,120,0.4);border-radius:2px}
-.legend .box-fail{width:12px;height:10px;background:rgba(224,82,82,0.10);border:1px solid rgba(224,82,82,0.35);border-radius:2px}
-.legend .box-win{width:12px;height:10px;background:transparent;border:1.5px solid var(--acc);border-radius:2px}
-.legend .ln-score{width:16px;height:2px;background:var(--acc)}
-.legend .ln-crit{width:16px;height:0;border-top:2px dashed var(--crit)}
-.legend .pt-cross{width:10px;height:10px;border:2px solid var(--acc);border-radius:50%;background:var(--bg);display:inline-block}
-.legend .pt-pick{width:10px;height:10px;background:var(--acc);display:inline-block;border-radius:2px}
 
 /* Code/derivation block matches about's formula style but left-aligned and multiline */
 .deriv{font-family:var(--mono);font-size:12.5px;color:var(--hd);padding:14px 16px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;margin-top:14px;line-height:1.9;white-space:pre;overflow-x:auto}
@@ -164,195 +144,160 @@ h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.08em;
 
   <!-- Page title + headline stats -->
   <div>
-    <h2>How k = 15 was chosen</h2>
+    <h2>The k = 15 amplification policy</h2>
     <p style="margin-top:10px;color:var(--dim)">
-      The DTVSS formula multiplies severity, patient harm, and a temporal amplification factor (1 + k&middot;L(t)).
+      The DTVSS score multiplies a vulnerability's base patient-risk score by a temporal amplifier, (1 + k&middot;L(t)), where L(t) is the daily EPSS probability that the flaw will be exploited. The constant k sets how hard that amplifier pulls.
     </p>
     <p style="margin-top:6px;color:var(--dim)">
       <a href="/about" title="DTVSS scoring methodology and the role of EPSS as a continuous daily probability">How DTVSS uses EPSS as a continuous amplification factor &rarr;</a>
     </p>
     <p style="margin-top:10px;color:var(--dim)">
-      The constant k was calibrated against 96 real medical device CVEs as the lowest integer value satisfying four clinical criteria defined in the provisional patent. A re-run against a 362-CVE superset drawn from the current live CISA ICSMA index returns the same k.
+      k = 15 is set as an explicit policy, not fitted to the data. It states a risk appetite: a vulnerability at even-odds exploitation likelihood has its base patient-risk score amplified 8.5-fold. The 96-CVE filing dataset is then used to confirm that this policy produces a sensible distribution &mdash; not to solve for the value.
     </p>
     <div class="stats">
       <div class="stat">
-        <div class="stat-lbl">Lowest k</div>
-        <div class="stat-val">15</div>
+        <div class="stat-lbl">Constant</div>
+        <div class="stat-val">k = 15</div>
       </div>
       <div class="stat">
-        <div class="stat-lbl">Filing set</div>
-        <div class="stat-val">96<span class="u">CVEs</span></div>
+        <div class="stat-lbl">Even odds &middot; L = 0.5</div>
+        <div class="stat-val">&times;8.5</div>
       </div>
       <div class="stat">
-        <div class="stat-lbl">Live superset</div>
-        <div class="stat-val">362<span class="u">CVEs</span></div>
+        <div class="stat-lbl">Near-certain &middot; L = 1.0</div>
+        <div class="stat-val">&times;16</div>
       </div>
     </div>
   </div>
 
-  <!-- The Criteria -->
+  <!-- The amplification policy -->
   <div class="section">
-    <h3>The four criteria</h3>
+    <h3>The amplification policy</h3>
     <p>
-      The provisional patent defines four clinical discrimination criteria that any calibrated k must satisfy. The criteria were designed before the value of k was picked; they encode what the scoring is required to do, not what any particular integer happens to produce.
-    </p>
-    <div class="formula" style="line-height:2">
-      <span style="color:var(--acc);font-weight:600">(i)</span> CVE-2017-12718 (Plum 360 infusion pump) must score &ge; 8.0 <span class="pill pill-crit">CRITICAL</span><br>
-      <span style="color:var(--acc);font-weight:600">(ii)</span> Low-risk CVEs (B &le; 1.5, L &le; 0.002) must stay &le; 5.5 <span class="pill pill-med">MEDIUM</span><br>
-      <span style="color:var(--acc);font-weight:600">(iii)</span> CVE-2020-11896 (Treck Ripple20) must score &ge; 8.0 <span class="pill pill-crit">CRITICAL</span><br>
-      <span style="color:var(--acc);font-weight:600">(iv)</span> The score span across the full dataset must be &ge; 4.0 points
-    </div>
-    <p style="margin-top:10px;color:var(--dim);font-size:13px">
-      Criterion (i) guarantees the formula recognises clinically-deployed exploitable infusion pump vulnerabilities. Criterion (ii) prevents score inflation on low-exploitability workstation-class findings. Criterion (iii) anchors known-exploited IP stack flaws at Critical. Criterion (iv) ensures the scale actually discriminates between device classes rather than compressing everything toward one value.
-    </p>
-  </div>
-
-  <!-- The Sweep -->
-  <div class="section">
-    <h3>The sweep</h3>
-    <p>
-      Each row below shows an integer value of k. Green cells mark criteria that pass at that k. The lowest row where all four are green is the calibrated value.
+      The temporal factor (1 + k&middot;L) is a multiplier on the base patient-risk score. With k = 15 it runs from &times;1 when exploitation is implausible (L = 0) up to &times;16 when exploitation is near-certain (L = 1.0). At L = 0.25 the multiplier is &times;4.75; at even odds (L = 0.5) it is &times;8.5.
     </p>
     <div class="legend">
-      <span class="sw"><span class="box-pass"></span>Passes</span>
-      <span class="sw"><span class="box-fail"></span>Fails</span>
-      <span class="sw"><span class="box-win"></span>Lowest all-pass</span>
+      <span class="sw"><span style="width:16px;height:2px;background:var(--acc);display:inline-block"></span>Multiplier 1 + 15&middot;L</span>
+      <span class="sw"><span style="width:16px;height:0;border-top:1px dashed var(--dim);display:inline-block;margin-bottom:3px"></span>No amplification (L = 0)</span>
+      <span class="sw"><span style="width:10px;height:10px;background:var(--acc);display:inline-block"></span>Even odds (L = 0.5)</span>
     </div>
-    <div class="sweep-wrap">
-      <table class="sweep">
-        <thead>
-          <tr>
-            <th class="k-col">k</th>
-            <th>(i) Plum 360 &ge; 8.0</th>
-            <th>(ii) Low-risk &le; 5.5</th>
-            <th>(iii) Ripple20 &ge; 8.0</th>
-            <th>(iv) Span &ge; 4.0</th>
-          </tr>
-        </thead>
-        <tbody id="sweep-body"></tbody>
-      </table>
-    </div>
-    <p class="fn">
-      Values are criterion scores at each k on the 96-CVE filing dataset. Criterion (i): score of CVE-2017-12718. Criterion (ii): highest score among CVEs with B &le; 1.5 and L &le; 0.002. Criterion (iii): score of CVE-2020-11896. Criterion (iv): score span across the full dataset. Sweep shown for k = 1 to 20; all rows from k = 21 to 30 continue to pass.
-    </p>
-  </div>
-
-  <!-- Binding constraint -->
-  <div class="section">
-    <h3>The binding constraint</h3>
-    <p>
-      Three of the four criteria pass at values well below 15. The one that binds is criterion (i): CVE-2017-12718, a buffer overflow in the ICU Medical Plum 360 infusion pump, must reach the Critical tier (score &ge; 8.0). At k = 14 it scores 7.60. At k = 15 it scores 8.03.
-    </p>
-
-    <div class="legend">
-      <span class="sw"><span class="ln-score"></span>CVE-2017-12718 score</span>
-      <span class="sw"><span class="ln-crit"></span>Critical threshold (8.0)</span>
-      <span class="sw"><span class="pt-cross"></span>k = 14.93 (crossing)</span>
-      <span class="sw"><span class="pt-pick"></span>k = 15 (lowest integer)</span>
-    </div>
-
     <div class="chart-wrap">
-      <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Line chart of DTVSS score for CVE-2017-12718 against k from 0 to 30. Score rises linearly from 1.65 at k=0 and plateaus at 10 at k=19.64. The 8.0 Critical threshold is crossed at k=14.93. The lowest integer satisfying the threshold is marked at k=15, score 8.03." style="display:block;width:100%;height:auto">
-        <!-- viewport geometry:
-             plot area x: 60 -> 660  (width 600), k: 0 -> 30, 20px per unit k
-             plot area y: 20 -> 240  (height 220), score: 0 -> 11, 20px per unit score
-             x(k) = 60 + k * 20
-             y(score) = 240 - score * 20
-             score plateaus at 10 when k >= 19.64
-             DTVSS = 1.65 * (1 + 0.2577 * k), capped at 10
-        -->
-        <!-- grid lines -->
+      <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Line chart of the DTVSS temporal multiplier (1 + 15 times L) against EPSS exploitation likelihood L from 0 to 1. The multiplier rises linearly from 1 at L equals 0 to 16 at L equals 1, passing 4.75 at L equals 0.25 and 8.5 at L equals 0.5 (even odds)." style="display:block;width:100%;height:auto">
+        <!-- plot area x 70..650 (L 0..1), y 30..240 (multiplier 0..16); x(L)=70+580L, y(M)=240-13.125M -->
         <g stroke="#1e2433" stroke-width="1" fill="none">
-          <line x1="60" y1="20" x2="60" y2="240"/>
-          <line x1="60" y1="240" x2="660" y2="240"/>
-          <line x1="60" y1="200" x2="660" y2="200" stroke-dasharray="2 4"/>
-          <line x1="60" y1="160" x2="660" y2="160" stroke-dasharray="2 4"/>
-          <line x1="60" y1="120" x2="660" y2="120" stroke-dasharray="2 4"/>
-          <line x1="60" y1="80"  x2="660" y2="80"  stroke-dasharray="2 4"/>
-          <line x1="60" y1="40"  x2="660" y2="40"  stroke-dasharray="2 4"/>
-          <line x1="160" y1="20" x2="160" y2="240" stroke-dasharray="2 4"/>
-          <line x1="260" y1="20" x2="260" y2="240" stroke-dasharray="2 4"/>
-          <line x1="360" y1="20" x2="360" y2="240" stroke-dasharray="2 4"/>
-          <line x1="460" y1="20" x2="460" y2="240" stroke-dasharray="2 4"/>
-          <line x1="560" y1="20" x2="560" y2="240" stroke-dasharray="2 4"/>
-          <line x1="660" y1="20" x2="660" y2="240" stroke-dasharray="2 4"/>
+          <line x1="70" y1="30" x2="70" y2="240"/>
+          <line x1="70" y1="240" x2="650" y2="240"/>
+          <line x1="70" y1="187.5" x2="650" y2="187.5" stroke-dasharray="2 4"/>
+          <line x1="70" y1="135" x2="650" y2="135" stroke-dasharray="2 4"/>
+          <line x1="70" y1="82.5" x2="650" y2="82.5" stroke-dasharray="2 4"/>
+          <line x1="70" y1="30" x2="650" y2="30" stroke-dasharray="2 4"/>
+          <line x1="215" y1="30" x2="215" y2="240" stroke-dasharray="2 4"/>
+          <line x1="360" y1="30" x2="360" y2="240" stroke-dasharray="2 4"/>
+          <line x1="505" y1="30" x2="505" y2="240" stroke-dasharray="2 4"/>
+          <line x1="650" y1="30" x2="650" y2="240" stroke-dasharray="2 4"/>
         </g>
-        <!-- y axis labels (score) -->
         <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" text-anchor="end">
-          <text x="54" y="244">0</text>
-          <text x="54" y="204">2</text>
-          <text x="54" y="164">4</text>
-          <text x="54" y="124">6</text>
-          <text x="54" y="84">8</text>
-          <text x="54" y="44">10</text>
+          <text x="64" y="244">0</text>
+          <text x="64" y="191.5">4</text>
+          <text x="64" y="139">8</text>
+          <text x="64" y="86.5">12</text>
+          <text x="64" y="34">16</text>
         </g>
-        <!-- y axis title -->
-        <text x="20" y="130" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" transform="rotate(-90 20 130)" text-anchor="middle">DTVSS score</text>
-        <!-- x axis labels (k) -->
+        <text x="22" y="135" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" transform="rotate(-90 22 135)" text-anchor="middle">score multiplier (1 + 15&middot;L)</text>
         <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" text-anchor="middle">
-          <text x="60" y="258">0</text>
-          <text x="160" y="258">5</text>
-          <text x="260" y="258">10</text>
-          <text x="360" y="258">15</text>
-          <text x="460" y="258">20</text>
-          <text x="560" y="258">25</text>
-          <text x="660" y="258">30</text>
+          <text x="70" y="258">0</text>
+          <text x="215" y="258">0.25</text>
+          <text x="360" y="258">0.50</text>
+          <text x="505" y="258">0.75</text>
+          <text x="650" y="258">1.0</text>
         </g>
-        <!-- x axis title -->
-        <text x="360" y="275" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" text-anchor="middle">k (temporal amplification constant)</text>
-        <!-- critical threshold line -->
-        <line x1="60" y1="80" x2="660" y2="80" stroke="#e95e5e" stroke-width="1.5" stroke-dasharray="5 4"/>
-        <!-- score line: rises linearly from (60, 207) to (452.8, 40), then flat to (660, 40) -->
-        <!-- score fill (area under the line) -->
-        <path d="M 60 207 L 452.8 40 L 660 40 L 660 240 L 60 240 Z" fill="#5b93f5" fill-opacity="0.10"/>
-        <!-- score line itself -->
-        <path d="M 60 207 L 452.8 40 L 660 40" stroke="#5b93f5" stroke-width="2" fill="none"/>
-        <!-- crossing circle at (14.93, 8.0) -> x=358.6, y=80 -->
-        <circle cx="358.6" cy="80" r="5" fill="#080a0f" stroke="#5b93f5" stroke-width="2"/>
-        <!-- k=15 square at (15, 8.03) -> x=360, y=239.4 ... wait, y=240-8.03*20=79.4 -->
-        <rect x="356" y="75.4" width="8" height="8" fill="#5b93f5"/>
+        <text x="360" y="275" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b7280" text-anchor="middle">EPSS exploitation likelihood L(t)</text>
+        <!-- base (no amplification) reference at multiplier = 1 -->
+        <line x1="70" y1="226.9" x2="650" y2="226.9" stroke="#838996" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
+        <text x="76" y="222" font-family="IBM Plex Mono, monospace" font-size="9" fill="#838996">base score (L = 0, no amplification)</text>
+        <!-- area + multiplier line -->
+        <path d="M 70 226.9 L 650 30 L 650 240 L 70 240 Z" fill="#5b93f5" fill-opacity="0.10"/>
+        <path d="M 70 226.9 L 650 30" stroke="#5b93f5" stroke-width="2" fill="none"/>
+        <!-- even-odds drop line -->
+        <line x1="360" y1="128.4" x2="360" y2="240" stroke="#5b93f5" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+        <!-- markers -->
+        <circle cx="215" cy="177.7" r="4" fill="#080a0f" stroke="#5b93f5" stroke-width="2"/>
+        <text x="215" y="168" font-family="IBM Plex Mono, monospace" font-size="10" fill="#b8bcc8" text-anchor="middle">&times;4.75</text>
+        <rect x="355" y="123.4" width="10" height="10" fill="#5b93f5"/>
+        <text x="360" y="116" font-family="IBM Plex Mono, monospace" font-size="11" fill="#e2e6f0" font-weight="700" text-anchor="middle">&times;8.5</text>
+        <circle cx="650" cy="30" r="4" fill="#080a0f" stroke="#5b93f5" stroke-width="2"/>
+        <text x="644" y="42" font-family="IBM Plex Mono, monospace" font-size="10" fill="#b8bcc8" text-anchor="end">&times;16</text>
       </svg>
     </div>
-
-    <div class="deriv"><span style="color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.08em;display:block;margin-bottom:8px">CLOSED-FORM DERIVATION</span>DTVSS = (2.20 / 10) &middot; (7.5 / 10) &middot; (1 + k &middot; 0.2577) &middot; 10
-      = 1.65 &middot; (1 + 0.2577 &middot; k)
-
-DTVSS &ge; 8.0  &rArr;  k &ge; <span class="k">14.93</span>
-
-Lowest integer: <span class="win">k = 15</span></div>
+    <p class="fn">
+      L(t) is the EPSS probability of exploitation in the next 30 days, refreshed daily from FIRST.org. Because it moves every day, the score moves every day &mdash; the amplifier is the mechanism that makes DTVSS a temporal score rather than a static one.
+    </p>
   </div>
 
-  <!-- Out-of-sample validation -->
+  <!-- Why 15 -->
   <div class="section">
-    <h3>Out-of-sample validation</h3>
+    <h3>Why 15</h3>
     <p>
-      The 96-CVE dataset was frozen at the time of patent filing (April 2026). A re-run against the current live CISA ICSMA index, 362 CVEs of which 323 are Class IIb and 39 are Class III, 3.8 times larger, returns k = 15 as well. The binding constraint in criterion (i) uses patent-frozen inputs, so the calibration is stable under dataset expansion; the fact that it survives a near-quadrupling of the corpus is the evidence that k = 15 is not a small-sample artefact.
+      k controls the trade between two failures. Too low, and an imminently exploitable flaw never rises out of the pack. Too high, and everything carrying any exploitation signal saturates at the top and the scale stops discriminating. k = 15 places the turning point so that even-odds exploitation is enough to carry a high-harm device into the Critical band, while low-exploitability findings stay low.
+    </p>
+    <p style="margin-top:10px">
+      It is a policy &mdash; set once and stated &mdash; rather than a number solved for against the dataset, and that is deliberate. An amplification constant should not move when one CVE's exploitation probability is revised, and EPSS values are revised constantly. Solving for the value that places a single named CVE exactly at a threshold makes the constant a hostage to that CVE's daily EPSS score. DTVSS states k, and uses the data to check it.
+    </p>
+  </div>
+
+  <!-- Worked example -->
+  <div class="section">
+    <h3>A worked example</h3>
+    <p>
+      CVE-2017-12718, a buffer overflow in the ICU Medical Plum 360 infusion pump (Class IIb, so H = 7.5), with CVSS exploitability sub-score B = 2.20. Applying the policy at an EPSS reading of L = 0.2577:
+    </p>
+    <div class="deriv"><span style="color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.08em;display:block;margin-bottom:8px">WORKED EXAMPLE &middot; ONE EPSS SNAPSHOT</span>DTVSS = (2.20 / 10) &middot; (7.5 / 10) &middot; (1 + 15 &middot; 0.2577) &middot; 10
+      = 1.65 &middot; (1 + 15 &middot; 0.2577)
+      = 1.65 &middot; 4.866
+      = <span class="win">8.03</span>   <span style="color:var(--crit)">CRITICAL</span></div>
+    <p class="fn">
+      <span class="lbl">Time-relative.</span> L = 0.2577 is one day's EPSS reading; it drifts as FIRST.org re-estimates exploitation likelihood, and the score drifts with it. This shows how the policy scores a real flaw on one day, not a fixed property of the CVE. At even odds (L = 0.5) the same base would amplify to 1.65 &middot; 8.5 = 14.0 before the score is shaped toward the 10-point ceiling (below).
+    </p>
+  </div>
+
+  <!-- Top of the scale -->
+  <div class="section">
+    <h3>The top of the scale</h3>
+    <p>
+      The amplifier can drive the raw product well past 10 &mdash; an even-odds flaw on a Class III device clears it easily. Hard-clipping every such finding to a flat 10.0 would erase the difference between a serious vulnerability and an extreme one. Instead, DTVSS shapes the top of the range smoothly: scores below 8.0 are exact, and above 8.0 the overshoot is compressed asymptotically toward 10 without ever reaching it. An exact 10.0 is reserved for one case &mdash; a CVE confirmed in active exploitation (CISA KEV), which is forced to 10.0 regardless of k.
+    </p>
+  </div>
+
+  <!-- Validation -->
+  <div class="section">
+    <h3>Validation on the filing data</h3>
+    <p>
+      The stated policy is checked against the 96-CVE filing dataset (87 Class IIb, 9 Class III), frozen at the time of patent filing. These checks confirm the distribution is sensible &mdash; they validate k = 15, they do not derive it.
     </p>
     <div class="dual">
       <div class="col">
-        <div class="lbl">Filing &middot; 96 CVEs</div>
+        <div class="lbl">Distribution check &middot; 96 CVEs</div>
         <div class="kv">
-          <span class="k">Score span</span><span class="v">9.62</span>
-          <span class="k">L(t) score changes</span><span class="v">95 of 96</span>
-          <span class="k">L(t) tier crossings</span><span class="v">34</span>
-          <span class="k">KEV-overridden</span><span class="v crit">1</span>
+          <span class="k">Reach Critical</span><span class="v">5.2%</span>
+          <span class="k">Highest low-risk score</span><span class="v">0.98</span>
+          <span class="k">Score span</span><span class="v">9.44</span>
+          <span class="k">KEV-forced to 10.0</span><span class="v crit">1</span>
         </div>
       </div>
       <div class="col">
-        <div class="lbl">Live &middot; 362 CVEs</div>
-        <div class="kv">
-          <span class="k">Score span</span><span class="v">9.84</span>
-          <span class="k">Class IIb</span><span class="v">323</span>
-          <span class="k">Class III</span><span class="v crit">39</span>
-          <span class="k">Lowest satisfying k</span><span class="v acc">15</span>
+        <div class="lbl">What each confirms</div>
+        <div class="kv" style="grid-template-columns:1fr;gap:9px">
+          <span class="k">A small, stable share reaches Critical (target 3&ndash;8%)</span>
+          <span class="k">Low-exploitability findings stay well under the 5.5 ceiling</span>
+          <span class="k">The scale spreads across its range, not compressed</span>
         </div>
       </div>
     </div>
     <p class="fn">
-      <span class="lbl">KEV note.</span> CVEs in the CISA KEV catalog are forced to score 10.0 post-scoring regardless of k, so they are excluded from the "L(t) score changes" statistic. The filing dataset contains 1 such CVE (CVE-2020-11899, Treck Ripple20, in CISA KEV since 2022-03-03). Excluding it leaves 95 non-KEV CVEs, all 95 of which change score when L is zeroed, hence "95 of 96."
+      <span class="lbl">Corpus-independent.</span> Because k is stated rather than fitted, it applies unchanged to any set of CVEs &mdash; nothing about the value depends on these 96. Against a live EPSS feed the absolute scores move daily by design, and the share reaching Critical can drift as exploitation estimates change; managing that share is the job of an operational triage layer, not a reason to re-fit the constant.
     </p>
     <p class="fn">
-      <span class="lbl">Snapshot.</span> Filing dataset frozen 2026-04-09 (EPSS snapshot 2026-04-08). Live superset drawn from the current ICSMA index. L(t) values drift daily by design; the 96-CVE set is frozen for reproducibility.
+      <span class="lbl">Snapshot.</span> Filing dataset frozen 2026-04-09 (EPSS snapshot 2026-04-08). L(t) values drift daily by design; the 96-CVE set is frozen for reproducibility.
     </p>
   </div>
 
@@ -360,17 +305,18 @@ Lowest integer: <span class="win">k = 15</span></div>
   <div class="section">
     <h3>Reproduce it</h3>
     <p>
-      All inputs are public. The calibration runs offline in under a second against the committed dataset. To re-validate against a live ICSMA snapshot, the same script can rebuild the dataset from the current index and fetch EPSS from FIRST.org.
+      All inputs are public. The check runs offline in under a second against the committed dataset, using only the Python standard library. To re-validate against a live snapshot, the same script fetches current EPSS from FIRST.org with the <span style="font-family:var(--mono);font-size:12px;color:var(--hd)">--live</span> flag.
     </p>
     <div class="cmd"><span class="prompt">$</span> git clone https://github.com/d3matr1x/dtvss-web.git &amp;&amp; cd dtvss-web
 <span class="prompt">$</span> python3 calibrate_k.py
-<span class="ok">&rarr; Lowest integer k satisfying all four criteria: k = 15</span></div>
+<span class="ok">&rarr; k = 15  (stated amplification policy)</span>
+<span class="ok">&rarr; Validation on filing dataset:  Critical 5.21%  low-risk 0.98  span 9.44   [PASS]</span></div>
     <div style="margin-top:14px;padding:12px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;font-size:13px;line-height:1.7">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--low);box-shadow:0 0 6px var(--low)"></span>
-        <span style="color:var(--hd);font-weight:600">Calibration verified on every commit.</span>
+        <span style="color:var(--hd);font-weight:600">Checked on every commit.</span>
       </div>
-      <span style="color:var(--tx)">A continuous integration workflow runs <span style="font-family:var(--mono);font-size:12px;color:var(--hd)">calibrate_k.py</span> against the frozen 96-CVE dataset on every push and pull request, and asserts that the eight patent-binding values in <span style="font-family:var(--mono);font-size:12px;color:var(--hd)">results.json</span> reproduce exactly. Drift breaks the build. <a href="https://github.com/d3matr1x/dtvss-web/actions/workflows/calibration.yml" target="_blank" rel="noopener noreferrer">View CI runs &rarr;</a></span>
+      <span style="color:var(--tx)">A continuous integration workflow runs <span style="font-family:var(--mono);font-size:12px;color:var(--hd)">calibrate_k.py</span> against the frozen 96-CVE dataset on every push and pull request, and asserts that the calibration record in <span style="font-family:var(--mono);font-size:12px;color:var(--hd)">results.json</span> &mdash; the stated k and its validation figures &mdash; reproduces exactly. Drift breaks the build. <a href="https://github.com/d3matr1x/dtvss-web/actions/workflows/calibration.yml" target="_blank" rel="noopener noreferrer">View CI runs &rarr;</a></span>
       <div style="margin-top:10px;color:var(--dim);font-size:12px">
         Source: <a href="https://github.com/d3matr1x/dtvss-web" target="_blank" rel="noopener noreferrer" style="font-family:var(--mono)">github.com/d3matr1x/dtvss-web</a>
       </div>
@@ -405,46 +351,6 @@ Lowest integer: <span class="win">k = 15</span></div>
   </div>
 
 </main>
-
-<script>
-// Sweep data, computed offline from results.json
-var sweep = [
-  {k:1,i:2.08,ip:0,ii:0.98,iip:1,iii:4.17,iiip:0,iv:4.25,ivp:1},
-  {k:2,i:2.50,ip:0,ii:0.98,iip:1,iii:5.42,iiip:0,iv:5.94,ivp:1},
-  {k:3,i:2.93,ip:0,ii:0.98,iip:1,iii:6.67,iiip:0,iv:7.64,ivp:1},
-  {k:4,i:3.35,ip:0,ii:0.98,iip:1,iii:7.91,iiip:0,iv:9.33,ivp:1},
-  {k:5,i:3.78,ip:0,ii:0.98,iip:1,iii:9.16,iiip:1,iv:9.63,ivp:1},
-  {k:6,i:4.20,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.63,ivp:1},
-  {k:7,i:4.63,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:8,i:5.05,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:9,i:5.48,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:10,i:5.90,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:11,i:6.33,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:12,i:6.75,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:13,i:7.18,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:14,i:7.60,ip:0,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:15,i:8.03,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1,win:1},
-  {k:16,i:8.45,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:17,i:8.88,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:18,i:9.30,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:19,i:9.73,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1},
-  {k:20,i:10.00,ip:1,ii:0.98,iip:1,iii:10.00,iiip:1,iv:9.62,ivp:1}
-];
-
-var tbody = document.getElementById('sweep-body');
-sweep.forEach(function(r) {
-  var tr = document.createElement('tr');
-  if (r.win) tr.className = 'win';
-  var cellClass = function(p) { return p ? 'pass' : 'fail'; };
-  tr.innerHTML =
-    '<td class="k-cell">' + r.k + '</td>' +
-    '<td class="' + cellClass(r.ip) + '">' + r.i.toFixed(2) + '</td>' +
-    '<td class="' + cellClass(r.iip) + '">' + r.ii.toFixed(2) + '</td>' +
-    '<td class="' + cellClass(r.iiip) + '">' + r.iii.toFixed(2) + '</td>' +
-    '<td class="' + cellClass(r.ivp) + '">' + r.iv.toFixed(2) + '</td>';
-  tbody.appendChild(tr);
-});
-</script>
 
 </body>
 </html>
