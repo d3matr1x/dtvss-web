@@ -338,23 +338,37 @@ def nvd_search_keyword(keyword: str, api_key: str = None, max_results: int = 50)
     if api_key:
         headers["apiKey"] = api_key
 
+    # Timeout 8s (was 30). The gunicorn worker timeout is 30s, so a 30s NVD
+    # timeout races it: the worker is SIGABRT-killed (SystemExit) before our
+    # handling runs, and the caller gets an HTML 5xx page instead of JSON. 8s
+    # leaves headroom for the Turnstile verify and the finally-sleep below.
+    # Mirrors the openFDA hardening (INFO-02).
+    #
+    # _fetch_json applies SSRF policy + a size cap, and raises JSONDecodeError
+    # when NVD returns 200 OK with a non-JSON body. NVD sits behind Cloudflare
+    # and occasionally answers a cold connection with an empty or HTML body
+    # before the edge warms up; an immediate retry almost always succeeds, so
+    # we retry ONCE on that case only.
+    #
+    # We deliberately do NOT swallow a hard failure into []. A timeout, a
+    # transport error, or a second non-JSON body propagates to the caller
+    # (_search_live_nvd), which then reports "temporarily unavailable" (503)
+    # rather than the misleading "No CVEs found." that previously hid real
+    # medical-device CVEs (e.g. the Insulet Omnipod insulin pump for a
+    # "diabetes" search).
+    data = None
     try:
-        # M-3: _fetch_json applies SSRF policy + size cap. We still need
-        # the HTML-error-page guard because NVD has historically returned
-        # 200 OK with an HTML error body. _fetch_json will raise
-        # JSONDecodeError on that case; we catch it below as before.
-        # Timeout 8s (was 30). The gunicorn worker timeout is 30s, so a 30s
-        # NVD timeout races it: the worker is SIGABRT-killed (SystemExit) before
-        # our `except` can return [], and the caller gets an HTML 5xx page
-        # instead of JSON. 8s leaves headroom for the Turnstile verify and the
-        # finally-sleep below. Mirrors the openFDA hardening (INFO-02).
-        data = _fetch_json(url, headers=headers, timeout=8)
-    except json.JSONDecodeError:
-        return []
-    except Exception:
-        return []
+        for _attempt in range(2):
+            try:
+                data = _fetch_json(url, headers=headers, timeout=8)
+                break
+            except json.JSONDecodeError:
+                if _attempt == 1:
+                    raise  # second non-JSON body: treat as upstream failure
+                _time.sleep(0.5)  # brief backoff, then one retry
     finally:
-        # Rate limit AFTER request: NVD allows 50 req/30s with key, 5 without
+        # Rate limit AFTER the request(s): NVD allows 50 req/30s with key,
+        # 5 without. One sleep regardless of retry.
         _time.sleep(0.7 if api_key else 6.0)
 
     results = []
