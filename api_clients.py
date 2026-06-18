@@ -343,7 +343,12 @@ def nvd_search_keyword(keyword: str, api_key: str = None, max_results: int = 50)
         # the HTML-error-page guard because NVD has historically returned
         # 200 OK with an HTML error body. _fetch_json will raise
         # JSONDecodeError on that case; we catch it below as before.
-        data = _fetch_json(url, headers=headers, timeout=30)
+        # Timeout 8s (was 30). The gunicorn worker timeout is 30s, so a 30s
+        # NVD timeout races it: the worker is SIGABRT-killed (SystemExit) before
+        # our `except` can return [], and the caller gets an HTML 5xx page
+        # instead of JSON. 8s leaves headroom for the Turnstile verify and the
+        # finally-sleep below. Mirrors the openFDA hardening (INFO-02).
+        data = _fetch_json(url, headers=headers, timeout=8)
     except json.JSONDecodeError:
         return []
     except Exception:

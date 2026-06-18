@@ -782,6 +782,9 @@ async function doSearch() {
     if (isCVE) {
       const tsParam = turnstileQueryParam();
       const resp = await fetch(`/api/lookup?cve=${encodeURIComponent(q)}${classParam}${tsParam}`);
+      if (!(resp.headers.get('content-type') || '').includes('application/json')) {
+        throw new Error(resp.status === 429 ? 'too many requests - please wait a moment and try again' : 'the request timed out or the server is busy - please try again in a moment');
+      }
       const data = await resp.json();
       if (data.error) {
         showError(data.error);
@@ -808,6 +811,9 @@ async function doSearch() {
 
       const tsParam = turnstileQueryParam();
       const resp = await fetch(`/api/search?q=${encodeURIComponent(q)}${classParam}&max=30${tsParam}`);
+      if (!(resp.headers.get('content-type') || '').includes('application/json')) {
+        throw new Error(resp.status === 429 ? 'too many requests - please wait a moment and try again' : 'the request timed out or the server is busy - please try again in a moment');
+      }
       const data = await resp.json();
       searchCache[cacheKey] = { data, ts: Date.now() };
       if (data.error) {

@@ -272,6 +272,9 @@ window.addEventListener('error', function(e) {
         const url = `/api/lookup?cve=${encodeURIComponent(cve)}` +
                     (tsToken ? `&cf-turnstile-response=${encodeURIComponent(tsToken)}` : "");
         const resp = await fetch(url);
+        if (!(resp.headers.get('content-type') || '').includes('application/json')) {
+          throw new Error(resp.status === 429 ? 'too many requests - please wait a moment and try again' : 'the request timed out or the server is busy - please try again in a moment');
+        }
         const data = await resp.json();
         if (data.error) {
           setLookupMsg(data.error);
@@ -465,7 +468,7 @@ window.addEventListener('error', function(e) {
           // Class I / IIa scope note
           e('div', { style: { marginTop: "10px", padding: "8px 12px", background: "#0e1118", border: "1px solid #1e2433", borderRadius: "6px", fontFamily: body, fontSize: "11px", color: "#838996", lineHeight: 1.6 } },
             e('span', { style: { color: "#b8bcc8", fontWeight: 600 } }, "Note. "),
-            "The patent specifies four H values (Class I = 2.0, IIa = 5.0, IIb = 7.5, III = 10.0). The calculator exposes Class IIb and Class III only because the calibration dataset and current ICSMA scope contain no Class I or Class IIa CVEs. The full four-class taxonomy applies in the patent specification."
+            "The provisional patent specification defines four H values (Class I = 2.0, IIa = 5.0, IIb = 7.5, III = 10.0). The calculator exposes Class IIb and Class III only because the calibration dataset and current ICSMA scope contain no Class I or Class IIa CVEs. The full four-class taxonomy applies in the specification."
           ),
 
           // KEV toggle
@@ -629,8 +632,10 @@ window.addEventListener('error', function(e) {
             e('a', { href: "/calibration", style: { color: "#5b93f5" } }, "Calibration"),
             " · ",
             e('a', { href: "/about", style: { color: "#5b93f5" } }, "About"),
+            /* TIERS DISABLED 2026-06-10 - re-enable by uncommenting the next two lines:
             " · ",
-            /* TIERS DISABLED 2026-06-10 */ e('span', { style: { color: "#838996" } }, "Tiers"),
+            e('a', { href: "/tiers", style: { color: "#5b93f5" } }, "Tiers"),
+            */
             " · ",
             e('a', { href: "/security-policy", style: { color: "#5b93f5" } }, "Security")
           )

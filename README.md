@@ -11,8 +11,8 @@ uses the frozen 96-CVE filing dataset to validate that the policy produces a
 sensible distribution. Every figure in the validation record below reproduces
 exactly against the committed dataset.
 
-> **Note on framing.** k was originally described (provisional patent [0023],
-> [0025]) as "the lowest integer satisfying four clinical criteria." Those
+> **Note on framing.** k was originally described (provisional patent specification,
+> [0023] and [0025]) as "the lowest integer satisfying four clinical criteria." Those
 > criteria anchor to where individual CVEs cross the Critical threshold, which
 > ties the constant to specific EPSS readings — and EPSS is re-estimated
 > continuously. DTVSS therefore states k as an explicit amplification policy and
@@ -90,7 +90,7 @@ The source CSV contains two related EPSS columns for the same CVE on the
 same snapshot date:
 
 - **`L`** — the EPSS *score* in `[0.0, 1.0]`. This is the probability used as
-  the L(t) variable in the DTVSS scoring formula (patent [0021]). The
+  the L(t) variable in the DTVSS scoring formula (specification [0021]). The
   calibration code reads this column.
 - **`epss_pct`** — the EPSS *percentile* in `[0.0, 1.0]`. This is where the
   CVE ranks among all CVEs by predicted exploitation probability on the
@@ -183,11 +183,11 @@ specification (section 7.1):
 
 where PR is scope-dependent (separate tables for Scope:Unchanged vs
 Scope:Changed). The B values in `source_96cve_filing.csv` are these
-pre-computed values, authoritative for the patent's claims.
+pre-computed values, authoritative for the calibration figures.
 
 **H** (patient harm weighting factor, range [0, 10]):
 
-Per patent [0022]:
+Per the specification [0022]:
 
 - Class I devices: H = 2.0
 - Class IIa devices: H = 5.0
@@ -214,9 +214,9 @@ the soft cap holds every other score below 10.
 
 ## Note on "11 Class III CVEs"
 
-Patent [0025] describes "11 Class III implantable cardiac device CVEs from
+The specification [0025] describes "11 Class III implantable cardiac device CVEs from
 Zoll Medical and Abbott." The filing-time dataset contains 9 Class III CVEs
-(6 Zoll + 3 Abbott). This is a minor arithmetic slip in the patent text; the
+(6 Zoll + 3 Abbott). This is a minor arithmetic slip in the specification text; the
 calibration itself was correctly performed against the 9 CVEs actually in
 the dataset. Does not affect any check.
 
