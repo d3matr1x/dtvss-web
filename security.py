@@ -393,6 +393,18 @@ def safe_fetch_bytes(
             # errors to callers.
             raise urllib.error.URLError(str(e)) from e
 
+        # Status check. urllib3's low-level HTTPSConnection does NOT raise on
+        # 4xx/5xx - it returns the error page as the body. Without this, an NVD
+        # 503 ("No server is available to handle this request", an HTML page)
+        # reaches _fetch_json, which runs json.loads() on the HTML and raises a
+        # misleading JSONDecodeError. Match urlopen semantics: raise on non-2xx
+        # so callers see the real status (a 503 becomes a clean "temporarily
+        # unavailable", and nvd_search_keyword won't waste its retry on it).
+        if not (200 <= resp.status < 300):
+            raise urllib.error.HTTPError(
+                url, resp.status, resp.reason or "HTTP error", resp.headers, None
+            )
+
         # Content-Length early check.
         # Bug fix history: previously the over-cap raise lived inside the
         # same try as int(content_length), so an except ValueError swallowed
