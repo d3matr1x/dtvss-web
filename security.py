@@ -104,31 +104,6 @@ BLOCKED_DOMAIN_SUFFIXES = (
     ".intranet",          # Corporate intranets
 )
 
-# Managed-deploy detection, shared by app.py's startup guards and the
-# Turnstile decorator below (which fails CLOSED in managed deploys).
-#
-# History (originally in app.py): an earlier version checked
-# RAILWAY_ENVIRONMENT == "production", but Railway sets that variable to
-# whatever the user named their environment in the dashboard - "production"
-# is only the default. Renamed environments (staging, prod, main, ...)
-# silently bypassed the guard. We now trigger on ANY Railway-/Heroku-/Fly-/
-# Render-style env var, with explicit escape hatches per check.
-def is_managed_deploy() -> bool:
-    """True if running on Railway, Heroku, Fly, Render, or similar PaaS."""
-    return any(
-        os.environ.get(k)
-        for k in (
-            "RAILWAY_ENVIRONMENT",
-            "RAILWAY_ENVIRONMENT_NAME",
-            "RAILWAY_PROJECT_ID",
-            "DYNO",                         # Heroku
-            "FLY_APP_NAME",                 # Fly.io
-            "RENDER",                       # Render
-            "DTVSS_REQUIRE_PERSISTENT",     # explicit opt-in for any other host
-        )
-    )
-
-
 # CORS: origins permitted to call the API from browsers
 # Override via DTVSS_CORS_ORIGINS env var (comma-separated)
 #
@@ -392,6 +367,18 @@ def safe_fetch_bytes(
             # the pinning safety net). Both should look like network
             # errors to callers.
             raise urllib.error.URLError(str(e)) from e
+
+        # Status check. urllib3's low-level HTTPSConnection does NOT raise on
+        # 4xx/5xx - it returns the error page as the body. Without this, an NVD
+        # 503 ("No server is available to handle this request", an HTML page)
+        # reaches _fetch_json, which runs json.loads() on the HTML and raises a
+        # misleading JSONDecodeError. Match urlopen semantics: raise on non-2xx
+        # so callers see the real status (a 503 becomes a clean "temporarily
+        # unavailable", and nvd_search_keyword won't waste its retry on it).
+        if not (200 <= resp.status < 300):
+            raise urllib.error.HTTPError(
+                url, resp.status, resp.reason or "HTTP error", resp.headers, None
+            )
 
         # Content-Length early check.
         # Bug fix history: previously the over-cap raise lived inside the
@@ -746,14 +733,7 @@ def apply_hardening(app, cors_origins: Optional[list[str]] = None) -> None:
         response.headers["X-Request-ID"] = getattr(g, "request_id", "unknown")
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
-        # setdefault, not assignment: views may opt into a STRICTER policy
-        # (Tier 2 token-in-URL routes set "no-referrer" so a browser never
-        # forwards the tokened URL; see tier2_auth.require_tier2). The
-        # global after_request runs after the view, so a plain assignment
-        # here would clobber that override.
-        response.headers.setdefault(
-            "Referrer-Policy", "strict-origin-when-cross-origin"
-        )
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = (
             "geolocation=(), microphone=(), camera=(), "
             "payment=(), usb=(), interest-cohort=()"
@@ -1197,19 +1177,10 @@ def require_turnstile_or_api_key(fn):
     With the limiter outermost, the bot's IP gets 429'd long before its
     forged tokens reach our verify path.
 
-    Missing-secret behaviour depends on environment:
-
-      - Local dev (no PaaS env vars detected): log a one-time warning and
-        pass through, so `python app.py` stays runnable without
-        Cloudflare credentials.
-      - Managed deploy (is_managed_deploy() is True): FAIL CLOSED with
-        503. A dropped env var in production must not silently remove
-        bot protection from the expensive endpoints. Operators who
-        genuinely want to run without Turnstile set
-        DTVSS_ALLOW_NO_TURNSTILE=1, which restores the dev pass-through
-        (with the same one-time warning). app.py logs the
-        misconfiguration at startup as well, so it is visible in deploy
-        logs before the first 503 is served.
+    Local dev fallback: if TURNSTILE_SECRET is unset, the decorator logs
+    a one-time warning and passes through. This matches the Flask-
+    Limiter "not installed" fallback in app.py and keeps `python app.py`
+    runnable without Cloudflare credentials.
     """
     from flask import request, jsonify, g
 
@@ -1217,34 +1188,6 @@ def require_turnstile_or_api_key(fn):
     def wrapper(*args, **kwargs):
         secret_configured = bool(os.environ.get("TURNSTILE_SECRET", "").strip())
         if not secret_configured:
-            if is_managed_deploy() and not os.environ.get("DTVSS_ALLOW_NO_TURNSTILE"):
-                # Production-like environment with no secret: fail closed.
-                # 503 (not 403): the client did nothing wrong, the service
-                # is misconfigured. Programmatic clients with an API key
-                # are unaffected only if a key is configured - check that
-                # path first so X-API-Key users keep working during the
-                # misconfiguration window.
-                api_key = request.headers.get("X-API-Key")
-                if api_key is not None and is_valid_api_key(api_key):
-                    g.auth_method = "api_key"
-                    return fn(*args, **kwargs)
-                if not _turnstile_state["warned_no_secret"]:
-                    log.error(
-                        "TURNSTILE_SECRET not set in a managed deploy; "
-                        "failing CLOSED on bot-protected endpoints. Set "
-                        "TURNSTILE_SECRET, or DTVSS_ALLOW_NO_TURNSTILE=1 "
-                        "to explicitly run without bot protection."
-                    )
-                    _turnstile_state["warned_no_secret"] = True
-                return jsonify({
-                    "error": "Bot challenge unavailable",
-                    "hint": (
-                        "The service's bot-protection backend is not "
-                        "configured. Programmatic clients may send "
-                        "X-API-Key instead."
-                    ),
-                    "request_id": getattr(g, "request_id", None),
-                }), 503
             if not _turnstile_state["warned_no_secret"]:
                 log.warning(
                     "TURNSTILE_SECRET not set; bot challenge bypass active "
