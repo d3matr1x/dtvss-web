@@ -193,6 +193,66 @@ def search_manufacturer_cves(manufacturer_name):
     return []
 
 
+# A few clinical-category words don't appear verbatim in CVE descriptions
+# (descriptions say "implantable cardioverter defibrillator", not "cardiac"),
+# so expand them to the device/vendor terms that do appear.
+_KEYWORD_EXPANSIONS = {
+    "cardiac":    ["cardiac", "defibrillator", "cardioverter", "pacemaker",
+                   "implantable", "merlin", "carelink", "conexus"],
+    "pacemaker":  ["pacemaker", "cardioverter", "defibrillator", "implantable",
+                   "merlin", "carelink", "conexus"],
+    "heart":      ["cardiac", "defibrillator", "pacemaker", "cardioverter",
+                   "implantable"],
+    "ventilator": ["ventilator", "respirator", "respiratory", "draeger",
+                   "dr\u00e4ger", "hamilton", "evita", "puritan bennett"],
+    "respiratory": ["ventilator", "respirator", "respiratory", "cpap", "bipap"],
+}
+
+
+def search_index_by_keyword(query, max_results=200):
+    """
+    Free-text search over indexed CVEs by description / CVE ID.
+
+    search_manufacturer_cves only matches a query against manufacturer NAMES,
+    so a device-type query ("infusion", "cardiac", "glucose") matches no
+    manufacturer, returns [], and the request falls through to live NVD -
+    which is slow and intermittently unavailable. The matching CVEs are
+    already in this index (under their manufacturers); this finds them by
+    description so those searches resolve locally. A few clinical-category
+    words are expanded via _KEYWORD_EXPANSIONS.
+
+    Word-boundary, case-insensitive. Returns a deduplicated list of index CVE
+    records (same shape as search_manufacturer_cves) so _search_indexed scores
+    them unchanged.
+    """
+    if not query:
+        return []
+    q = query.lower().strip()
+    if not q:
+        return []
+    terms = _KEYWORD_EXPANSIONS.get(q, [q])
+    try:
+        patterns = [re.compile(r"\b" + re.escape(t) + r"\b", re.IGNORECASE)
+                    for t in terms]
+    except re.error:
+        return []
+    seen = set()
+    out = []
+    with _lock:
+        for mdm in _index.get("manufacturers", {}).values():
+            for cve in mdm.get("cves", []) or []:
+                cid = cve.get("cve_id", "")
+                if not cid or cid in seen:
+                    continue
+                haystack = (cve.get("description", "") or "") + " " + cid
+                if any(p.search(haystack) for p in patterns):
+                    seen.add(cid)
+                    out.append(cve)
+                    if len(out) >= max_results:
+                        return list(out)
+    return list(out)
+
+
 def get_cpe_search_terms(manufacturer_name):
     """
     Return search terms for live NVD queries.
@@ -565,13 +625,6 @@ def _try_acquire_pipeline_leadership() -> bool:
         return True  # not POSIX, fall back to per-worker hourly thread
 
     sentinel_path = INDEX_FILE + ".pipeline.lock"
-    # Pre-bind so the except block below can safely reference fh even when
-    # open() itself raised (e.g. the index directory does not exist yet,
-    # such as a fresh DTVSS_DATA_DIR volume before the first pipeline run).
-    # Previously fh was only bound on successful open, so an OSError from
-    # open() cascaded into UnboundLocalError in the handler and crashed the
-    # whole module at import time.
-    fh = None
     try:
         # Open in append mode so the file is created if missing without
         # truncating an existing one. We only care about the lock, not contents.
@@ -582,12 +635,10 @@ def _try_acquire_pipeline_leadership() -> bool:
         _pipeline_lock_file_handle = fh
         return True
     except (BlockingIOError, OSError):
-        # Another worker holds the lock (or open() itself failed and fh is
-        # still None). Close our handle so we don't leak fds on repeated
-        # attempts.
+        # Another worker holds the lock. Close our handle so we don't leak fds
+        # on repeated attempts.
         try:
-            if fh is not None:
-                fh.close()
+            fh.close()
         except (OSError, ValueError):
             # Best-effort cleanup. File may already be closed (ValueError) or
             # the OS may report a secondary error during close (OSError) - we

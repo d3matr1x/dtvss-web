@@ -35,6 +35,7 @@ from api_clients import nvd_lookup_cve, nvd_search_keyword, epss_lookup, cisa_ke
 from index_loader import (
     get_manufacturer_dropdown,
     search_manufacturer_cves,
+    search_index_by_keyword,
     get_cpe_search_terms,
     get_advisory_urls,
 )
@@ -775,11 +776,17 @@ def search():
     log.info("search q_hash=%s max=%d", _query_hash(query), max_results)
 
     # === Try pre-built ICSMA index first ===
+    # 1. Manufacturer-name match (vendor / dropdown searches).
     indexed_cves = search_manufacturer_cves(query)
+    # 2. No manufacturer matched -> search the SAME index by CVE description so
+    #    device-type queries ("cardiac", "infusion", "glucose") resolve locally
+    #    instead of falling through to slow / intermittently-down live NVD.
+    if not indexed_cves:
+        indexed_cves = search_index_by_keyword(query)
     if indexed_cves:
         return _search_indexed(query, tga_override, max_results, indexed_cves)
 
-    # === Fall back to live NVD ===
+    # === Fall back to live NVD (queries not represented in the index) ===
     return _search_live_nvd(query, tga_override, max_results)
 
 
@@ -869,7 +876,12 @@ def _search_indexed(query: str, tga_override: str, max_results: int, indexed_cve
             "severity": ic.get("severity", ""),
             "published": ic.get("published", ""),
             "epss_percentile": epss_map.get(cve_id, {}).get("percentile", 0),
-            "ics_advisory": bool(ics_urls),
+            # Index CVEs are sourced from CISA medical advisories (CSAF/ICSMA),
+            # so they are in medical scope by provenance. Mark them accordingly
+            # so the scope filter admits keyword-found CVEs whose descriptions
+            # don't happen to contain a hardcoded medical term (e.g. several
+            # glucose/diabetes records). Without this the filter drops them.
+            "ics_advisory": True,
             "ics_urls": ics_urls[:3],
             "source": ic.get("source", "icsma"),
         })
