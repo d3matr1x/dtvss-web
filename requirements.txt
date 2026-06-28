@@ -51,7 +51,7 @@ cryptography>=49.0.0,<50
 # Railway's private networking is IPv6; redis>=5.0 handles this natively.
 # If REDIS_URL isn't set, Flask-Limiter falls back to memory:// (per-worker,
 # resets on restart) — safe for local dev, not production.
-redis>=8.0.0
+redis>=8.0.1
 
 # urllib3 — DNS-pinned HTTPS for SSRF guard in security.py.
 # The stdlib urllib.request does its own DNS resolution at connection time,
